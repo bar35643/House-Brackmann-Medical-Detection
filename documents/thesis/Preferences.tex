@@ -1,0 +1,205 @@
+% Allgemeines
+\usepackage[automark]{scrpage2} % Kopf- und Fusszeilen
+\usepackage{amsmath} % Mathematik
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc} % UTF8-Kodierung fuer Umlaute usw
+\usepackage{hyperref} % Internetseiten
+\usepackage{multirow} % Tabellen-Zellen ueber mehrere Zeilen
+\usepackage{multicol} % mehre Spalten auf eine Seite
+\usepackage{tabularx} % Fuer Tabellen mit vorgegeben Groessen
+\usepackage[ngerman]{babel}
+\usepackage{graphicx} % Bilder
+\usepackage{epstopdf} % enable eps graphics
+\usepackage{color} % Farben
+\usepackage{subfig} % mehrere Abbildungen nebeneinander/uebereinander
+% Quellcode
+\usepackage{listings} % fuer Formatierung in Quelltexten
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{chngcntr}
+\counterwithout{equation}{chapter}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Einstellungen zum Literaturverzeichnis
+%
+% Anpassen bei "alphabetic"
+\ExecuteBibliographyOptions{%
+     maxbibnames=99,   % Alle Autoren (kein et al.)
+     maxcitenames=1,   % Kuerzel nur aus 1. Autor im Text
+     maxalphanames=1,  % nur 1. Autor in der Abkuerzung
+     backref=false,    % keine Ruueckverweise auf Zitatseiten
+     firstinits=true,  % Vornamen abkuerzen
+     isbn=false,       % ISBN ausblenden
+     doi=false,        % DOI ausblenden
+   }
+\renewcommand*{\labelalphaothers}{} % alpha label ohne +
+%
+\renewbibmacro*{volume+number+eid}{%
+     \setunit{\space}\printfield{volume}%
+     \iffieldundef{number}{}{%
+      \printtext[parens]{\printfield{number}}}%
+     \setunit{\addcomma\space}\printfield{eid}}
+%
+% no word 'pages' for articles in the bibliography (print as is)
+\DeclareFieldFormat[article, inproceedings, incollection, unpublished]{pages}{#1} 
+% no quotes for article titles (print as is)
+\DeclareFieldFormat[article, inproceedings, incollection, online, unpublished]{title}{#1} 
+%
+\renewbibmacro*{date}{\printdate}
+\renewbibmacro*{issue+date}{\usebibmacro{issue}}
+\renewbibmacro*{publisher+location+date}{\printlist{publisher}}
+%
+   \setcounter{biburlnumpenalty}{9000}
+   \setcounter{biburlucpenalty}{9000}
+   \setcounter{biburllcpenalty}{9999}
+%
+% "In:" removed for articles; issue/date macros added after note+pages macro
+\DeclareBibliographyDriver{article}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/translator+others}%
+  \setunit{\labelnamepunct}\newblock%
+  \usebibmacro{title}%
+  \newunit%
+  \printlist{language}%
+  \newunit\newblock%
+  \usebibmacro{byauthor}%
+  \newunit\newblock%
+  \usebibmacro{bytranslator+others}%
+  \newunit\newblock%
+  \printfield{version}%
+  \newunit\newblock%
+  \usebibmacro{journal+issuetitle}%
+  \newunit%
+  \usebibmacro{byeditor+others}%
+  \newunit%
+  \usebibmacro{note+pages}%
+  \setunit{\addcomma\addspace}%
+  \usebibmacro{date}%
+  \usebibmacro{finentry}}
+%
+%
+\DeclareBibliographyDriver{inproceedings}{%
+    \usebibmacro{begentry}%
+    \printnames{author}%
+    \setunit{\labelnamepunct}\newblock%
+    \printfield{title}%
+    \setunit{\labelnamepunct}%
+	\usebibmacro{in:}%    
+    \newblock%
+    \ifnameundef{editor}%
+    {%
+    		\setunit{\adddot\space}%
+    		\newunit%
+    }%
+    {%
+     	\setunit{\addspace}%
+     	\printnames[byeditor]{editor}%
+     	\clearname{editor}%
+     	\setunit{\space}%
+     	\printtext[parens]{Hrsg.}%
+     	\setunit{\addcolon\space}%
+     	\newunit%
+     }%
+	\printfield{booktitle}%
+	\setunit{\addcomma\space}%
+	\printfield{pages}%
+	\setunit{\addcomma\space}%
+    \usebibmacro{date}%
+    \usebibmacro{finentry}
+}
+
+\DeclareBibliographyDriver{book}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor+others/translator+others}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{maintitle+title}%
+  \newunit
+  \printlist{language}%
+  \newunit\newblock
+  \usebibmacro{byauthor}%
+  \newunit\newblock
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printfield{edition}%
+  \newunit
+  \iffieldundef{maintitle}
+    {\printfield{volume}%
+     \printfield{part}}
+    {}%
+  \newunit
+  \printfield{volumes}%
+  \newunit\newblock
+  \usebibmacro{series+number}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \usebibmacro{publisher+location+date}%
+  \newunit\newblock
+  \usebibmacro{chapter+pages}%
+  \newunit
+  \printfield{pagetotal}%
+  \newunit\newblock
+  \usebibmacro{doi+eprint+url}%
+  \newunit\newblock
+  \usebibmacro{addendum+pubstate}%
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \setunit{\addcomma\space}
+  \usebibmacro{date}
+  \usebibmacro{finentry}}
+%  
+%
+ \DeclareBibliographyDriver{online}{%
+   \usebibmacro{bibindex}%
+   \usebibmacro{begentry}%
+   \ifnameundef{author}
+    {\printtext{Autor unbekannt}}
+    {
+		\usebibmacro{author/editor+others/translator+others}%    
+    }%
+   \setunit{\labelnamepunct}\newblock
+   \usebibmacro{title}%
+   \newunitpunct
+   \usebibmacro{url+urldate}%
+   %\usebibmacro{addendum+pubstate}%
+   \usebibmacro{finentry}}  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Eigene Befehle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matrix
+\newcommand{\mat}[1]{
+      {\textbf{#1}}
+}
+\newcommand{\todo}[1]{
+      {\colorbox{red}{ TODO: #1 }}
+}
+\newcommand{\todotext}[1]{
+      {\color{red} TODO: #1} \normalfont
+}
+\newcommand{\info}[1]{
+      {\colorbox{blue}{ (INFO: #1)}}
+}
+\newcommand{\code}[1]{
+      {\ttfamily{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Groessenanpassungen
+%
+\setlength{\unitlength}{1cm}
+\setlength{\oddsidemargin}{0.3cm}
+\setlength{\evensidemargin}{0.3cm}
+\setlength{\textwidth}{15.5cm}
+\setlength{\topmargin}{-1.2cm}
+\setlength{\textheight}{23cm}
+\columnsep 0.5cm
+
+% Bildunterschrift
+\setcapindent{0em} % kein Einruecken der Caption von Figures und Tabellen
+\setcapwidth{0.9\textwidth}
+\setlength{\abovecaptionskip}{0.2cm} % Abstand der zwischen Bild- und Bildunterschrift
