@@ -1,36 +1,49 @@
-\documentclass[12pt,a4paper,headinclude,twoside, plainheadsepline, open=right,numbers=noenddot]{scrreprt}
+\documentclass[12pt, a4paper, headinclude, twoside, plainheadsepline, open=right, numbers=noenddot, hidelinks, toc=listof, toc=bibliography]{scrreprt}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Literaturverzeichnis
-%
-% Hier eine von zwei Varianten auswaehlen: Nummern oder Buchstaben f�r Referenzen
-%
-%\usepackage[backend=biber, style=alphabetic, sorting=nyt]{biblatex}
-\usepackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
-%
-% Hier werden die Referenzen in einer separaten Datei gespeichert
-\addbibresource{Thesis.bib}
-%
+	
+%\usepackage{showframe}
+
+
 % WICHTIG: Hier wird nicht BibTeX sondern BibLateX verwendet!!
-% Deshalb nicht mit bibtex �bersetzen, sondern mit biber
+% Deshalb nicht mit bibtex uebersetzen, sondern mit biber
 % Das kann man in jedem Tool wie TexMaker oder TexShop als Option einstellen
 %
 %% Spezielle Einstellungen, insbesondere fuer das Literaturverzeichnis,
 % aber auch Packages wie amsmath, Groessenanpassungen etc.
 \input{./Preferences.tex}
 %
+
+% Hier werden die Referenzen in einer separaten Datei gespeichert
+\addbibresource{Thesis.bib}
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------
+%  Informationen
+%----------------------------------------------------------------------------------
+\author{Maximilian Mustermann}
+\title{Titel der Abschlussarbeit}
+\date{\today}
+
+
+\include{abbreviations} % Abkuerzungen
+
+%----------------------------------------------------------------------------------
+%  Anfang des Dokuments
+%----------------------------------------------------------------------------------
 \begin{document}
 \pagenumbering{Roman} % grosse Roemische Seitenummerierung
 \pagestyle{empty}
 
-% Titelseite
-\clearscrheadings\clearscrplain
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ********************** Titelseite *********************** %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeatletter
 \begin{titlepage}
 \begin{figure}[thb]
-       \includegraphics[height=2.5cm]{./Images/OTH_Logo_ReMIC.eps}
+       \includegraphics[height=2.3cm]{./images/logo/FakIM_Logo} 
+       \hfill
+       \includegraphics[height=2.3cm]{images/logo/OTH_Logo_ReMIC}
 \end{figure}
 \begin{center}
 \rule{0pt}{0pt}
@@ -40,363 +53,93 @@
 \vfill
 
 \begin{huge}
-Titel\\[0.75ex]
+\@title\\[0.75ex]
 \end{huge}
 
 \vfill
 \vfill
 
+
 Bachelorarbeit\\ von\\
 
 \vspace*{.5cm}
-\textbf{Maximilian Mustermann}\\
-Matrikelnummer: 47110815
+\textbf{\@author}\\
+Matrikelnummer: 1234567
 \vspace{.5cm}
 
 \vfill
 \vfill
-\textbf{\large Fakult"at Informatik und Mathematik\\
+\textbf{\large Fakultät Informatik und Mathematik\\
 Ostbayerische Technische Hochschule Regensburg\\
 (OTH Regensburg)}
 \vfill
 \vfill
 
 \begin{tabular}{rl}
-Gutachter:   & Prof. Dr. Christoph Palm\\
-Zweitgutachter:   & Prof. Dr. Maike Musterfrau\\
-%Betreuer:   & Dr. Max Mustermann\\
-\\Abgabedatum:& xx. Monat 20xx
+Gutachter:   		& Prof. Dr. Christoph Palm\\
+Zweitgutachter:   	& Prof. Dr. Axel Doering\\
+%Betreuer:   		& Dr. Max Mustermann\\
+\\Abgabedatum:& \@date
 \end{tabular}
 \end{center}
 \end{titlepage}
 
 
 
-\text{ }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ****************** Erklärung zur Arbeit ***************** %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\text{~}
 \vspace{11cm}
 
+\noindent
 Herr\\
-Maximilian Mustermann\\
+\@author\\
 Musterallee xx\\
-93049 Regensburg\\\\
-Studiengang: Medizinische Informatik\\
+93049 Regensburg\\
+\smallskip
+
+\noindent
+Studiengang: Medizinische Informatik
+\bigskip
 
 \begin{enumerate}
-\item Mir ist bekannt, dass dieses Exemplar der Bachelorarbeit als Pr"ufungsleistung in das Eigentum des Freistaates Bayern "ubergeht.
-\item Ich erkl"are hiermit, dass ich diese Bachelorarbeit selbstst"andig verfasst, noch nicht anderweitig f"ur Pr"ufungszwecke vorgelegt, keine anderen als die angegebenen Quellen und Hilfsmittel ben"utzt sowie w"ortlich und sinngem"a"se Zitate als solche gekennzeichnet habe.
+\item Mir ist bekannt, dass dieses Exemplar der Masterarbeit als Prüfungsleistung in das Eigentum des Freistaates Bayern übergeht.
+\item Ich erkläre hiermit, dass ich diese Masterarbeit selbstständig verfasst, noch nicht anderweitig für Prüfungszwecke vorgelegt, keine anderen als die angegebenen Quellen und Hilfsmittel benutzt sowie wörtlich und sinngemäße Zitate als solche gekennzeichnet habe.
 \end{enumerate}
 \vspace{1cm}
-Regensburg, den xx. Monat 20xx\\
+Regensburg, den \@date\\
 \medskip
 \medskip
 
+\noindent
 \underline{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}\\
-Maximilian Mustermann\\
+\@author
+
+\makeatother
 
 
 
 
-\pagestyle{useheadings} % normale Kopf- und Fusszeilen fuer den Rest
-
-\tableofcontents % Inhaltsverzeichnis
-
-
-\chapter{Einleitung}
-\label{einleitung}
-\pagenumbering{arabic} % ab jetzt arabische Nummerierung
-
-Dieses \LaTeX-Template soll die Erstellung von Bachelor- und Masterarbeiten erleichtern.
-Bei externen Arbeiten ist das ReMIC Logo durch das Fakult"at-IM Logo zu ersetzen und durch das Firmenlogo auf der rechten Seite zu erg"anzen.
-Ausserdem sollte neben den Gutachtern der Betreuer im Unternehmen namentlich auf der Titelseite zu erw"ahnen.
-
-Es wurde versucht, in diesem Dokument die wichtigsten Elemente einer Abschlu"sarbeit beispielhaft zu verwenden.
-Dazu geh"oren Listen, Tabellen, Bilder, w"ortliche und nicht-w"ortliche Zitate, zitierweisen von Zeitschriftenartikeln, B"uchern, Abschlu"sarbeiten und Webseiten, Gleichungen und Referenzierungen von Kapiteln und Graphiken.
-
-\paragraph{Vollst"andigkeit}
-Die Verwendung der Elemente erhebt keinen Anspruch auf Vollst"andigkeit.
-Allerdings ist das Internet voll von Hilfen f"ur \LaTeX, deshalb werden Sie keine Probleme haben, wenn Sie z.B. nicht mehr wissen, wie $\gamma$ im Mathematik-Modus geschrieben wird, das herauszufinden.
-
-\paragraph{Hauptkapitel}
-In diesem Dokument wird jedes Hauptkapitel auf der rechten Seite eines doppelseitigen Drucks begonnen.
-Dadurch bleibt auch schon mal eine Seite leer, das macht aber nichts und erleichtert in der gebundenen Form das Lesen.
-Im Allgemeinen sollten sich in irgendeiner Form die Kapitel \emph{ Einleitung}, \emph{Methode}, \emph{Ergebnisse}, \emph{Diskussion} und \emph{ Ausblick}.
-Im Inhaltsverzeichnis sollten nur Kapitel bis zur Tiefe \emph{ Subsection}, also mit 3 Nummern, erscheinen.
-
-Dieses Dokument ist als Hilfe gedacht, damit Sie schnell mit dem Tool \LaTeX~zurecht kommen,
-damit Sie die wichtigsten Elemente einer sehr guten Abschlussarbeit zum Nachlesen haben und damit Sie meine \textbf{notenrelevanten Vorgaben} in schriftlicher Form vorliegen haben.
-Mit diesem Template sollen nicht alle Abschlussarbeiten v"ollig gleich aussehen, insbesondere nicht sprachlich.
-Entwickeln Sie Ihren eigenen Stil, seien Sie kreativ und bleiben Sie sich treu. Innerhalb dieser Vorlage gibt es jede Menge Spielraum.
-
-\chapter{Allgemeines}
-\label{allgemeines}
-
-\section{L"ange}
-\label{laenge}
-
-F"ur Bachelor- und Masterarbeiten gilt, dass sie grunds"atzlich so lang wie n"otig und so kurz wie m"oglich sein sollten.
-Bitte schinden Sie keine Seiten, wenn Sie nichts zu sagen haben.
-Kommen Sie auf den Punkt und arbeiten sich anhand eines klaren roten Fadens von der Einleitung "uber einen Methodenteil zu Ergebnissen, Diskussion und Ausblick vor.
-Gleichzeitig ist die Abschlu"sarbeit aber auch eine der m"oglicherweise seltenen Gelegenheiten, eine l"angere Abhandlung zu verfassen.
-Dabei treten evtl.~Schwierigkeiten und Probleme auf, weil Sie das nicht gew"ohnt sind.
-Einmal vollbracht k"onnen Sie aber auch stolz auf Ihre Arbeit verweisen und Sie haben der Oma schon etwas zu Weihnachten zu schenken.
-
-Dieser Lerneffekt stellt sich aber erst ein, wenn der Text auch eine kritische L"ange "ubersteigt.
-Deshalb gilt bei Abschlussarbeiten des ReMIC folgendes:
-\begin{itemize}
-\item Bachelorarbeiten: mindestens \textbf{45 Seiten} plus Titel, Inhaltsverzeichnis und Literaturverzeichnis
-\item Masterarbeiten: mindestens \textbf{60 Seiten} plus Titel und Literaturverzeichnis
-\end{itemize}
-Sei $l_t$ die L"ange des eigentlichen Textes inklusiver notwendiger Leerseiten, damit neue Kapitel immer rechts beginnen.
-Sei weiter $l_i$ die L"ange des Inhaltsverzeichnisses und  $l_l$ die L"ange des Literaturverzeichnisses, dann ergibt sich die Gesamtl"ange $g$ aus:
-\begin{equation}
-g = l_t + l_i + l_l + 1.
-\label{gleichung laenge}
-\end{equation}
-
-\subsection{Meine Arbeit ist zu kurz. Was tun?}\label{zuKurz}
-
-Sollten Sie Schwierigkeiten haben, $l_t \ge 45$ bzw. $l_t \ge 60$ aus (\ref{gleichung laenge}) zu erreichen, vergr"o"sern Sie nicht die Graphiken unangemessen oder schinden ansonsten Seiten.
-Denken Sie stattdessen "uber folgende Fragen nach:
-\begin{enumerate}
-\item Habe ich die Literatur zu meinem Thema ausreichend gew"urdigt?
-\item Habe ich eine Hinleitung zum Kernthema so geschrieben, dass meine Studienkolleginnen und -kollegen -- ohne Wikipedia zu bem"uhen -- folgen k"onnen?
-\item Habe ich die Kernpunkte detailliert genug geschildert?
-\item Habe ich alle sinnvollen Experimente tats"achlich durchgef"uhrt, eine Hypothese daran verifiziert oder falsifiziert, das jeweilige Ergebnis nachvollziehbar beschrieben und diskutiert?
-\item Habe ich "uber den Tellerrand hinausgesehen und in einem ausf"uhrlichen Ausblick k"unftige sinnvolle Schritte thematisiert?
-\end{enumerate}
-
-\section{Inhalt}
-\label{inhalt}
-
-Zielgruppe f"ur Ihre Ausarbeitung ist nicht der betreuende Professor sondern Studierende der Informatik in ihrem letzten Semester.
-Es ist wichtig, dass Sie in Ihrer Arbeit den Leser mitnehmen.
-Dazu geh"ort, dass Sie einen klaren roten Faden verfolgen und sich nicht in Nebenkriegsschaupl"atzen verzetteln.
-Gleichzeitig m"ussen Sie wissenschaftlich arbeiten.
-\emph{Wissenschaftlich} hei"st nicht, dass Sie in einer Bachelorarbeit Neues erfinden m"ussen.
-Das ist bei einer Doktorarbeit so, abgeschw"acht bei einer Masterarbeit auch, bei einer Bachelorarbeit nicht.
-\emph{Wissenschaftlich} hei"st vielmehr, sich seines eigenen Verstandes zu bedienen, die eigene Arbeit in den Kontext des bereits Vorhandenen zu stellen, Hypothesen aufzustellen und diese Hypothesen z.B. experimentell zu "uberpr"ufen.
-Betrachten Sie Ihre Arbeit und Ihre Ergebnisse kritisch. Eine Aussage wie
-\begin{quote}
-\glqq Die GUI sieht gut aus und ist leicht zu bedienen\grqq.
-\end{quote}
-ist eine Aussage, die erst bewiesen werden m"usste. Oder eine Aussage wie
-\begin{quote}
-\glqq Das hier implementierte Verfahren A ist besser als das in \cite{palm2004color} beschriebene Verfahren B\grqq.
-\end{quote}
-ist sehr absolut und erfordert ebenfalls eine kritische "Uberpr"ufung. Gleiches gilt f"ur einen Satz wie
-\begin{quote}
-\glqq Die Implementierung liefert korrekte Ergebnisse\grqq.
-\end{quote}
-Machen Sie sich Gedanken, wie Sie die Korrektheit "uberpr"ufen k"onnen.
-Geeignet k"onnen z.B. simulierte Daten sein, bei denen man das korrekte Ergebnis kennt.
-Decken Sie m"ogliche Grenzf"alle experimentell ab und verwenden nicht nur \emph{gutm"utige} Beispiele.
-
-\begin{table}[tb]\vspace{1ex}\centering
-\begin{tabular*}{12cm}{ll|@{\extracolsep\fill}cccc}
-&&\multicolumn{4}{c}{Verfahren} \\
-&& A  & B &  C & D\\\hline
-\multirow{5}*{\rotatebox{90}{Datens"atze}}
-& Patient 1 &  bla  & bla  & bla  & bla \\%\cline{2-6}
-& Patient 2 & bla  & bla & bla  & bla  \\%\cline{2-6}
-& Patient 3 &  bla  & bla & bla & bla \\%\cline{2-6}
-& Patient 4 &  bla  & bla & \textbf{bestesBla} & bla \\%\cline{2-6}
-& Patient 5 &  bla  & bla & bla & bla \\\hline
-\end{tabular*}
-\caption[Beispieltabelle]{Das ist ein Beispiel f"ur eine recht komplexe Tabelle.
-Nicht der gesamte Text der Tabellenunterschrift sollte im Tabellenverzeichnis auftauchen.
-Hier wurde der beste Wert \textbf{fett} markiert.
-\label{beispieltabelle}}
-\vspace{2ex}\end{table}
-
-Eine Arbeit wird immer aufgewertet durch objektive Ergebnisse in Form von Zahlen und Fakten.
-Stellen Sie diese Zahlen geeignet dar, z.B. als Tabelle wie in Tab.~\ref{beispieltabelle} gezeigt.
-Gut verst"andlich k"onnen auch Plots oder Diagramme sein.
-Tabellen sollten horizontale und vertikale Trennlinien nur sparsam verwenden.
-Excel-Tabellen k"onnen mit Hilfe eines Tools einfach eingef"ugt werden.
-Siehe dazu \url{https:\\\\github.com\\krlmlr\\Excel2LaTeX}.
-
-Achten Sie darauf, dass Ihre Bilder und Tabellen in der N"ahe der Beschreibung und Auswertung stehen.
-Oft macht es Sinn, um den Textfluss nicht zu beeintr"achtigen, die Bilder und Tabellen ganz oben oder ganz unten auf einer Seite zu platzieren.
-Die Bild- und Tabellenunterschrift muss ohne den umgebenden Text verst"andlich sein.
-Oft werden Bilder separat betrachtet und dann muss die Bildunterschrift die wichtigen Elemente des Bildes beschreiben.
-Beispiel: Ist in einem Bild ein Pfeil enthalten, der irgendeine Struktur hervorheben soll.
-Dann k"onnte in der Bildunterschrift stehen: Der gr"une Pfeil verweist auf die Stelle mit maximalem Fehler nach Anwendung von Verfahren A.
-
-\begin{figure}[tb]
-\begin{center}
- \includegraphics[width=8cm]{./Images/ExampleImage.eps}
-\caption{{Im Beispielbild kann man eine Kombination aus Pixelgraphik (Foto) und Vektorgraphik (Text und Pfeile) sehen.
-Beim starkem Zoom sind die Unterschiede klar zu erkennen.}\label{beispielbild}}
-\end{center}
-\end{figure}
-
-Jede Graphik und jede Tabelle muss im Text referenziert werden.
-Das kann auf verschiedene Arten geschehen. Zum Beispiel ...
-\begin{enumerate}
-\item ... im Satzfluss: Abbildung \ref{beispielbild} zeigt mit dem Haptischen Feedback und der 3D Visualisierung die Hauptkomponenten des ReMIC-Projektes \emph{HaptiVisT}.
-\item ... am Ende eines (Halb-)Satzes:  Die Hauptkomponenten des ReMIC-Projektes \emph{HaptiVisT} sind das Haptischee Feedback und die 3D Visualisierung (Abb. \ref{beispielbild}).\\
-Bitte beachten Sie, dass bei der Referenzierung innerhalb einer Klammer die Abk"urzung Abb.~verwendet wird, im Satzfluss aber nicht.
-\end{enumerate}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ******************* Inhaltsverzeichnis ****************** %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cleardoublepage
+\pdfbookmark{\contentsname}{toc}\tableofcontents 										% Inhaltsverzeichnis
 
 
-\section{Zitierung}\label{zitierung}
 
-Sie sind verpflichtet, alle Quellen und Hilfmittel anzugeben, die Sie verwendet haben.
-Dabei ist die w"ortliche Zitierung in der Informatik selten; schon deshalb, weil viele Quellen englischsprachig sind und ein englisches w"ortliches Zitat in einer deutschen Arbeit keinen Sinn macht.
-Meist werden Gedanken, Ideen und Methoden aus Quellen entnommen.
-Das Zitat kommt dann an den Schlu"s des letzten Satzes des Abschnittes, der z.B. die Methode beschreibt \cite{szalo2015graphmic}.
-Bitte beachten Sie, dass das Zitat \textbf{vor} dem abschli"senden Punkt erscheint und nicht danach!
 
-Alternativ wird zu Beginn oder am Ende der Beschreibung der Methode die Quelle mit Hilfe einer Phrase wie:
-\begin{quote}
-Einzelheiten zum Verfahren A k"onnen \cite{palm2004color} entnommen werden.
-Einen weiteren "Uberblick liefert Handels \cite{handels2000medizinische}.
-\end{quote}
-verwendet.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ******************* Beginn des Textes ******************* %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{scrheadings} 																% normale Kopf- und Fusszeilen fuer den Rest
+\cleardoublepage
+\pagenumbering{arabic} 																	% ab jetzt arabische Nummerierung
 
-Als ein hilfreiches Werkzeug zum Auffinden von wissenschaftlichen Artikeln hat sich \url{http:\\\\scholar.google.com} erwiesen.
+\include{introduction}
 
-\paragraph{Zitierung von Internetseiten}
-Grunds"atzlich ist das Zitieren von Internetseiten so weit wie m"oglich zu vermeiden.
-Internetseiten k"onnen pl"otzlich offline sein, der Inhalt kann sich "andern, manchmal ist der Autor unklar.
-Genau das Gegenteil erwartet man von einer \emph{zitierf"ahigen} Quelle.
-Dennoch l"a"st sich der Hinweis auf eine Internetseite manchmal nicht vermeiden.
-In diesen F"allen versuchen Sie, den Autor herauszufinden und in die Quellenangabe einzuf"ugen.
-Wichtig ist der Hinweis auf das letzte Zugriffdatum \cite{zitieren13}.
-Au"serdem erwarte ich, dass Sie die Seite lokal speichern und den elektronischen Dokumenten auf der Abgabe-CD hinzuf"ugen.
-
-Besonders Wikipedia-Seiten sind kritisch zu bewerten. In Wikipedia selbst ist zu lesen:
-\begin{quote}
-\glqq In wissenschaftlichen Arbeiten sollte auf das Zitieren von Wikipedia-Artikeln nach M"oglichkeit verzichtet werden, da keine Garantie f"ur den Inhalt gegeben werden kann.
-Zudem folgt Wikipedia derzeit nur sehr rudiment"ar den Ma"sgaben des wissenschaftlichen Arbeitens und die Artikelqualit"at variiert stark, weswegen es als wissenschaftliche Quelle oft ausscheidet.\grqq \cite{zitieren13a}
-\end{quote}
-Dem ist nichts hinzuzuf"ugen.
-
-\section{Versionierung}
-\label{versionierung}
-
-Sie bekommen den \LaTeX -Quelltext zu diesem Dokument "uber das Clonen des git-Projektes zu Ihrer Abschlussarbeit.
-Den Link dazu bekommen Sie beim Start der Arbeit von der Labormitarbeiterin oder dem Labormitarbeiter oder vom Dozenten.
-Bei internen ReMIC Arbeiten finden Sie den Quelltext im \code{thesis}-Ordner des Projektes, wo Sie auch Ihren Sourcecode versionieren.
-Bei externen Abschlussarbeiten versionieren Sie nat"urlich nur die Ausarbeitung.
-Die Versionierung der Sourcen obliegt der Firma.
-Die Nutzung von git f"ur Ihre Abschlussarbeit hat viele Vorteile:
-\begin{enumerate}
-\item Das Repository wird regelm"a"sig gesichert, so dass Alles seit dem letzten Push gesichert ist.
-Deshalb: regelm"a"sig pushen, nicht nur commiten!
-\item Sie k"onnen verteilt arbeiten, das hei"st:
-Die Version, die Sie abends im BioPark pushen, k"onnen Sie danach zu Hause auf den eigenen Rechner pullen und dort noch ein bisschen schreiben.
-Wenn Sie das konsequent machen, arbeiten Sie immer mit Ihrer aktuellen Version.
-\item Falls Sie ein Teilkapitel gel"oscht haben, sp"ater aber doch wieder darauf zur"uckgreifen wollen, ist auch der gel"oschte Teil ohne Probleme wiederherzustellen.
-\item Sie k"onnen anhand der commits im Ansatz "uberpr"ufen, ob Sie im Zeitplan sind und extrapolieren aus der bisherigen Historie, ob der Abgabetermin ohne Probleme zu schaffen ist oder ob es knapp wird.
-\item Falls Sie einmal eine andere Zusammenstellung ausprobieren m"ochten, k"onnen Sie das ein einem eigenen Branch machen und beim merge dann entscheiden, was bleibt und was nicht.
-\item Ohne eigenes Zutun k"onnen Sie Ihrem Dozenten jederzeit eine aktuelle Version der Arbeit zur Verf"ugung stellen.
-Er braucht nur selbst Ihr Projekt zu clonen.
-\end{enumerate}
-Dar"uber hinaus sollte jeder Informatiker ein modernes Versionierungssystem wie git einmal benutzt haben.
-
-\textbf{Tipp:} Schreiben Sie im Editor, so wie bei diesem Dokument gezeigt, jeden Satz in eine eigene Zeile.
-Dann sind Unterschiede zwischen einzelnen Commits leichter zu sehen.
-Als Nebeneffekt sind zu lange S"atze leicht zu erkennen und sollten evtl.~"uberarbeitet werden.
-
-In das git-Repository geh"ort \textbf{nicht} das resultierende PDF, tempor"are Dateien, z.B. \code{.aux} oder "Ahnliches.
-Allerdings geh"oren die Bilder der Arbeit im entsprechenden Images-Verzeichnis sehr wohl ins Repository.
-Es w"are allerdings gut, wenn sich die Bilder nicht alle 3 Stunden "andern w"urden, weil das sonst viel Platz verbraucht, weil alle fr"uheren Versionen in irgendeiner Form erhalten bleiben.
-
-\section{Abgabe}
-\label{abgabe}
-
-Zur Abgabe beachten Sie bitte den Ablaufplan der Fakult"at.
-Dazu muss sind im Sekretariat sp"atestens zum offiziellen Abgabetermin zwei gebundene Exemplare Ihrer Arbeit abzugeben inklusive einer elektronischen Version zum Beispiel in Form einer CD.
-Eine fr"uhere Abgabe ist m"oglich.
-Sollte das Sekretariat nicht besetzt sein, so werfen Sie Ihre beiden Exemplare bitte in das \textbf{daf"ur eingerichtete Postfach}, nicht in mein Postfach.
-Ich selbst bekomme \textbf{kein} weiteres Exemplar, weil eines der beiden Exemplare sowie an mich weitergeleitet wird.
-Auf der Abgabe-CD muss Folgendes enthalten sein:
-\begin{enumerate}
-\item PDF-Fassung Ihrer Ausarbeitung
-\item Bildliche Zusammenfassung. Versuchen Sie, ein aussagekr"aftiges Bild zu erstellen, das Ihre Arbeit beschreibt und illustriert.
-Es soll verwendet werden, um auf der ReMIC Webseite neben dem Titel der Arbeit auch das Bild zu zeigen, um eine schnelle Orientierung "uber Themen des ReMIC zu gewinnen.
-\item Kopien der zitierten Internetseiten
-\item Source-Code. Der Source-Code dient dazu, Ihren Programmierstil zu beurteilen. Dabei geht es z.B. auch darum, ob der Code aufger"aumt und gut dokumentiert ist.
-\item Bilder. Die Bilder, die in der der Arbeit abgedruckt sind, m"ochte ich alle im Original als elektronische Variante vorfinden.
-Aber die Bilder geh"oren ja sowieso ins git-Repository.
-\end{enumerate}
-Bitte beachten Sie, dass sich das Fehlen von Teilen dieser Liste nachteilig auf die Note auswirkt.
-
-\paragraph{"Ubergabe} Bei internen ReMIC Arbeiten erwarte ich, dass die Lauff"ahigkeit der Software auf den Laborrechnern bei einem "Ubergabe-Termin nachgewiesen wird.
-Basis dazu ist das git-Repository des Projektes.
-Im ReadMe ist  genau zu beschreiben, was getan werden muss, um die Software zu kompilieren, welche Versionen von externen Libraries zum Test herangezogen wurden, etc.
-
-Die "Ubergabe ist essentiell f"ur die Nachhaltigkeit der Softwareentwicklung im ReMIC.
-Der "Ubergabetermin sollte zeitnah {\emph{nach} der Abgabe entweder an eine Labormitarbeiterin oder einen Labormitarbeiter, einen wissenschaftlichen Mitarbeiter oder direkt an mich erfolgen.
-
-\chapter{"Au"sere Form}
-\label{form}
-
-Neben den Inhalten ist auch die "au"sere Form wichtig und flie"st in die Benotung mit ein.
-Klar sollte sein: ein Rechtschreibfehler kann mal durchrutschen, aber das sollte eine Ausnahme sein.
-Lesen Sie Ihren Text mehrfach Korrektur und lassen ihn auch von Kommilitonen und/oder auch nicht-InformatikerInnen gegenlesen.
-Beginnen Sie rechtzeitig mit dem Schreiben, damit Ihr Text auch so gut wird, wie Sie sich das vorstellen.
-
-\paragraph{Vorabversionen}
-Bei internen Abschlussarbeiten des ReMIC bin ich bereit, eine Korrekturversion vorab anzusehen und zu kommentieren.
-Diese Fassung geht nicht in die Benotung mit ein.
-
-\textbf{Wichtig:} Ich lese die Vorabversion erst, wenn Sie damit zufrieden sind. Kommentare wie:
-\begin{quote}
-\glqq Da fehlt noch was, das "andere ich noch.\grqq
-\end{quote}
-oder
-\begin{quote}
-\glqq Ich habe den Text selbst noch nicht im Ganzen gelesen. Es kann sein, dass das eine oder andere noch nicht passt.\glqq
-\end{quote}
-lasse ich nicht gelten. Ich bin f"ur die gro"sen Strukturen zust"andig, fehlende Experimente, zu d"urftige Diskussionen, verlassene rote F"aden, etc. zust"andig und keine menschliche Rechtschreibkorrektur.
-Bei externen Bachelorarbeiten sollte diese Rolle der Betreuer vor Ort spielen, so dass ich dann keine Vorabversion lese.
-Grunds"atzliche Fragen zum Aufbau z.B. anhand eines Inhaltsverzeichnisses sollten nat"urlich fr"uhzeitig bei einem der Gespr"achstermine im Verlauf der Arbeit besprochen werden.
-
-\paragraph{Graphiken}
-Verwenden Sie "uberall dort, wo es geht, Vektorgraphiken. Ideal im Rahmen von \LaTeX~eignet sich das Encapsulated-PostScript (EPS)-Format.
-Alles, was nicht schon im Ursprung eine Pixelgraphik ist (also Fotos, CT-Schichten, Ultraschall-Aufnahmen, Screenshots, etc.), muss als Vektorgraphik in die Arbeit eingebunden werden.
-Es gibt mehrere Programme, die f"ur eine solche Aufgabe geeignet sind. Ein kostenfreies Beispiel ist OpenOffice Draw.
-Dort markieren Sie Ihre Zeichnung vollst"andig, w"ahlen unter \emph{Datei} den Men"upunkt \emph{Exportieren}.
-Dann haken Sie \emph{Selection} an und w"ahlen \emph{eps} als Exportformat.
-Fertig!
-
-Vermeiden Sie gescannte Zeichnungen aus anderen Dokumenten.
-Selten sind diese Zeichnungen sehr komplex, so dass Sie sie auch als eigene Vektorgraphik nachzeichnen k"onnen.
-Das hat auch den Vorteil, dass die Bezeichnungen, die in der Graphik auftauchen und die Ihres eigenen Textes zusammenpassen.
-Auch wenn Sie eine Graphik nachgezeichnet haben, ist das Original zu referenzieren!
-
-Es sind auch Mischungen zwischen Pixelgraphiken und Vektorgraphiken m"oglich.
-Sollten Sie z.B. den erw"ahnten gr"unen Pfeil in ein Foto einf"ugen wollen, dann k"onnen Sie das Foto in OpenOffice Draw einladen, dort den Pfeil hinzuf"ugen und das Ganze dann als EPS-Datei speichern.
-
-Bei mehreren Graphiken, die z.B.~als Matrix angeordnet werden, ist die Variante "uber OpenOffice Draw ebenfalls zu empfehlen.
-Grunds"atzlich k"onnte das nat"urlich auch direkt in \LaTeX~zusammengebastelt werden.
-Wichtig: gleiche Bilder sollten dann auch gleich gro"s sein und exakt in einer Reihe bzw. Spalte angeordnet werden.
-Bei mehreren Bildern empfiehlt sich eine Markierung mit Buchstaben (a), (b), (c) usw., die dann alle in der Bildunterschrift auch wieder auftauchen m"ussen.
-
-\paragraph{Code}
-Source Code kann durchaus sparsam dosiert in der Arbeit auftauchen.
-Aber nicht vollst"andig und als Anhang (siehe Anhang \ref{anhang}), sondern in sinnvollen Ausschnitten, wenn anhand des Code-Fragments ein Sachverhalt erl"autert werden soll.
-
-\begin{lstlisting}[language=C++, breaklines=true, basicstyle=\small, numbers=none]
-// Das ist ein Beispiel fuer ein Codefragment
-int a = 7;
-int b = 3;
-int c = 10;
-a *= 2;
-c -= b + a++;
-std::cout << "c = " << c << std::endl;
-\end{lstlisting}
-
-\paragraph{Verzeichnisse}
-Ein Inhaltsverzeichnis ist obligatorisch. Weitere Verzeichnisse wie Tabellenverzeichnisse, Symbolverzeichnisse oder Abbildungsverzeichnisse machen nur dann Sinn, wenn es jeweils mindestens f"unf Eintr"age gibt.
-Wenn man solche weiteren Verzeichnisse erstellt, dann geh"oren sie ans Textende.
-Das Umgekehrte gilt f"ur das Inhaltsverzeichnis.
-Es versteht sich von selbst, dass die Verzeichnisse dynamisch zu erstellen sind.
-
-In diesem Template ist das Tabellenverzeichnis und das Abbildungsverzeichnis am Ende des Dokuments auskommentiert.
-Wenn man sie benutzen m"ochte, muss man sie lediglich wieder einkommentieren.
+\include{method}
 
 %\bibliographystyle{natdin}
 %\bibliographystyle{naturemag}
@@ -405,36 +148,18 @@ Wenn man sie benutzen m"ochte, muss man sie lediglich wieder einkommentieren.
 
 
 % Anhang
-\appendix
-\chapter{Anhang}
-\label{anhang}
+\include{appendix}
 
-Grunds"atzlich sollte man Anh"ange genau wie Fu"snoten sehr sparsam und gezielt verwenden.
-Der Text sollte ohne Anhang verst"andlich und schl"ussig sein.
-Der Anhang dient dazu, nicht notwendige, aber vielleicht trotzdem interessante Zusatzinformationen zu liefern.
-Beispiel: ein Beweis f"ur einen mathematischen Satz oder zus"atzliches Bildmaterial, das die Zahlenergebnisse im Text untermauert, oder das vollst"andige UML-Diagramm f"ur den Aufbau der Software.
 
-Bitte f"ugen Sie keinen Source-Code als Anhang ein.
 
-\section{Fu"snoten und Abk"urzungen}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ********************* Verzeichnisse ********************* %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\listoffigures																			% Abbildungsverzeichnis
+\listoftables																			% Tabellenverzeichnis
+\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{Abkürzungsverzeichnis}	% Abkürzungsverzeichnis
+\printacronyms[heading={chapter*}, name={Abkürzungsverzeichnis}]
 
-Bei Fu"snoten, "ahnlich wie bei Anh"angen, gibt es nur in Ausnahmef"allen eine Rechtfertigung.
-Bedenken Sie, dass der Blick auf eine Fu"snote den Leser aus dem Textflu"s rei"st.
-Er muss dann wieder den Satz finden, in dem auf die Fu"snote verwiesen wurde. F
-achliche Abk"urzungen (FA) m"ussen einmal im Text ausgeschrieben werden und werden dann in Klammern hinter den Ausdruck geschrieben.
-Ab dann kann die FA verwendet werden. Fu"snoten eignen sich hierf"ur nicht.
-Bei anderen Erkl"arungen muss man sich fragen, ob die Erkl"arung wirklich wichtig und notwendig ist.
-Dann spendieren Sie einfach einen eigenen Satz im Text und keine Fu"snote.
-Oder Sie kommen zu dem Schlu"s, dass die Erkl"arung eigentlich unwichtig ist, dann lassen Sie sie weg.
 
-\section{Arbeitsorganisation}
-
-Bei internen Abschlussarbeiten f"uhren Sie ein Laborbuch oder Laborjournal und halten es im git-Repository (\code{doc-Verzeichnis}) aktuell.
-Dabei halten Sie chronologisch fest, woran Sie gerade arbeiten, z.B. auch mit welchen Softwareversionen und Hilfsmitteln.
-Das zwingt zu durchdachten Entscheidungen und man kann sp"ater nachbl"attern, wie es zu Richtungsentscheidungen gekommen ist.
-Das Laborbuch wird \textbf{nicht kontrolliert} und ist \textbf{nicht Bestandteil der Notengebung}, sondern ein wichtiges Hilfsmittel f"ur eine erfolgreiche Abschlussarbeit.
-
-%\listoffigures
-%\listoftables
 
 \end{document}

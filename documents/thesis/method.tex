@@ -1,0 +1,269 @@
+
+\chapter{Allgemeines}
+\label{allgemeines}
+
+\section{Länge}
+\label{laenge}
+
+Für Bachelor- und Masterarbeiten gilt, dass sie grundsätzlich so lang wie nötig und so kurz wie möglich sein sollten.
+Bitte schinden Sie keine Seiten, wenn Sie nichts zu sagen haben.
+Kommen Sie auf den Punkt und arbeiten sich anhand eines klaren roten Fadens von der Einleitung über einen Methodenteil zu Ergebnissen, Diskussion und Ausblick vor.
+Gleichzeitig ist die Abschlussarbeit aber auch eine der möglicherweise seltenen Gelegenheiten, eine längere Abhandlung zu verfassen.
+Dabei treten evtl.~Schwierigkeiten und Probleme auf, weil Sie das nicht gewöhnt sind.
+Einmal vollbracht können Sie aber auch stolz auf Ihre Arbeit verweisen und Sie haben der Oma schon etwas zu Weihnachten zu schenken.
+
+Dieser Lerneffekt stellt sich aber erst ein, wenn der Text auch eine kritische Länge übersteigt.
+Deshalb gilt bei Abschlussarbeiten des ReMIC folgendes:
+\begin{itemize}
+\item Bachelorarbeiten: mindestens \textbf{45 Seiten} plus Titel, Inhaltsverzeichnis und Literaturverzeichnis
+\item Masterarbeiten: mindestens \textbf{60 Seiten} plus Titel und Literaturverzeichnis
+\end{itemize}
+Sei $l_t$ die Länge des eigentlichen Textes inklusiver notwendiger Leerseiten, damit neue Kapitel immer rechts beginnen.
+Sei weiter $l_i$ die Länge des Inhaltsverzeichnisses und  $l_l$ die Länge des Literaturverzeichnisses, dann ergibt sich die Gesamtlänge $g$ aus:
+\begin{equation}
+g = l_t + l_i + l_l + 1.
+\label{gleichung laenge}
+\end{equation}
+
+\subsection{Meine Arbeit ist zu kurz. Was tun?}\label{zuKurz}
+
+Sollten Sie Schwierigkeiten haben, $l_t \ge 45$ bzw. $l_t \ge 60$ aus (\ref{gleichung laenge}) zu erreichen, vergrößern Sie nicht die Graphiken unangemessen oder schinden ansonsten Seiten.
+Denken Sie stattdessen über folgende Fragen nach:
+\begin{enumerate}
+\item Habe ich die Literatur zu meinem Thema ausreichend gewürdigt?
+\item Habe ich eine Hinleitung zum Kernthema so geschrieben, dass meine Studienkolleginnen und -kollegen -- ohne Wikipedia zu bemühen -- folgen können?
+\item Habe ich die Kernpunkte detailliert genug geschildert?
+\item Habe ich alle sinnvollen Experimente tatsächlich durchgeführt, eine Hypothese daran verifiziert oder falsifiziert, das jeweilige Ergebnis nachvollziehbar beschrieben und diskutiert?
+\item Habe ich über den Tellerrand hinausgesehen und in einem ausführlichen Ausblick künftige sinnvolle Schritte thematisiert?
+\end{enumerate}
+
+\section{Inhalt}
+\label{inhalt}
+
+Zielgruppe für Ihre Ausarbeitung ist nicht der betreuende Professor sondern Studierende der Informatik in ihrem letzten Semester.
+Es ist wichtig, dass Sie in Ihrer Arbeit den Leser mitnehmen.
+Dazu gehört, dass Sie einen klaren roten Faden verfolgen und sich nicht in Nebenkriegsschauplätzen verzetteln.
+Gleichzeitig müssen Sie wissenschaftlich arbeiten.
+\emph{Wissenschaftlich} heißt nicht, dass Sie in einer Bachelorarbeit Neues erfinden müssen.
+Das ist bei einer Doktorarbeit so, abgeschwächt bei einer Masterarbeit auch, bei einer Bachelorarbeit nicht.
+\emph{Wissenschaftlich} heißt vielmehr, sich seines eigenen Verstandes zu bedienen, die eigene Arbeit in den Kontext des bereits Vorhandenen zu stellen, Hypothesen aufzustellen und diese Hypothesen z.B. experimentell zu überprüfen.
+Betrachten Sie Ihre Arbeit und Ihre Ergebnisse kritisch. Eine Aussage wie
+\begin{quote}
+\glqq Die \acs{gui} sieht gut aus und ist leicht zu bedienen\grqq.
+\end{quote}
+ist eine Aussage, die erst bewiesen werden müsste. Oder eine Aussage wie
+\begin{quote}
+\glqq Das hier implementierte Verfahren A ist besser als das in \cite{palm2004color} beschriebene Verfahren B\grqq.
+\end{quote}
+ist sehr absolut und erfordert ebenfalls eine kritische Überprüfung. Gleiches gilt für einen Satz wie
+\begin{quote}
+\glqq Die Implementierung liefert korrekte Ergebnisse\grqq.
+\end{quote}
+Machen Sie sich Gedanken, wie Sie die Korrektheit überprüfen können.
+Geeignet können z.B. simulierte Daten sein, bei denen man das korrekte Ergebnis kennt.
+Decken Sie mögliche Grenzfälle experimentell ab und verwenden nicht nur \emph{gutmütige} Beispiele.
+
+\begin{table}[tb]\vspace{1ex}\centering
+\begin{tabular*}{12cm}{ll|@{\extracolsep\fill}cccc}
+&&\multicolumn{4}{c}{Verfahren} \\
+&& A  & B &  C & D\\\hline
+\multirow{5}*{\rotatebox{90}{Datensätze}}
+& Patient 1 &  bla  & bla  & bla  & bla \\%\cline{2-6}
+& Patient 2 & bla  & bla & bla  & bla  \\%\cline{2-6}
+& Patient 3 &  bla  & bla & bla & bla \\%\cline{2-6}
+& Patient 4 &  bla  & bla & \textbf{bestesBla} & bla \\%\cline{2-6}
+& Patient 5 &  bla  & bla & bla & bla \\\hline
+\end{tabular*}
+\caption[Beispieltabelle]{Das ist ein Beispiel für eine recht komplexe Tabelle.
+Nicht der gesamte Text der Tabellenunterschrift sollte im Tabellenverzeichnis auftauchen.
+Hier wurde der beste Wert \textbf{fett} markiert.
+\label{beispieltabelle}}
+\vspace{2ex}\end{table}
+
+Eine Arbeit wird immer aufgewertet durch objektive Ergebnisse in Form von Zahlen und Fakten.
+Stellen Sie diese Zahlen geeignet dar, z.B. als Tabelle wie in Tab.~\ref{beispieltabelle} gezeigt.
+Gut verständlich können auch Plots oder Diagramme sein.
+Tabellen sollten horizontale und vertikale Trennlinien nur sparsam verwenden.
+
+Achten Sie darauf, dass Ihre Bilder und Tabellen in der N"ahe der Beschreibung und Auswertung stehen.
+Oft macht es Sinn, um den Textfluss nicht zu beeinträchtigen, die Bilder und Tabellen ganz oben oder ganz unten auf einer Seite zu platzieren.
+Die Bild- und Tabellenunterschrift muss ohne den umgebenden Text verständlich sein.
+Oft werden Bilder separat betrachtet und dann muss die Bildunterschrift die wichtigen Elemente des Bildes beschreiben.
+Beispiel: Ist in einem Bild ein Pfeil enthalten, der irgendeine Struktur hervorheben soll.
+Dann könnte in der Bildunterschrift stehen: Der grüne Pfeil verweist auf die Stelle mit maximalem Fehler nach Anwendung von Verfahren A.
+
+\begin{figure}[tb]
+\begin{center}
+ \includegraphics[width=8cm]{./Images/ExampleImage.eps}
+\caption[Beispielbild mit verkürzter Bildunterschrift für das Abbildungsverzeichnis]{{Im Beispielbild kann man eine Kombination aus Pixelgraphik (Foto) und Vektorgraphik (Text und Pfeile) sehen.
+Beim starkem Zoom sind die Unterschiede klar zu erkennen.}\label{beispielbild}}
+\end{center}
+\end{figure}
+
+Jede Graphik und jede Tabelle muss im Text referenziert werden.
+Das kann auf verschiedene Arten geschehen. Zum Beispiel ...
+\begin{enumerate}
+\item ... im Satzfluss: Abbildung \ref{beispielbild} zeigt mit dem Haptischen Feedback und der 3D Visualisierung die Hauptkomponenten des ReMIC-Projektes \emph{HaptiVisT}.
+\item ... am Ende eines (Halb-)Satzes:  Die Hauptkomponenten des ReMIC-Projektes \emph{HaptiVisT} sind das Haptischee Feedback und die 3D Visualisierung (Abb. \ref{beispielbild}).\\
+Bitte beachten Sie, dass bei der Referenzierung innerhalb einer Klammer die Abkürzung Abb.~verwendet wird, im Satzfluss aber nicht.
+\end{enumerate}
+
+
+\section{Zitierung}\label{zitierung}
+
+Sie sind verpflichtet, alle Quellen und Hilfmittel anzugeben, die Sie verwendet haben.
+Dabei ist die wörtliche Zitierung in der Informatik selten; schon deshalb, weil viele Quellen englischsprachig sind und ein englisches wörtliches Zitat in einer deutschen Arbeit keinen Sinn macht.
+Meist werden Gedanken, Ideen und Methoden aus Quellen entnommen.
+Das Zitat kommt dann an den Schluß des letzten Satzes des Abschnittes, der z.B. die Methode beschreibt \cite{szalo2015graphmic}.
+Bitte beachten Sie, dass das Zitat \textbf{vor} dem abschlißenden Punkt erscheint und nicht danach!
+
+Alternativ wird zu Beginn oder am Ende der Beschreibung der Methode die Quelle mit Hilfe einer Phrase wie:
+\begin{quote}
+Einzelheiten zum Verfahren A können \cite{palm2004color} entnommen werden.
+Einen weiteren Überblick liefert Handels \cite{handels2000medizinische}.
+\end{quote}
+verwendet.
+
+Als ein hilfreiches Werkzeug zum Auffinden von wissenschaftlichen Artikeln hat sich \url{http:\\\\scholar.google.com} erwiesen.
+
+\paragraph{Zitierung von Internetseiten}
+Grundsätzlich ist das Zitieren von Internetseiten so weit wie möglich zu vermeiden.
+Internetseiten können plötzlich offline sein, der Inhalt kann sich ändern, manchmal ist der Autor unklar.
+Genau das Gegenteil erwartet man von einer \emph{zitierfähigen} Quelle.
+Dennoch läßt sich der Hinweis auf eine Internetseite manchmal nicht vermeiden.
+In diesen Fällen versuchen Sie, den Autor herauszufinden und in die Quellenangabe einzufügen.
+Wichtig ist der Hinweis auf das letzte Zugriffdatum \cite{zitieren13}.
+Außerdem erwarte ich, dass Sie die Seite lokal speichern und den elektronischen Dokumenten auf der Abgabe-CD hinzufügen.
+
+Besonders Wikipedia-Seiten sind kritisch zu bewerten. In Wikipedia selbst ist zu lesen:
+\begin{quote}
+\glqq In wissenschaftlichen Arbeiten sollte auf das Zitieren von Wikipedia-Artikeln nach Möglichkeit verzichtet werden, da keine Garantie für den Inhalt gegeben werden kann.
+Zudem folgt Wikipedia derzeit nur sehr rudimentär den Maßgaben des wissenschaftlichen Arbeitens und die Artikelqualität variiert stark, weswegen es als wissenschaftliche Quelle oft ausscheidet.\grqq \cite{zitieren13a}
+\end{quote}
+Dem ist nichts hinzuzufügen.
+
+\section{Versionierung}
+\label{versionierung}
+
+Sie bekommen den \LaTeX -Quelltext zu diesem Dokument über das Clonen des git-Projektes zu Ihrer Abschlussarbeit.
+Den Link dazu bekommen Sie beim Start der Arbeit von der Labormitarbeiterin oder dem Labormitarbeiter oder vom Dozenten.
+Bei internen ReMIC Arbeiten finden Sie den Quelltext im \code{thesis}-Ordner des Projektes, wo Sie auch Ihren Sourcecode versionieren.
+Bei externen Abschlussarbeiten versionieren Sie natürlich nur die Ausarbeitung.
+Die Versionierung der Sourcen obliegt der Firma.
+Die Nutzung von git für Ihre Abschlussarbeit hat viele Vorteile:
+\begin{enumerate}
+\item Das Repository wird regelmäßig gesichert, so dass Alles seit dem letzten Push gesichert ist.
+Deshalb: regelmäßig pushen, nicht nur commiten!
+\item Sie können verteilt arbeiten, das heißt:
+Die Version, die Sie abends im BioPark pushen, können Sie danach zu Hause auf den eigenen Rechner pullen und dort noch ein bisschen schreiben.
+Wenn Sie das konsequent machen, arbeiten Sie immer mit Ihrer aktuellen Version.
+\item Falls Sie ein Teilkapitel gelöscht haben, später aber doch wieder darauf zurückgreifen wollen, ist auch der gelöschte Teil ohne Probleme wiederherzustellen.
+\item Sie können anhand der commits im Ansatz überprüfen, ob Sie im Zeitplan sind und extrapolieren aus der bisherigen Historie, ob der Abgabetermin ohne Probleme zu schaffen ist oder ob es knapp wird.
+\item Falls Sie einmal eine andere Zusammenstellung ausprobieren möchten, können Sie das ein einem eigenen Branch machen und beim merge dann entscheiden, was bleibt und was nicht.
+\item Ohne eigenes Zutun können Sie Ihrem Dozenten jederzeit eine aktuelle Version der Arbeit zur Verfügung stellen.
+Er braucht nur selbst Ihr Projekt zu clonen.
+\end{enumerate}
+Darüber hinaus sollte jeder Informatiker ein modernes Versionierungssystem wie git einmal benutzt haben.
+
+\textbf{Tipp:} Schreiben Sie im Editor, so wie bei diesem Dokument gezeigt, jeden Satz in eine eigene Zeile.
+Dann sind Unterschiede zwischen einzelnen Commits leichter zu sehen.
+Als Nebeneffekt sind zu lange Sätze leicht zu erkennen und sollten evtl.~überarbeitet werden.
+
+In das git-Repository gehört \textbf{nicht} das resultierende PDF, temporäre Dateien, z.B. \code{.aux} oder Ähnliches.
+Allerdings gehören die Bilder der Arbeit im entsprechenden Images-Verzeichnis sehr wohl ins Repository.
+Es wäre allerdings gut, wenn sich die Bilder nicht alle 3 Stunden ändern würden, weil das sonst viel Platz verbraucht, weil alle früheren Versionen in irgendeiner Form erhalten bleiben.
+
+\section{Abgabe}
+\label{abgabe}
+
+Zur Abgabe beachten Sie bitte den Ablaufplan der Fakultät.
+Dazu muss sind im Sekretariat spätestens zum offiziellen Abgabetermin zwei gebundene Exemplare Ihrer Arbeit abzugeben inklusive einer elektronischen Version zum Beispiel in Form einer CD.
+Eine frühere Abgabe ist möglich.
+Sollte das Sekretariat nicht besetzt sein, so werfen Sie Ihre beiden Exemplare bitte in das \textbf{dafür eingerichtete Postfach}, nicht in mein Postfach.
+Ich selbst bekomme \textbf{kein} weiteres Exemplar, weil eines der beiden Exemplare sowie an mich weitergeleitet wird.
+Auf der Abgabe-CD muss Folgendes enthalten sein:
+\begin{enumerate}
+\item PDF-Fassung Ihrer Ausarbeitung
+\item Bildliche Zusammenfassung. Versuchen Sie, ein aussagekräftiges Bild zu erstellen, das Ihre Arbeit beschreibt und illustriert.
+Es soll verwendet werden, um auf der ReMIC Webseite neben dem Titel der Arbeit auch das Bild zu zeigen, um eine schnelle Orientierung über Themen des ReMIC zu gewinnen.
+\item Kopien der zitierten Internetseiten
+\item Source-Code. Der Source-Code dient dazu, Ihren Programmierstil zu beurteilen. Dabei geht es z.B. auch darum, ob der Code aufgeräumt und gut dokumentiert ist.
+\item Bilder. Die Bilder, die in der der Arbeit abgedruckt sind, möchte ich alle im Original als elektronische Variante vorfinden.
+Aber die Bilder gehören ja sowieso ins git-Repository.
+\end{enumerate}
+Bitte beachten Sie, dass sich das Fehlen von Teilen dieser Liste nachteilig auf die Note auswirkt.
+
+\paragraph{Übergabe} Bei internen ReMIC Arbeiten erwarte ich, dass die Lauffähigkeit der Software auf den Laborrechnern bei einem Übergabe-Termin nachgewiesen wird.
+Basis dazu ist das git-Repository des Projektes.
+Im ReadMe ist  genau zu beschreiben, was getan werden muss, um die Software zu kompilieren, welche Versionen von externen Libraries zum Test herangezogen wurden, etc.
+
+Die Übergabe ist essentiell für die Nachhaltigkeit der Softwareentwicklung im ReMIC.
+Der Übergabetermin sollte zeitnah {\emph{nach} der Abgabe entweder an eine Labormitarbeiterin oder einen Labormitarbeiter, einen wissenschaftlichen Mitarbeiter oder direkt an mich erfolgen.
+
+\chapter{Äußere Form}
+\label{form}
+
+Neben den Inhalten ist auch die äußere Form wichtig und fließt in die Benotung mit ein.
+Klar sollte sein: ein Rechtschreibfehler kann mal durchrutschen, aber das sollte eine Ausnahme sein.
+Lesen Sie Ihren Text mehrfach Korrektur und lassen ihn auch von Kommilitonen und/oder auch nicht-InformatikerInnen gegenlesen.
+Beginnen Sie rechtzeitig mit dem Schreiben, damit Ihr Text auch so gut wird, wie Sie sich das vorstellen.
+
+\paragraph{Vorabversionen}
+Bei internen Abschlussarbeiten des ReMIC bin ich bereit, eine Korrekturversion vorab anzusehen und zu kommentieren.
+Diese Fassung geht nicht in die Benotung mit ein.
+
+\textbf{Wichtig:} Ich lese die Vorabversion erst, wenn Sie damit zufrieden sind. Kommentare wie:
+\begin{quote}
+\glqq Da fehlt noch was, das ändere ich noch.\grqq
+\end{quote}
+oder
+\begin{quote}
+\glqq Ich habe den Text selbst noch nicht im Ganzen gelesen. Es kann sein, dass das eine oder andere noch nicht passt.\glqq
+\end{quote}
+lasse ich nicht gelten. Ich bin für die großen Strukturen zuständig, fehlende Experimente, zu dürftige Diskussionen, verlassene rote Fäden, etc. zuständig und keine menschliche Rechtschreibkorrektur.
+Bei externen Bachelorarbeiten sollte diese Rolle der Betreuer vor Ort spielen, so dass ich dann keine Vorabversion lese.
+Grundsätzliche Fragen zum Aufbau z.B. anhand eines Inhaltsverzeichnisses sollten natürlich frühzeitig bei einem der Gesprächstermine im Verlauf der Arbeit besprochen werden.
+
+\paragraph{Graphiken}
+Verwenden Sie überall dort, wo es geht, Vektorgraphiken. Ideal im Rahmen von \LaTeX~eignet sich das Encapsulated-PostScript (EPS)-Format.
+Alles, was nicht schon im Ursprung eine Pixelgraphik ist (also Fotos, CT-Schichten, Ultraschall-Aufnahmen, Screenshots, etc.), muss als Vektorgraphik in die Arbeit eingebunden werden.
+Es gibt mehrere Programme, die für eine solche Aufgabe geeignet sind. Ein kostenfreies Beispiel ist OpenOffice Draw.
+Dort markieren Sie Ihre Zeichnung vollständig, wählen unter \emph{Datei} den Menüpunkt \emph{Exportieren}.
+Dann haken Sie \emph{Selection} an und wählen \emph{eps} als Exportformat.
+Fertig!
+
+Vermeiden Sie gescannte Zeichnungen aus anderen Dokumenten.
+Selten sind diese Zeichnungen sehr komplex, so dass Sie sie auch als eigene Vektorgraphik nachzeichnen können.
+Das hat auch den Vorteil, dass die Bezeichnungen, die in der Graphik auftauchen und die Ihres eigenen Textes zusammenpassen.
+Auch wenn Sie eine Graphik nachgezeichnet haben, ist das Original zu referenzieren!
+
+Es sind auch Mischungen zwischen Pixelgraphiken und Vektorgraphiken möglich.
+Sollten Sie z.B. den erwähnten grünen Pfeil in ein Foto einfügen wollen, dann können Sie das Foto in OpenOffice Draw einladen, dort den Pfeil hinzufügen und das Ganze dann als EPS-Datei speichern.
+
+Bei mehreren Graphiken, die z.B.~als Matrix angeordnet werden, ist die Variante über OpenOffice Draw ebenfalls zu empfehlen.
+Grundsätzlich könnte das natürlich auch direkt in \LaTeX~zusammengebastelt werden.
+Wichtig: gleiche Bilder sollten dann auch gleich groß sein und exakt in einer Reihe bzw. Spalte angeordnet werden.
+Bei mehreren Bildern empfiehlt sich eine Markierung mit Buchstaben (a), (b), (c) usw., die dann alle in der Bildunterschrift auch wieder auftauchen müssen.
+
+\paragraph{Code}
+Source Code kann durchaus sparsam dosiert in der Arbeit auftauchen.
+Aber nicht vollständig und als Anhang (siehe Anhang \ref{anhang}), sondern in sinnvollen Ausschnitten, wenn anhand des Code-Fragments ein Sachverhalt erläutert werden soll.
+
+\begin{lstlisting}[language=C++, breaklines=true, basicstyle=\small, numbers=none]
+// Das ist ein Beispiel fuer ein Codefragment
+int a = 7;
+int b = 3;
+int c = 10;
+a *= 2;
+c -= b + a++;
+std::cout << "c = " << c << std::endl;
+\end{lstlisting}
+
+\paragraph{Verzeichnisse}
+Ein Inhaltsverzeichnis ist obligatorisch. Weitere Verzeichnisse wie Tabellenverzeichnisse, Symbolverzeichnisse oder Abbildungsverzeichnisse machen nur dann Sinn, wenn es jeweils mindestens fünf Einträge gibt.
+Wenn man solche weiteren Verzeichnisse erstellt, dann gehören sie ans Textende.
+Das Umgekehrte gilt für das Inhaltsverzeichnis.
+Es versteht sich von selbst, dass die Verzeichnisse dynamisch zu erstellen sind.
+
+In diesem Template ist das Tabellenverzeichnis und das Abbildungsverzeichnis am Ende des Dokuments auskommentiert.
+Wenn man sie benutzen möchte, muss man sie lediglich wieder einkommentieren.

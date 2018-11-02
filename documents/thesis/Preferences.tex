@@ -1,40 +1,144 @@
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Allgemeines
-\usepackage[automark]{scrpage2} % Kopf- und Fusszeilen
-\usepackage{amsmath} % Mathematik
+\usepackage[automark]{scrlayer-scrpage}	% Kopf- und Fusszeilen
+\usepackage{hyperref} 					% Internetseiten
+\usepackage[only-used=false]{acro}		% Abkuerzungen					
+%\usepackage{showframe}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Encoding 
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc} 							% UTF8-Kodierung fuer Umlaute usw
+\usepackage[ngerman]{babel}								% Deutsche Rechtschreibung
+\RequirePackage[ngerman=ngerman-x-latest]{hyphsubst}	% Silbentrennung
+\usepackage{csquotes}
+\usepackage{microtype,textcomp}		
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bildunterschrift
+\usepackage[font=small,
+			labelfont=bf]{caption}		% Formatierung von captions
+			
+\setcapindent{0em} 						% kein Einruecken der Caption von Figures und Tabellen
+\setcapwidth{0.9\textwidth}
+\setlength{\abovecaptionskip}{0.2cm} 	% Abstand der zwischen Bild- und Bildunterschrift
+\captionsetup[table]{justification=justified,singlelinecheck=false,margin={-0cm,0cm}}
+\captionsetup[subfigure]{oneside,margin={-0cm,0cm}}
+\captionsetup[algorithm]{labelsep=colon,justification=justified,singlelinecheck=false,margin={-0cm,0cm}}
+
+\usepackage{float}
+\floatstyle{plaintop}
+\restylefloat{algorithm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Mathematik
+\usepackage{amsmath} 
 \usepackage{amsfonts}
 \usepackage{amssymb}
-\usepackage[utf8]{inputenc} % UTF8-Kodierung fuer Umlaute usw
-\usepackage{hyperref} % Internetseiten
-\usepackage{multirow} % Tabellen-Zellen ueber mehrere Zeilen
-\usepackage{multicol} % mehre Spalten auf eine Seite
-\usepackage{tabularx} % Fuer Tabellen mit vorgegeben Groessen
-\usepackage[ngerman]{babel}
-\usepackage{graphicx} % Bilder
-\usepackage{epstopdf} % enable eps graphics
-\usepackage{color} % Farben
-\usepackage{subfig} % mehrere Abbildungen nebeneinander/uebereinander
+
+\usepackage[locale=DE,
+			group-four-digits,
+       		group-digits=integer,
+			group-separator=.,
+			detect-weight=true, 
+			detect-family=true,
+			]{siunitx}  			% SI Einheiten
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tabellen
+\usepackage{multirow} 	% Tabellen-Zellen ueber mehrere Zeilen
+\usepackage{multicol} 	% mehre Spalten auf eine Seite
+\usepackage{tabularx} 	% Fuer Tabellen mit vorgegeben Groessen
+\usepackage{longtable}	% Ausrichtung des Abkürzungsverzeichnisses
+\usepackage{rotating}	% Gedrehte Tabellen (sidewaystable)
+\usepackage{colortbl} 	% Farbe für Zelle
+\usepackage{ragged2e}	% Rechtsbündige P Spalte
+
+
+\newcolumntype{R}[1]{>{\RaggedLeft\arraybackslash}p{#1}} % Rechtspündige p Spalte (feste Breite)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bilder
+\usepackage{graphicx} 				% Bilder
+\usepackage{epstopdf} 				% enable eps graphics
+\usepackage{subfig} 				% mehrere Abbildungen nebeneinander/uebereinander
+\usepackage{xcolor} 				% Farben
+\usepackage[export]{adjustbox}		% Rahmen fuer Bilder (cframe=lightgray)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Quellcode
-\usepackage{listings} % fuer Formatierung in Quelltexten
-\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{listings} 					% fuer Formatierung in Quelltexten
+\usepackage{scrhack}  					% removes Warning: \float@addtolists detected!  Caused by package listings
+\usepackage[final,outer]{struktex} 	  	% Struktugramme
+\usepackage[plain]{algorithm}
+\usepackage[noend]{algpseudocode} 		% pseudo code
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Zeichnungen/Plots
+\usepackage{pgfplots}						% Plots
+\usetikzlibrary{matrix}						% Matrizen zeichnen
+\usepackage{tikz}							% tikz picture
+\usepackage{tikz-qtree,tikz-qtree-compat}	% Bäume
+\usepackage{dirtree}						% Dateistrukutr
+
+\pgfplotsset{compat=1.15}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sonstiges:
+% Durchgehende Nummerierung. Ohne Chapter
 \usepackage{chngcntr}
 \counterwithout{equation}{chapter}
 \counterwithout{figure}{chapter}
 \counterwithout{table}{chapter}
 
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Einstellungen zum Literaturverzeichnis
 %
-% Anpassen bei "alphabetic"
+% Hier eine von zwei Varianten auswaehlen: Nummern oder Buchstaben fuer Referenzen
+%
+%\usepackage[backend=biber, style=alphabetic, sorting=nyt]{biblatex}
+\usepackage[
+	backend=biber, 
+	style=numeric-comp, 
+	sorting=none,
+	backref=true,
+	backrefstyle=three+
+	]{biblatex}
+	
+	
 \ExecuteBibliographyOptions{%
      maxbibnames=99,   % Alle Autoren (kein et al.)
      maxcitenames=1,   % Kuerzel nur aus 1. Autor im Text
      maxalphanames=1,  % nur 1. Autor in der Abkuerzung
      backref=false,    % keine Ruueckverweise auf Zitatseiten
-     firstinits=true,  % Vornamen abkuerzen
+     giveninits=true,  % Vornamen abkuerzen
      isbn=false,       % ISBN ausblenden
      doi=false,        % DOI ausblenden
    }
+   
+   
+\DefineBibliographyStrings{ngerman}{
+   andothers = {{et\,al\adddot}},            
+} 
+   
+   
 \renewcommand*{\labelalphaothers}{} % alpha label ohne +
 %
 \renewbibmacro*{volume+number+eid}{%
@@ -170,23 +274,61 @@
    \usebibmacro{finentry}}  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Eigene Befehle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Eigene Befehle 
 % Matrix
 \newcommand{\mat}[1]{
       {\textbf{#1}}
 }
-\newcommand{\todo}[1]{
+\newcommand{\todobox}[1]{
       {\colorbox{red}{ TODO: #1 }}
 }
-\newcommand{\todotext}[1]{
-      {\color{red} TODO: #1} \normalfont
+\newcommand{\todo}[1]{
+      {\color{red}{ TODO: #1}} \normalfont
 }
 \newcommand{\info}[1]{
-      {\colorbox{blue}{ (INFO: #1)}}
+      ({\color{blue}{INFO: #1}}\normalfont)
 }
 \newcommand{\code}[1]{
       {\ttfamily{#1}}
 }
+
+
+\usepackage{suffix}		%newcommand with suffix (*)
+% Referenzierung auf subfigures 
+\newcommand\sref[1]{\protect\subref{#1}}
+\WithSuffix\newcommand\sref*[1]{\protect\subref*{#1}}
+
+
+% Mathematik-Operatoren
+\DeclareMathOperator{\atantwo}{atan2}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Deutsche Begriffe fuer Pseudocode (algorithm)
+%
+\floatname{algorithm}{Algorithmus}
+\renewcommand{\algorithmicrepeat}{\textbf{wiederhole}} 
+\renewcommand{\algorithmicuntil}{\textbf{bis}} 
+\renewcommand{\algorithmicfor}{\textbf{für}} 
+\renewcommand{\algorithmicend}{\textbf{}} 
+\renewcommand{\algorithmicdo}{} 
+
+\algnewcommand\algorithmicforeach{\textbf{für jedes}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Groessenanpassungen
@@ -199,7 +341,9 @@
 \setlength{\textheight}{23cm}
 \columnsep 0.5cm
 
-% Bildunterschrift
-\setcapindent{0em} % kein Einruecken der Caption von Figures und Tabellen
-\setcapwidth{0.9\textwidth}
-\setlength{\abovecaptionskip}{0.2cm} % Abstand der zwischen Bild- und Bildunterschrift
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Silbentrennung
+%
+\hyphenation{Über-le-bens-wahr-schein-lich-keit}
+
