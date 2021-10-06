@@ -1,5 +1,8 @@
+detect
+train
+
+
 *.aux
-*.fls
 *.glo
 *.idx
 *.log
@@ -39,3 +42,4 @@
 *.dll
 *.a
 *.o
+__pycache__
