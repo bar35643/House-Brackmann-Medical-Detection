@@ -1,16 +1,18 @@
 #TODO update regulary and at the end of the Project
 
-
 #Base ++++++++++++++++++++++++
 Pillow>=8.3.2
 numpy>=1.19.5
-matplotlib>=3.4.3
 PyYAML>=5.4.1
+
+#Plotting ++++++++++++++++++++++++
+matplotlib>=3.4.3
 
 #Pytorch Elements ++++++++++++++++++++++++
 #torch>=1.9.0
 #torchvision>=0.10.1
 #torchaudio>=0.9.1
 
-# Debugging ++++++++++++++++++++++++
+# Debugging and Testing ++++++++++++++++++++++++
 pylint>=2.11.0
+pytest>=6.2.5

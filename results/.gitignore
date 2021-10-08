@@ -1,6 +1,10 @@
 detect
 train
 
+.pytest_cache
+__pycache__
+
+
 
 *.aux
 *.glo
