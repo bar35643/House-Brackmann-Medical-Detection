@@ -8,7 +8,7 @@ from copy import deepcopy
 import torch
 
 
-from .pytorch_utils import is_process_group
+from .pytorch_utils import is_process_group #pylint: disable=import-error
 
 
 LOGGER = logging.getLogger(__name__)

@@ -73,7 +73,7 @@ pip install -r source/requirements.txt
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
 
 ~~~shell
-pylint source --extension-pkg-whitelist=torch --max-line-length=150
+pylint source --extension-pkg-whitelist=torch --max-line-length=170
 ~~~
 <!---
 Modifications in Files:

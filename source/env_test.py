@@ -5,26 +5,23 @@ TODO
 #python env_test.py
 #python -m torch.distributed.run --nproc_per_node 2 env_test.py
 
-
-
-import  os
+#pylint: skip-file
 import logging
 from argparse import Namespace
-
 import torch
+
+from config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
 from utils.general import set_logging
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
+from utils.dataloader import CreateDataset, LoadImages
 
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv("RANK", "-1"))
-WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
-
-LOGGER = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     set_logging(logging.DEBUG, "env_test: ", Namespace())
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
+    print("ROOT: ", ROOT)
+    print("ROOT_RELATIVE: ", ROOT_RELATIVE)
     print("LOCAL_RANK: ", LOCAL_RANK)
     print("RANK: ", RANK)
     print("WORLD_SIZE: ", WORLD_SIZE)
@@ -42,8 +39,20 @@ if __name__ == "__main__":
 
 
     print(select_device('cpu'))
-    print(select_device('0, 1, 2'))
+    #print(select_device('0, 1, 2'))
 
     print(is_process_group(LOCAL_RANK))
     print(is_master_process(LOCAL_RANK))
+
+    # print("\n\n testing \n")
+    # tst = LoadImages(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
+    # print("length: ", len(tst))
+    # for i in tst:
+    #     print(i)
+    #
+    # print("\n\n testing \n")
+    # tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
+    # print("length: ", len(tst))
+    # for i in tst:
+    #     print(i)
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")

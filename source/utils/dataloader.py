@@ -7,37 +7,53 @@ Check internet connectivity
 
 
 import os
+import csv
 from copy import deepcopy
-import torch
-from torch.utils.data import Dataset
 from PIL import Image
 
+
+import torch
 import torchvision.transforms as T
+from torch.utils.data import Dataset
 
 from .pytorch_utils import is_process_group #pylint: disable=import-error
-from .settings import house_brackmann_template #pylint: disable=import-error
+from .templates import house_brackmann_template #pylint: disable=import-error
 
 
-
+#TODO sort images by name
 class LoadImages(Dataset):  # for inference
     """
     TODO
     """
-    def __init__(self, path, img_size=640, stride=32, auto=True):
+    def __init__(self, path, imgsz=640, prefix_for_log=""):
         super().__init__()
         self.path = path
-        self.img_size = img_size
-        self.stride = stride
-        self.auto = auto
+        self.imgsz = imgsz
+        self.prefix_for_log = prefix_for_log
+
+
+        #TODO loading single Patient
+        #TODO Loading one Category            ready
+        #TODO Loading all Categories
+        self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        self.length = len(self.listdir)
+
+        print("tst: ", self.length, self.listdir)
 
 
     def __getitem__(self, idx):
+        item_name = self.listdir[idx]
+        #TODO Load and Process images
+        #TODO Load Images, cut it and do Augmentation
+
+
+
         img = Image.open("../images/index.jpg")
 
         #assert img0 is not None, 'Image Not Found ' + path
         #print(f'image {self.count}/{self.nf} {path}: ', end='')
 
-        # Convert
+        #TODO Augmentation
         valid_transforms = T.Compose([
             T.Resize(224),
             T.ToTensor(),
@@ -45,20 +61,93 @@ class LoadImages(Dataset):  # for inference
         ])
         img = valid_transforms(img)
 
-        template_img=deepcopy(house_brackmann_template)
 
-        template_img["symmetry"] = deepcopy(img)
-        template_img["eye"] = deepcopy(img)
-        template_img["mouth"] = deepcopy(img)
-        template_img["forehead"] = deepcopy(img)
 
-        return template_img
+        # #Build and return structure
+        struct_images = deepcopy(house_brackmann_template)
+        struct_images["symmetry"] = deepcopy(img)
+        struct_images["eye"] = deepcopy(img)
+        struct_images["mouth"] = deepcopy(img)
+        struct_images["forehead"] = deepcopy(img)
+
+
+        struct_images_inv = deepcopy(struct_images)
+
+        return item_name, struct_images, struct_images_inv
 
     def __len__(self):
-        return 1  # number of files
+        return self.length
+
+class LoadLabels(Dataset):
+    """
+    TODO
+    """
+    def __init__(self, path, name, prefix_for_log=""):
+        super().__init__()
+        self.path = path + '.csv'
+        print(self.path)
+        self.prefix_for_log = prefix_for_log
 
 
+        #load CSV
+        self.listdir = []
+        with open(self.path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            next(reader, None)  # skip the headers
+            for row in reader:
+                self.listdir.append(row)
 
+        self.length = len(self.listdir)
+
+
+    def __getitem__(self, idx):
+        item_name = self.listdir[idx]
+
+        #TODO Extract Data
+
+        #Set and Return value
+        struct_images = deepcopy(house_brackmann_template)
+        struct_images["symmetry"] = None
+        struct_images["eye"] = None
+        struct_images["mouth"] = None
+        struct_images["forehead"] = None
+
+        return item_name, struct_images
+
+    def __len__(self):
+        return self.length  # number of files
+
+class CreateDataset(Dataset):
+    """
+    TODO
+    """
+    def __init__(self, path='', imgsz=640, prefix_for_log=''):
+        super().__init__()
+        self.path = path
+        self.prefix_for_log = prefix_for_log
+        self.images = []
+        self.labels = []
+
+        self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        for s_dir in self.listdir:
+            self.images += LoadImages(path=os.path.join(path, s_dir), imgsz=imgsz, prefix_for_log=prefix_for_log)
+            self.labels += LoadLabels(path=os.path.join(path, s_dir), name=dir, prefix_for_log=prefix_for_log)
+        self.len_images = len(self.images)
+        self.len_labels = len(self.labels)
+
+        assert not self.len_images != self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
+
+    def __getitem__(self, idx):
+        #TODO return only right pair of Images on Label (checking if same Patient)
+        #TODO augment left right,2 times training and detection
+
+        i_name, img = self.images[idx]
+        l_name, label = self.labels[idx]
+
+        return img, label
+
+    def __len__(self):
+        return self.len_images
 
 #TODO caching and LoadImagesAndLabels and augment
 def create_dataloader(path, imgsz, batch_size,
@@ -67,10 +156,8 @@ def create_dataloader(path, imgsz, batch_size,
     TODO
     """
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
-    dataset = LoadImagesAndLabels(path=path,
-                                  imgsz=imgsz,
-                                  batch_size=batch_size,
-                                  prefix_for_log=prefix_for_log)
+    dataset = CreateDataset(path=path, imgsz=imgsz, prefix_for_log=prefix_for_log)
+
 
     batch_size = min(batch_size, len(dataset))
 

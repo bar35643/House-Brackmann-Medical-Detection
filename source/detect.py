@@ -4,12 +4,10 @@ Check internet connectivity
 """
 
 import argparse
-import sys
 import logging
 import time
 import timeit
 from copy import deepcopy
-from pathlib import Path
 import numpy
 
 import torch
@@ -27,19 +25,18 @@ from utils.pytorch_utils import select_device
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import LoadImages
 
-from config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
+from config import ROOT, ROOT_RELATIVE, LOGGER
 PREFIX = "detect: "
 
 
-
-def detect(weights="models/model.pt",  # model.pt path(s)
-           source="data",  # file/dir
-           imgsz=640,  # inference size (pixels)
-           device="cpu",  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-           project="../results/detect",  # save results to project/name
-           name="run",  # save results to project/name
-           half=False,  # use FP16 half-precision
-           function_selector="all"): #pylint: disable=too-many-arguments
+def detect(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+           source="data",
+           imgsz=640,
+           device="cpu",
+           project="../results/detect",
+           name="run",
+           half=False,
+           function_selector="all"):
     """
     TODO
     Check internet connectivity

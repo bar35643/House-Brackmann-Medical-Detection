@@ -81,7 +81,7 @@ def select_device(device="", batch_size=None):
 
 
 
-#TODO merge scheduler and optimizer
+#TODO  scheduler and optimizer to function
 class OptimizerClass:
     """
     TODO

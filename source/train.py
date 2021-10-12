@@ -4,9 +4,7 @@ Check internet connectivity
 """
 
 
-import os
 import argparse
-import sys
 import logging
 import timeit
 from pathlib import Path
@@ -40,18 +38,17 @@ PREFIX = "train: "
 
 
 
-def train(weights="model/model.pt",  # model.pt path(s)
-          source="data/images",  # file/dir
-          imgsz=640,  # inference size (pixels)
+def train(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+          source="data/images",
+          imgsz=640,
           batch_size=16,
           workers=8,
-          device="cpu",  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+          device="cpu",
           optimizer="SGD",
-          nosave=False,  # do not save plotting
-          project="../results/train",  # save results to project/name
-          name="run",  # save results to project/name
-          epochs=100 # total epoch run
-          ):  #pylint: disable=too-many-arguments
+          nosave=False,
+          project="../results/train",
+          name="run",
+          epochs=100):
     """
     TODO
     Check internet connectivity
@@ -99,7 +96,8 @@ def train(weights="model/model.pt",  # model.pt path(s)
 
         # DP mode
         if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1: #Setting DataParrallel if Process Group not available but available devices more than 1
-            print("DP not recommended, instead use --- torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options> --- for better Multi-GPU performance.")
+            LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
+                        use ---> torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options>")
             model = DataParallel(model)
         # DDP mode
         if cuda and is_process_group(RANK): #Setting to DistributedDataParralel if Process Group available
