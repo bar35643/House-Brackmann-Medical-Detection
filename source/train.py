@@ -20,18 +20,10 @@ from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device, OptimizerClass, SchedulerClass, is_master_process, is_process_group
 from utils.dataloader import create_dataloader
 from utils.common import training_epochs
-from utils.settings import allowed_fn, house_brackmann_lookup
+from utils.templates import allowed_fn, house_brackmann_lookup
 
-LOGGER = logging.getLogger(__name__)
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv("RANK", "-1"))
-WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
-
-FILE = Path(__file__).resolve()
-sys.path.append(FILE.parents[0].as_posix())
-
-
-
+from config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
+PREFIX = "train: "
 
 
 #https://discuss.pytorch.org/t/what-is-the-difference-between-rank-and-local-rank/61940
@@ -169,17 +161,28 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", nargs="+", type=str, default="model/model.pt", help="model path(s)")
-    parser.add_argument("--source", type=str, default="data/images", help="file/dir")
-    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640], help="inference size h,w")
-    parser.add_argument("--batch-size", type=int, default=16, help="total batch size for all GPUs")
-    parser.add_argument("--workers", type=int, default=8, help="maximum number of dataloader workers")
-    parser.add_argument("--device", default="cpu", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
-    parser.add_argument("--optimizer", default="SGD", help="Select the Optimizer")
-    parser.add_argument("--nosave", action="store_true", help="do not save")
-    parser.add_argument("--project", default="../results/train", help="save results to project/name")
-    parser.add_argument("--name", default="run", help="save results to project/name")
-    parser.add_argument("--epochs", type=int, default=100, help="total epochs running")
+    parser.add_argument("--weights", nargs="+", type=str, default="model/model.pt",
+                        help="model path(s)")
+    parser.add_argument("--source", type=str, default="data/images",
+                        help="file/dir")
+    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
+                        help="inference size h,w")
+    parser.add_argument("--batch-size", type=int, default=16,
+                        help="total batch size for all GPUs")
+    parser.add_argument("--workers", type=int, default=8,
+                        help="maximum number of dataloader workers")
+    parser.add_argument("--device", default="cpu",
+                        help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+    parser.add_argument("--optimizer", default="SGD",
+                        help="Select the Optimizer")
+    parser.add_argument("--nosave", action="store_true",
+                        help="do not save")
+    parser.add_argument("--project", default="../results/train",
+                        help="save results to project/name")
+    parser.add_argument("--name", default="run",
+                        help="save results to project/name")
+    parser.add_argument("--epochs", type=int, default=100,
+                        help="total epochs running")
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -189,7 +192,7 @@ if __name__ == "__main__":
     Check internet connectivity
     """
     opt_args = parse_opt()
-    set_logging(logging.DEBUG, "train: ", opt_args)
+    set_logging(logging.DEBUG, PREFIX, opt_args)
     check_requirements()
     time = timeit.timeit(lambda: train(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)
