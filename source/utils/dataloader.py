@@ -20,7 +20,6 @@ from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 
 
-#TODO sort images by name
 class LoadImages(Dataset):  # for inference
     """
     TODO
@@ -36,10 +35,19 @@ class LoadImages(Dataset):  # for inference
         #TODO Loading one Category            ready
         #TODO Loading all Categories
         self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        self.listdir.sort()
         self.length = len(self.listdir)
 
         print("tst: ", self.length, self.listdir)
 
+    def transform_image(self, img):
+        #TODO Augmentation
+        valid_transforms = T.Compose([
+            T.Resize(224),
+            T.ToTensor(),
+            T.Normalize(mean=[0.5], std=[0.5])
+        ])
+        return valid_transforms(img)
 
     def __getitem__(self, idx):
         item_name = self.listdir[idx]
@@ -53,14 +61,9 @@ class LoadImages(Dataset):  # for inference
         #assert img0 is not None, 'Image Not Found ' + path
         #print(f'image {self.count}/{self.nf} {path}: ', end='')
 
-        #TODO Augmentation
-        valid_transforms = T.Compose([
-            T.Resize(224),
-            T.ToTensor(),
-            T.Normalize(mean=[0.5], std=[0.5])
-        ])
-        img = valid_transforms(img)
+        #TODO cutting image in pieces
 
+        img = self.transform_image(img)
 
 
         # #Build and return structure
@@ -71,12 +74,19 @@ class LoadImages(Dataset):  # for inference
         struct_images["forehead"] = deepcopy(img)
 
 
-        struct_images_inv = deepcopy(struct_images)
+        struct_images_inv = deepcopy(house_brackmann_template)
+        for i in struct_images:
+            struct_images_inv[i] = torch.fliplr(struct_images[i])
 
         return item_name, struct_images, struct_images_inv
 
     def __len__(self):
         return self.length
+
+
+
+
+
 
 class LoadLabels(Dataset):
     """
@@ -96,14 +106,14 @@ class LoadLabels(Dataset):
             next(reader, None)  # skip the headers
             for row in reader:
                 self.listdir.append(row)
-
+        self.listdir.sort()
         self.length = len(self.listdir)
 
 
     def __getitem__(self, idx):
         item_name = self.listdir[idx]
 
-        #TODO Extract Data
+        #TODO Extract Data and lookup
 
         #Set and Return value
         struct_images = deepcopy(house_brackmann_template)

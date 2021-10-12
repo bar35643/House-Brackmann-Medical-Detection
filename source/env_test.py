@@ -44,15 +44,15 @@ if __name__ == "__main__":
     print(is_process_group(LOCAL_RANK))
     print(is_master_process(LOCAL_RANK))
 
-    # print("\n\n testing \n")
-    # tst = LoadImages(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
-    # print("length: ", len(tst))
+    print("\n\n testing \n")
+    tst = LoadImages(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
+    print("length: ", len(tst))
     # for i in tst:
     #     print(i)
-    #
-    # print("\n\n testing \n")
-    # tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
-    # print("length: ", len(tst))
+
+    print("\n\n testing \n")
+    tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
+    print("length: ", len(tst))
     # for i in tst:
     #     print(i)
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")

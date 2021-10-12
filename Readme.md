@@ -32,14 +32,14 @@
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
    5. [ ] Augmentation for Images (neccessary is flipping the images)
-   5. [ ] DataParralell and DistributedDataParrallel
 - [ ] Training function for epochs
 
 ###### Detection
 - [ ] Detection
-   1. Process Images twice (img and inv_img)
-   2. Prediction interpreter
-   3. Decission Tree for getting the Grading
+   1. [ ] Process Images twice (img and inv_img)
+   2. [ ] Prediction interpreter
+   3. [ ] Decision Tree for getting the Grading
+   4. [ ] DataParralell and DistributedDataParrallel
 - [ ] Validation of training (see Plotting)
 
 ###### Other
@@ -53,6 +53,8 @@
 - [ ] Adding & Checking Docstring's in all files and functions
    1. [ ] Header Docstring addes (Author, file name, License)
    2. [ ] Function Docstring
+- [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
+- Add License (GNU General Public License v3.0)
 
 ## Project
 
@@ -70,17 +72,6 @@ pip install -r source/requirements.txt
 #### Use Cases
  --> Will be added soon! (How to start and use the Code)
 
-<!---
-#### Changelog
-- Template 1
-   1. ??
-   2. ??
-- Template 2
-   1. ??
-   2. ??
-
--->
-
 #### Debug
 <details open>
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
@@ -93,20 +84,20 @@ adding Reason
 -->
 
 
-| File                     | Function                        |   pylint disable                               |   Reason    |
-| :---                     | :----                           | :----                                          | :----       |
-| detect.py                | detect                          | too-many-arguments, too-many-locals            |             |
-| detect.py                | main                            | pointless-string-statement, unnecessary-lambda |             |
-| train.py                 | train                           | too-many-arguments, too-many-locals            |             |
-| train.py                 | main                            | pointless-string-statement, unnecessary-lambda |             |
-| config.py                | n.a                             |n.a                                             |             |
-| unit_test.py             | test_check_python_no_exception  | no-self-use                                    |             |
-| unit_test.py             | main                            | pointless-string-statement                     |             |
-|                          |                                 |                                                |             |
-| utils/dataloader.py      | Import                          | import-error                                   |             |
-| utils/general.py         | n.a                             | n.a                                            |             |
-| utils/pytorch_utils.py   | n.a                             | n.a                                            |             |
-| utils/templates.py       | n.a                             | n.a                                            |             |
+| File                     | Function                        |   pylint disable                                   |   Reason    |
+| :---                     | :----                           | :----                                              | :----       |
+| detect.py                | detect                          | too-many-arguments <br> too-many-locals            |             |
+| detect.py                | main                            | pointless-string-statement <br> unnecessary-lambda |             |
+| train.py                 | train                           | too-many-arguments <br> too-many-locals            |             |
+| train.py                 | main                            | pointless-string-statement <br> unnecessary-lambda |             |
+| config.py                | n.a                             | n.a                                                |             |
+| unit_test.py             | test_check_python_no_exception  | no-self-use                                        |             |
+| unit_test.py             | main                            | pointless-string-statement                         |             |
+|                          |                                 |                                                    |             |
+| utils/dataloader.py      | Import                          | import-error                                       |             |
+| utils/general.py         | n.a                             | n.a                                                |             |
+| utils/pytorch_utils.py   | n.a                             | n.a                                                |             |
+| utils/templates.py       | n.a                             | n.a                                                |             |
 
 </details>
 
