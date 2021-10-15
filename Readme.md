@@ -13,7 +13,7 @@
    1. generate Poster
 - FINAL DATE (2x Thesis with CD)
    1. PDF of Thesis
-   2. Poster
+   2. Teaser Picture
    3. Copy of Pages where i citate from (document/docs or document/ePaper)
    4. images (document/thesis/images)
    5. Source Code (copy of gitlab repro)
@@ -31,16 +31,19 @@
    2. [ ] Gather Data from the images
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
-   5. [ ] Augmentation for Images (neccessary is flipping the images)
+   5. [ ] Augmentation for Images (neccessary: flipping the images)
 - [ ] Training function for epochs
+- [ ] Process Images twice (img and inv_img) for better training results
+- [ ] Decision Tree for the Grading
+- [ ] Validation of training (see Plotting)
+- [ ] DataParralell and DistributedDataParrallel for faster traning
 
 ###### Detection
 - [ ] Detection
-   1. [ ] Process Images twice (img and inv_img)
+   1. [ ] ? Process Images twice (img and inv_img)
    2. [ ] Prediction interpreter
-   3. [ ] Decision Tree for getting the Grading
-   4. [ ] DataParralell and DistributedDataParrallel
-- [ ] Validation of training (see Plotting)
+   3. [ ] Decision Tree for the Grading
+   4. [ ] output result list
 
 ###### Other
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
@@ -54,7 +57,9 @@
    1. [ ] Header Docstring addes (Author, file name, License)
    2. [ ] Function Docstring
 - [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
-- Add License (GNU General Public License v3.0)
+- [ ] API Access via docker-compose/Dockerfile and FastAPI
+- [ ] Add License (GNU General Public License v3.0)
+- [ ] Jupyter lab for vizualizing training and testing as tutorial
 
 ## Project
 
