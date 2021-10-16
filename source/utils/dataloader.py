@@ -8,13 +8,18 @@ Check internet connectivity
 
 import os
 import csv
+import statistics
 from copy import deepcopy
+import numpy as np
 from PIL import Image
+import matplotlib.pyplot as plt
 
 
 import torch
 import torchvision.transforms as T
 from torch.utils.data import Dataset
+
+import face_alignment
 
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
@@ -24,11 +29,20 @@ class LoadImages(Dataset):  # for inference
     """
     TODO
     """
-    def __init__(self, path, imgsz=640, prefix_for_log=""):
+    def __init__(self, path, imgsz=640, device="cpu", prefix_for_log=""):
         super().__init__()
         self.path = path
         self.imgsz = imgsz
+        self.device = device
         self.prefix_for_log = prefix_for_log
+
+
+        #Documentation for Framework: https://github.com/1adrianb/face-alignment
+        self.fn_landmarks = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
+                                                         flip_input=False,
+                                                        device=str(self.device),
+                                                        face_detector='sfd',
+                                                        network_size=4)
 
 
         #TODO loading single Patient
@@ -49,6 +63,22 @@ class LoadImages(Dataset):  # for inference
         ])
         return valid_transforms(img)
 
+    def generate_marker(self, img):
+        #Documentation for Framework: https://github.com/1adrianb/face-alignment
+        landmarks = self.fn_landmarks.get_landmarks(np.array(img))
+        return landmarks
+
+    def cutter(self, img): #TODO cutting image in pieces
+        struct_images = deepcopy(house_brackmann_template)
+
+
+        struct_images["symmetry"] = None
+        struct_images["eye"] = None
+        struct_images["mouth"] = None
+        struct_images["forehead"] = None
+        return struct_images
+
+
     def __getitem__(self, idx):
         item_name = self.listdir[idx]
         #TODO Load and Process images
@@ -57,11 +87,19 @@ class LoadImages(Dataset):  # for inference
 
 
         img = Image.open("../images/index.jpg")
+        landmarks = self.generate_marker(img) #TODO
+
+        print(landmarks[0])
+        print(len(landmarks[0]))
+
+        plt.imshow(img)
+
+        plt.scatter(landmarks[0][:,0], landmarks[0][:,1],5)
+        plt.scatter(statistics.median(landmarks[0][:,0]), statistics.median(landmarks[0][:,1]),10)
+        plt.show()
 
         #assert img0 is not None, 'Image Not Found ' + path
         #print(f'image {self.count}/{self.nf} {path}: ', end='')
-
-        #TODO cutting image in pieces
 
         img = self.transform_image(img)
 
@@ -131,7 +169,7 @@ class CreateDataset(Dataset):
     """
     TODO
     """
-    def __init__(self, path='', imgsz=640, prefix_for_log=''):
+    def __init__(self, path='', imgsz=640, device="cpu", prefix_for_log=''):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
@@ -140,7 +178,7 @@ class CreateDataset(Dataset):
 
         self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
         for s_dir in self.listdir:
-            self.images += LoadImages(path=os.path.join(path, s_dir), imgsz=imgsz, prefix_for_log=prefix_for_log)
+            self.images += LoadImages(path=os.path.join(path, s_dir), imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
             self.labels += LoadLabels(path=os.path.join(path, s_dir), name=dir, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
         self.len_labels = len(self.labels)
@@ -160,13 +198,13 @@ class CreateDataset(Dataset):
         return self.len_images
 
 #TODO caching and LoadImagesAndLabels and augment
-def create_dataloader(path, imgsz, batch_size,
+def create_dataloader(path, imgsz, device, batch_size,
                       rank=-1, workers=8, prefix_for_log=""):
     """
     TODO
     """
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
-    dataset = CreateDataset(path=path, imgsz=imgsz, prefix_for_log=prefix_for_log)
+    dataset = CreateDataset(path=path, imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
 
 
     batch_size = min(batch_size, len(dataset))
