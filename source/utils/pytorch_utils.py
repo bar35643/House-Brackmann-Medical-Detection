@@ -2,13 +2,12 @@
 TODO
 """
 
-import logging
 import math
 
 import torch
 from torch.optim import Adam, SGD
 
-LOGGER = logging.getLogger(__name__)
+from .config import LOGGER
 
 
 

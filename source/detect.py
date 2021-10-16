@@ -3,6 +3,7 @@ TODO
 Check internet connectivity
 """
 
+import os
 import argparse
 import logging
 import time
@@ -19,24 +20,24 @@ from torch.utils.data.dataloader import DataLoader
 # start_time = time.time()
 # fn()
 # elapsed = time.time() - start_time
-
+from utils.config import ROOT, ROOT_RELATIVE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import LoadImages
 
-from config import ROOT, ROOT_RELATIVE, LOGGER
 PREFIX = "detect: "
+LOGGING_STATE = logging.DEBUG
 
 
-def detect(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
-           source="data",
-           imgsz=640,
-           device="cpu",
-           project="../results/detect",
-           name="run",
-           half=False,
-           function_selector="all"):
+def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+        source="data",
+        imgsz=640,
+        device="cpu",
+        project="../results/detect",
+        name="run",
+        half=False,
+        function_selector="all"):
     """
     TODO
     Check internet connectivity
@@ -60,16 +61,22 @@ def detect(weights="models/model.pt", #pylint: disable=too-many-arguments, too-m
 
     #Init
     device = select_device(device)
+
+    print(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
 
+    listdir = [f for f in os.listdir(source) if os.path.isdir(os.path.join(source, f))]
+    dataset = []
+    for s_dir in listdir:
+        dataset += LoadImages(path=os.path.join(source, s_dir), imgsz=imgsz, device=device, prefix_for_log=PREFIX)
 
-    dataset = LoadImages(source, imgsz=imgsz, prefix_for_log=PREFIX)
-    dataset = DataLoader(dataset, batch_size=1, shuffle=False)
+    assert dataset, "No data in dataset given!"
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     #Calculating
     result_list = []
-    for i_name, img, img_inv in dataset:
+    for i_name, img, img_inv in dataloader:
         assert weights.endswith('.pt'), "File has wrong ending"
         #TODO enable assert Path(weights).exists(), "File does not exists"
         #TODO checkpoint = torch.load(weights)
@@ -96,9 +103,9 @@ def detect(weights="models/model.pt", #pylint: disable=too-many-arguments, too-m
             pred_1 = model(img1.to(device))
 
             #TODO Lookup Prediction
-            print(pred.max(1))
-            print(pred.max(1)[1])
-            print(numpy.argmax(pred.detach().numpy()))
+            #print(pred.max(1))
+            #print(pred.max(1)[1])
+            #print(numpy.argmax(pred.detach().numpy()))
 
             #prediction = house_brackmann_lookup[selected_function]["lookup"][numpy.argmax(pred.detach().numpy())]
 
@@ -138,7 +145,8 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", nargs="+", type=str, default="models/model.pt",
                         help="model path(s)")
-    parser.add_argument("--source", type=str, default="../test_data", help="file/dir")
+    parser.add_argument("--source", type=str, default="../test_data",
+                        help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
                         help="inference size h,w")
     parser.add_argument("--device", default="cpu",
@@ -160,7 +168,7 @@ if __name__ == "__main__":
     Check internet connectivity
     """
     opt_args = parse_opt()
-    set_logging(logging.DEBUG, PREFIX,opt_args)
+    set_logging(LOGGING_STATE, PREFIX,opt_args)
     check_requirements()
-    time = timeit.timeit(lambda: detect(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Detection. Finished in %s s", time)

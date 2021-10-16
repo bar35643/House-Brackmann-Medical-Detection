@@ -14,14 +14,15 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
+from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device, OptimizerClass, SchedulerClass, is_master_process, is_process_group
 from utils.dataloader import create_dataloader
 from utils.common import training_epochs
 from utils.templates import allowed_fn, house_brackmann_lookup
 
-from config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 PREFIX = "train: "
+LOGGING_STATE = logging.DEBUG
 
 
 #https://discuss.pytorch.org/t/what-is-the-difference-between-rank-and-local-rank/61940
@@ -38,17 +39,17 @@ PREFIX = "train: "
 
 
 
-def train(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
-          source="data/images",
-          imgsz=640,
-          batch_size=16,
-          workers=8,
-          device="cpu",
-          optimizer="SGD",
-          nosave=False,
-          project="../results/train",
-          name="run",
-          epochs=100):
+def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+        source="data/images",
+        imgsz=640,
+        batch_size=16,
+        workers=8,
+        device="cpu",
+        optimizer="SGD",
+        nosave=False,
+        project="../results/train",
+        name="run",
+        epochs=100):
     """
     TODO
     Check internet connectivity
@@ -87,11 +88,11 @@ def train(weights="model/model.pt", #pylint: disable=too-many-arguments, too-man
         #TODO splitting up data
         val_path = train_path = source
 
-        train_loader = create_dataloader(train_path, imgsz, batch_size // WORLD_SIZE,
+        train_loader = create_dataloader(path=train_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
         rank=RANK, workers=workers, prefix_for_log="train: ")
 
         if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
-            val_loader = create_dataloader(val_path, imgsz, batch_size // WORLD_SIZE,
+            val_loader = create_dataloader(path=val_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
             rank=-1, workers=workers, prefix_for_log="validation: ")
 
         # DP mode
@@ -161,7 +162,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", nargs="+", type=str, default="model/model.pt",
                         help="model path(s)")
-    parser.add_argument("--source", type=str, default="data/images",
+    parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
                         help="inference size h,w")
@@ -190,7 +191,7 @@ if __name__ == "__main__":
     Check internet connectivity
     """
     opt_args = parse_opt()
-    set_logging(logging.DEBUG, PREFIX, opt_args)
+    set_logging(LOGGING_STATE, PREFIX, opt_args)
     check_requirements()
-    time = timeit.timeit(lambda: train(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)

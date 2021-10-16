@@ -39,11 +39,11 @@
 - [ ] DataParralell and DistributedDataParrallel for faster traning
 
 ###### Detection
-- [ ] Detection
-   1. [ ] ? Process Images twice (img and inv_img)
-   2. [ ] Prediction interpreter
-   3. [ ] Decision Tree for the Grading
-   4. [ ] output result list
+- [ ] Input for the System (Single Patient, list of Patients, list of Patients by Category)
+- [ ] ? Process Images twice (img and inv_img)
+- [ ] Prediction interpreter
+- [ ] Decision Tree for the Grading
+- [ ] output result list
 
 ###### Other
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
@@ -82,7 +82,7 @@ pip install -r source/requirements.txt
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
 
 ~~~shell
-pylint source --extension-pkg-whitelist=torch --max-line-length=170
+pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=170
 ~~~
 <!---
 adding Reason

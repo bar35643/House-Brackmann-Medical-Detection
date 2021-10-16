@@ -3,16 +3,16 @@
 General utils
 """
 
+import logging
 import glob
 import platform
 import re
 import socket
-import logging
 from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
-LOGGER = logging.getLogger(__name__)
+from .config import LOGGER
 
 def set_logging(level, main_inp_func, opt):
     """

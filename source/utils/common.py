@@ -2,16 +2,12 @@
 TODO
 Check internet connectivity
 """
-import logging
 from copy import deepcopy
 
 import torch
 
-
+from .config import LOGGER
 from .pytorch_utils import is_process_group #pylint: disable=import-error
-
-
-LOGGER = logging.getLogger(__name__)
 
 #TODO Epoch running function
 def training_epochs(path, model, optimizer, scheduler, device="cpu", train_loader=None, start_epoch=0, epochs=0):
