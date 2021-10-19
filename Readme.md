@@ -77,6 +77,17 @@ pip install -r source/requirements.txt
 #### Use Cases
  --> Will be added soon! (How to start and use the Code)
 
+###### Coding of the Pictures
+1. Ruhender Gesichtsausdruck
+2. Augenbrauen heben
+3. Lächeln, geschlossener Mund
+4. Lächeln, geöffneter Mund
+5. Lippen schürzen, „Duckface"
+6. Augenschluss, leicht
+7. Augenschluss, forciert
+8. Nase rümpfen
+9. Depression Unterlippe
+
 #### Debug
 <details open>
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>

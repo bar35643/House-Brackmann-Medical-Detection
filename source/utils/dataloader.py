@@ -8,19 +8,15 @@ Check internet connectivity
 
 import os
 import csv
-import statistics
 from copy import deepcopy
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
 
 
 import torch
 import torchvision.transforms as T
 from torch.utils.data import Dataset
 
-import face_alignment
-
+from .config import LOGGER
+from .cutter import Cutter
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 
@@ -36,87 +32,49 @@ class LoadImages(Dataset):  # for inference
         self.device = device
         self.prefix_for_log = prefix_for_log
 
-
-        #Documentation for Framework: https://github.com/1adrianb/face-alignment
-        self.fn_landmarks = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
-                                                         flip_input=False,
-                                                        device=str(self.device),
-                                                        face_detector='sfd',
-                                                        network_size=4)
+        self.cutter_class = Cutter(device=device, prefix_for_log=prefix_for_log)
 
 
         #TODO loading single Patient
         #TODO Loading one Category            ready
         #TODO Loading all Categories
-        self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        self.listdir = [f for f in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, f))]
         self.listdir.sort()
         self.length = len(self.listdir)
-
-        print("tst: ", self.length, self.listdir)
 
     def transform_image(self, img):
         #TODO Augmentation
         valid_transforms = T.Compose([
-            T.Resize(224),
+            T.Resize(self.imgsz),
             T.ToTensor(),
             T.Normalize(mean=[0.5], std=[0.5])
         ])
         return valid_transforms(img)
 
-    def generate_marker(self, img):
-        #Documentation for Framework: https://github.com/1adrianb/face-alignment
-        landmarks = self.fn_landmarks.get_landmarks(np.array(img))
-        return landmarks
-
-    def cutter(self, img): #TODO cutting image in pieces
-        struct_images = deepcopy(house_brackmann_template)
-
-
-        struct_images["symmetry"] = None
-        struct_images["eye"] = None
-        struct_images["mouth"] = None
-        struct_images["forehead"] = None
-        return struct_images
-
-
     def __getitem__(self, idx):
         item_name = self.listdir[idx]
-        #TODO Load and Process images
-        #TODO Load Images, cut it and do Augmentation
+        path = os.path.join(self.path, item_name)
 
+        pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        assert pics, 'Image Not Available at Path ' + path
+        print(pics) #TODO Decide which pic is for what
 
-
-        img = Image.open("../images/index.jpg")
-        landmarks = self.generate_marker(img) #TODO
-
-        print(landmarks[0])
-        print(len(landmarks[0]))
-
-        plt.imshow(img)
-
-        plt.scatter(landmarks[0][:,0], landmarks[0][:,1],5)
-        plt.scatter(statistics.median(landmarks[0][:,0]), statistics.median(landmarks[0][:,1]),10)
-        plt.show()
+        struct_img = deepcopy(house_brackmann_template)
+        struct_img["symmetry"] = self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))
+        struct_img["eye"] = self.cutter_class.cut_eye(path=os.path.join(path, pics[0]))
+        struct_img["mouth"] = self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]))
+        struct_img["forehead"] = self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]))
 
         #assert img0 is not None, 'Image Not Found ' + path
         #print(f'image {self.count}/{self.nf} {path}: ', end='')
 
-        img = self.transform_image(img)
 
+        struct_img_inv = deepcopy(house_brackmann_template)
+        for i in struct_img:
+            struct_img[i] = self.transform_image(struct_img[i])
+            struct_img_inv[i] = torch.fliplr(struct_img[i])
 
-        # #Build and return structure
-        struct_images = deepcopy(house_brackmann_template)
-        struct_images["symmetry"] = deepcopy(img)
-        struct_images["eye"] = deepcopy(img)
-        struct_images["mouth"] = deepcopy(img)
-        struct_images["forehead"] = deepcopy(img)
-
-
-        struct_images_inv = deepcopy(house_brackmann_template)
-        for i in struct_images:
-            struct_images_inv[i] = torch.fliplr(struct_images[i])
-
-        return item_name, struct_images, struct_images_inv
+        return path, struct_img, struct_img_inv
 
     def __len__(self):
         return self.length
@@ -138,18 +96,18 @@ class LoadLabels(Dataset):
 
 
         #load CSV
-        self.listdir = []
+        self.list = []
         with open(self.path, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
             next(reader, None)  # skip the headers
             for row in reader:
-                self.listdir.append(row)
-        self.listdir.sort()
-        self.length = len(self.listdir)
+                self.list.append(row)
+        self.list.sort()
+        self.length = len(self.list)
 
 
     def __getitem__(self, idx):
-        item_name = self.listdir[idx]
+        item_name = self.list[idx]
 
         #TODO Extract Data and lookup
 

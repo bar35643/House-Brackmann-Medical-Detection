@@ -40,7 +40,7 @@ LOGGING_STATE = logging.DEBUG
 
 
 def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
-        source="data/images",
+        source="../data",
         imgsz=640,
         batch_size=16,
         workers=8,

@@ -27,11 +27,11 @@ from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_
 from utils.dataloader import LoadImages
 
 PREFIX = "detect: "
-LOGGING_STATE = logging.DEBUG
+LOGGING_STATE = logging.INFO #logging.DEBUG
 
 
 def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
-        source="data",
+        source="../data",
         imgsz=640,
         device="cpu",
         project="../results/detect",
@@ -65,7 +65,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     print(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-
+    #TODO Assertion
     listdir = [f for f in os.listdir(source) if os.path.isdir(os.path.join(source, f))]
     dataset = []
     for s_dir in listdir:
@@ -112,7 +112,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
             #results.append(house_brackmann_lookup[selected_function]["lookup"][pred])
             results[selected_function] = pred.max(1)[1]
 
-        print(results)
+        print(i_name, results)
 
         if function_selector == "all":
         #TODO Desicion Tree
