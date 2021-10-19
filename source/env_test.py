@@ -10,7 +10,7 @@ import logging
 from argparse import Namespace
 import torch
 
-from config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
+from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
 from utils.general import set_logging
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
@@ -18,7 +18,7 @@ from utils.dataloader import CreateDataset, LoadImages
 
 
 if __name__ == "__main__":
-    set_logging(logging.DEBUG, "env_test: ", Namespace())
+    set_logging(logging.INFO, "env_test: ", Namespace())
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
     print("ROOT: ", ROOT)
     print("ROOT_RELATIVE: ", ROOT_RELATIVE)

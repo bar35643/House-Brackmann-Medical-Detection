@@ -57,7 +57,7 @@ class LoadImages(Dataset):  # for inference
 
         pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         assert pics, 'Image Not Available at Path ' + path
-        print(pics) #TODO Decide which pic is for what
+        #print(pics) #TODO Decide which pic is for what
 
         struct_img = deepcopy(house_brackmann_template)
         struct_img["symmetry"] = self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))

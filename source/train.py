@@ -22,7 +22,7 @@ from utils.common import training_epochs
 from utils.templates import allowed_fn, house_brackmann_lookup
 
 PREFIX = "train: "
-LOGGING_STATE = logging.DEBUG
+LOGGING_STATE = logging.INFO
 
 
 #https://discuss.pytorch.org/t/what-is-the-difference-between-rank-and-local-rank/61940
@@ -74,6 +74,19 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     cuda = device.type != "cpu"
 
 
+
+    #TODO splitting up data
+    # Setting up the Images
+    val_path = train_path = source
+
+    train_loader = create_dataloader(path=train_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
+    rank=RANK, workers=workers, prefix_for_log="train: ")
+
+    if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
+        val_loader = create_dataloader(path=val_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
+        rank=-1, workers=workers, prefix_for_log="validation: ")
+
+
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
         if weights.endswith('.pt') and Path(weights).exists():
@@ -85,16 +98,6 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         else:
             model = house_brackmann_lookup[selected_function]["model"].to(device)
 
-        #TODO splitting up data
-        val_path = train_path = source
-
-        train_loader = create_dataloader(path=train_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
-        rank=RANK, workers=workers, prefix_for_log="train: ")
-
-        if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
-            val_loader = create_dataloader(path=val_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
-            rank=-1, workers=workers, prefix_for_log="validation: ")
-
         # DP mode
         if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1: #Setting DataParrallel if Process Group not available but available devices more than 1
             LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
@@ -104,24 +107,24 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         if cuda and is_process_group(RANK): #Setting to DistributedDataParralel if Process Group available
             model = DistributedDataParallel(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
-        #Optimizer
-        optimizer = OptimizerClass(model).select(optimizer)
+        # #Optimizer
+        # optimizer = OptimizerClass(model).select(optimizer)
+        #
+        # #TODO Scheduler
+        # scheduler = SchedulerClass(optimizer).select("tmp")
 
-        #TODO Scheduler
-        scheduler = SchedulerClass(optimizer).select("tmp")
 
-
-        LOGGER.info("Training %s. Using %s dataloader workers and Logging results to %s \n \
+        LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
                     Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
 
 
-        training_epochs(path=save_dir,
-                        model=model,
-                        optimizer=optimizer,
-                        scheduler=scheduler,
-                        device=device,
-                        train_loader=train_loader,
-                        epochs=epochs)
+        # training_epochs(path=save_dir,
+        #                 model=model,
+        #                 optimizer=optimizer,
+        #                 scheduler=scheduler,
+        #                 device=device,
+        #                 train_loader=train_loader,
+        #                 epochs=epochs)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         pass #TODO LOGGING and Plotting and validating

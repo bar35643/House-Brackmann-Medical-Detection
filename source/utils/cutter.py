@@ -38,20 +38,18 @@ class Cutter():
 
         img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
 
-        landmarks[:,0] = landmarks[:,0] - x_min[0]
-        landmarks[:,1] = landmarks[:,1] - y_min[1]
-
-
-
-        #TODO DELETE
-        plt.imshow(img_slice)
-        plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        plt.scatter(x_min[0], x_min[1],15, color='red')
-        plt.scatter(x_max[0], x_max[1],15, color='red')
-        plt.scatter(y_min[0], y_min[1],15, color='red')
-        plt.scatter(y_max[0], y_max[1],15, color='red')
-        plt.show()
+        # landmarks[:,0] = landmarks[:,0] - x_min[0]
+        # landmarks[:,1] = landmarks[:,1] - y_min[1]
+        #
+        # # #TODO DELETE
+        # # plt.imshow(img_slice)
+        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
+        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # # plt.scatter(x_min[0], x_min[1],15, color='red')
+        # # plt.scatter(x_max[0], x_max[1],15, color='red')
+        # # plt.scatter(y_min[0], y_min[1],15, color='red')
+        # # plt.scatter(y_max[0], y_max[1],15, color='red')
+        # # plt.show()
 
 
         return img_slice
@@ -68,20 +66,18 @@ class Cutter():
 
         img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
 
-        landmarks[:,0] = landmarks[:,0] - x_min[0]
-        landmarks[:,1] = landmarks[:,1] - y_min[1]
-
-
-
-        # #TODO DELETE
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # plt.show()
+        # landmarks[:,0] = landmarks[:,0] - x_min[0]
+        # landmarks[:,1] = landmarks[:,1] - y_min[1]
+        #
+        # # #TODO DELETE
+        # # plt.imshow(img_slice)
+        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
+        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # # plt.scatter(x_min[0], x_min[1],15, color='red')
+        # # plt.scatter(x_max[0], x_max[1],15, color='red')
+        # # plt.scatter(y_min[0], y_min[1],15, color='red')
+        # # plt.scatter(y_max[0], y_max[1],15, color='red')
+        # # plt.show()
 
 
         return img_slice
@@ -98,20 +94,18 @@ class Cutter():
 
         img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
 
-        landmarks[:,0] = landmarks[:,0] - x_min[0]
-        landmarks[:,1] = landmarks[:,1] - y_min[1]
-
-
-
-        # #TODO DELETE
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # plt.show()
+        # landmarks[:,0] = landmarks[:,0] - x_min[0]
+        # landmarks[:,1] = landmarks[:,1] - y_min[1]
+        #
+        # # #TODO DELETE
+        # # plt.imshow(img_slice)
+        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
+        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # # plt.scatter(x_min[0], x_min[1],15, color='red')
+        # # plt.scatter(x_max[0], x_max[1],15, color='red')
+        # # plt.scatter(y_min[0], y_min[1],15, color='red')
+        # # plt.scatter(y_max[0], y_max[1],15, color='red')
+        # # plt.show()
 
 
         return img_slice
@@ -129,20 +123,18 @@ class Cutter():
 
         img_slice = img.crop((x_min[0] - 1, 0, x_max[0] + 1, y_min[1] + 1))
 
-        landmarks[:,0] = landmarks[:,0] - x_min[0]
-        landmarks[:,1] = landmarks[:,1] - y_min[1]
-
-
-
-        # #TODO DELETE
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # plt.show()
+        # landmarks[:,0] = landmarks[:,0] - x_min[0]
+        # landmarks[:,1] = landmarks[:,1] - y_min[1]
+        #
+        # # #TODO DELETE
+        # # plt.imshow(img_slice)
+        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
+        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # # plt.scatter(x_min[0], x_min[1],15, color='red')
+        # # plt.scatter(x_max[0], x_max[1],15, color='red')
+        # # plt.scatter(y_min[0], y_min[1],15, color='red')
+        # # plt.scatter(y_max[0], y_max[1],15, color='red')
+        # # plt.show()
 
 
         return img_slice
