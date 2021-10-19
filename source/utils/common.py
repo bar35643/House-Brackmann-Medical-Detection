@@ -1,6 +1,6 @@
+#TODO Docstring
 """
 TODO
-Check internet connectivity
 """
 from copy import deepcopy
 

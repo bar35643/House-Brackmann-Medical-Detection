@@ -1,6 +1,6 @@
+#TODO Docstring
 """
 TODO
-Check internet connectivity
 """
 
 from torchvision.models import resnet18

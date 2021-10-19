@@ -1,6 +1,6 @@
+#TODO Docstring
 """
 TODO
-Check internet connectivity
 """
 
 
@@ -23,9 +23,26 @@ from .templates import house_brackmann_template #pylint: disable=import-error
 
 class LoadImages(Dataset):  # for inference
     """
-    TODO
+    Loading Images from the Folders
+
+    Single Patient:   /0001
+    Set of Patients: /facial_palsy/0001
+                     /facial_palsy/0002
+                     /facial_palsy/0003
+    Set of Classes:  /data/muscle_transplant/0001
+                     /data/muscle_transplant/0002
+                     /data/muscle_transplant/0003
     """
     def __init__(self, path, imgsz=640, device="cpu", prefix_for_log=""):
+        """
+        Initializes the LoadImages class
+
+
+        :param path: one of List above (str/Path)
+        :param imgsz: crop images to the given size (int)
+        :param device: cuda device (cpu or cuda:0)
+        :param prefix_for_log: logger output prefix (str)
+        """
         super().__init__()
         self.path = path
         self.imgsz = imgsz
@@ -43,6 +60,12 @@ class LoadImages(Dataset):  # for inference
         self.length = len(self.listdir)
 
     def transform_image(self, img):
+        """
+        Transform images to Tensor and do Augmentation
+
+        :param img: Image input (Image)
+        :return Transformed Image (Tensor)
+        """
         #TODO Augmentation
         valid_transforms = T.Compose([
             T.Resize(self.imgsz),
@@ -52,6 +75,12 @@ class LoadImages(Dataset):  # for inference
         return valid_transforms(img)
 
     def __getitem__(self, idx):
+        """
+        Get item operator for retrive one item from the given set
+
+        :param idx: Index (int)
+        :return  path, struct_img, struct_img_inv  (str, struct, struct_inv)
+        """
         item_name = self.listdir[idx]
         path = os.path.join(self.path, item_name)
 
@@ -77,6 +106,9 @@ class LoadImages(Dataset):  # for inference
         return path, struct_img, struct_img_inv
 
     def __len__(self):
+        """
+        Length of the Dataset
+        """
         return self.length
 
 
@@ -86,9 +118,16 @@ class LoadImages(Dataset):  # for inference
 
 class LoadLabels(Dataset):
     """
-    TODO
+    Loading Labels from the .csv File
     """
-    def __init__(self, path, name, prefix_for_log=""):
+    def __init__(self, path, prefix_for_log=""):
+        """
+        Initializes the LoadLabels class
+
+
+        :param path: Path to the .csv (str/Path)
+        :param prefix_for_log: logger output prefix (str)
+        """
         super().__init__()
         self.path = path + '.csv'
         print(self.path)
@@ -107,27 +146,47 @@ class LoadLabels(Dataset):
 
 
     def __getitem__(self, idx):
+        """
+        Get item operator for retrive one item from the given set
+
+        :param idx: Index (int)
+        :return  item_name, struct_label  (str, struct)
+        """
         item_name = self.list[idx]
 
         #TODO Extract Data and lookup
 
         #Set and Return value
-        struct_images = deepcopy(house_brackmann_template)
-        struct_images["symmetry"] = None
-        struct_images["eye"] = None
-        struct_images["mouth"] = None
-        struct_images["forehead"] = None
+        struct_label = deepcopy(house_brackmann_template)
+        struct_label["symmetry"] = None
+        struct_label["eye"] = None
+        struct_label["mouth"] = None
+        struct_label["forehead"] = None
 
-        return item_name, struct_images
+        return item_name, struct_label
 
     def __len__(self):
+        """
+        Length of the Dataset
+        """
         return self.length  # number of files
+
+
+
 
 class CreateDataset(Dataset):
     """
-    TODO
+    Loading Labels and Images and build it together
     """
     def __init__(self, path='', imgsz=640, device="cpu", prefix_for_log=''):
+        """
+        Initializes the CreateDataset class
+
+        :param path: path to the dataset (str/Path)
+        :param imgsz: crop images to the given size (int)
+        :param device: cuda device (cpu or cuda:0)
+        :param prefix_for_log: logger output prefix (str)
+        """
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
@@ -137,29 +196,50 @@ class CreateDataset(Dataset):
         self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
         for s_dir in self.listdir:
             self.images += LoadImages(path=os.path.join(path, s_dir), imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
-            self.labels += LoadLabels(path=os.path.join(path, s_dir), name=dir, prefix_for_log=prefix_for_log)
+            self.labels += LoadLabels(path=os.path.join(path, s_dir), prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
         self.len_labels = len(self.labels)
 
         assert not self.len_images != self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
 
     def __getitem__(self, idx):
+        """
+        Get item operator for retrive one item from the given set
+
+        :param idx: Index (int)
+        :return  struct_img, struct_label  (struct, struct)
+        """
+
         #TODO return only right pair of Images on Label (checking if same Patient)
         #TODO augment left right,2 times training and detection
 
-        i_name, img = self.images[idx]
-        l_name, label = self.labels[idx]
+        i_name, struct_img = self.images[idx]
+        l_name, struct_label = self.labels[idx]
 
-        return img, label
+        return struct_img, struct_label
 
     def __len__(self):
+        """
+        Length of the Dataset
+        """
         return self.len_images
 
 #TODO caching and LoadImagesAndLabels and augment
 def create_dataloader(path, imgsz, device, batch_size,
                       rank=-1, workers=8, prefix_for_log=""):
     """
-    TODO
+    creates and returns the DataLoader
+    checks the batch size
+    checks the num workers
+
+    :param path: path to the dataset (str/Path)
+    :param imgsz: crop images to the given size (int)
+    :param device: cuda device (cpu or cuda:0)
+    :param rank: Rank of the Cluster/Tread (int)
+    :param worker: num worker for loading the dataset (int)
+    :param prefix_for_log: logger output prefix (str)
+
+    :returns dataloader
     """
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     dataset = CreateDataset(path=path, imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
