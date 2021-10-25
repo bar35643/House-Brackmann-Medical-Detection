@@ -65,11 +65,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     print(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-    #TODO Assertion
-    listdir = [f for f in os.listdir(source) if os.path.isdir(os.path.join(source, f))]
-    dataset = []
-    for s_dir in listdir:
-        dataset += LoadImages(path=os.path.join(source, s_dir), imgsz=imgsz, device=device, prefix_for_log=PREFIX)
+    dataset = LoadImages(path=source, imgsz=imgsz, device=device, prefix_for_log=PREFIX)
 
     assert dataset, "No data in dataset given!"
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)

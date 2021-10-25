@@ -27,7 +27,7 @@
    1. [ ] Adding Scheduler to list
    2. [ ] Make it available via argparse
 - [ ] Dataloader
-   1. [ ] Adding Dataloader Class
+   1. [x] Adding Dataloader Class
    2. [ ] Gather Data from the images
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
@@ -40,8 +40,9 @@
 - [x] DataParralell and DistributedDataParrallel for faster traning
 
 ###### Detection
-- [ ] Input for the System (Single Patient, list of Patients, list of Patients by Category)
-- [ ] ? Process Images twice (img and inv_img)
+- [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
+- [ ] Input single Picture ???
+- [ ] Process Images twice (img and inv_img) and build median
 - [ ] Prediction interpreter
 - [ ] Decision Tree for the Grading
 - [ ] output result list
@@ -49,7 +50,7 @@
 ###### Other
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
 - [ ] Plotting Results from training/validation
-   1. [ ] for each Category
+   1. [ ] for each Category of HB
    2. [ ] loss, gain, performance average, precison, confusion matrix
 - [ ] Linting and Unittests
    1. [ ] Linting Code and write all #pylint: disable to a list

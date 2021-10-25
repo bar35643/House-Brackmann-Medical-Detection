@@ -25,7 +25,7 @@ class LoadImages(Dataset):  # for inference
     """
     Loading Images from the Folders
 
-    Single Patient:   /0001
+    Single Patient:  /0001
     Set of Patients: /facial_palsy/0001
                      /facial_palsy/0002
                      /facial_palsy/0003
@@ -49,15 +49,27 @@ class LoadImages(Dataset):  # for inference
         self.device = device
         self.prefix_for_log = prefix_for_log
 
+        #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
+        self.list_patients=[]
+        self.list_dir = [f for f in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, f))]
+        for s_dir in self.list_dir:
+            path = os.path.join(self.path, s_dir)
+            self.list_patients += [os.path.join(path,f) for f in os.listdir(path) if os.path.isdir(os.path.join(path,f))]
+
+        if not self.list_patients: #if list_patients is emtly then the folder includes list of Patients
+            self.list_patients = [os.path.join(self.path, f) for f in self.list_dir]
+        if not self.list_patients: #if everything is empty asumme that this is only a single Patient
+            self.list_patients = [self.path]
+
+        assert self.list_patients, "Failture no single Patient, Subcategory or all Categories with Patients included given!"
+        self.list_patients.sort()
+        print("LIST: ", self.list_patients)
+        self.length = len(self.list_patients)
+        #-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
+
+        #-#-#-#-#-#-#-#-#-#-#-Initializing Cutter for the Images-#-#-#-#-#-#-#-#-#-#-#-#-#
         self.cutter_class = Cutter(device=device, prefix_for_log=prefix_for_log)
-
-
-        #TODO loading single Patient
-        #TODO Loading one Category            ready
-        #TODO Loading all Categories
-        self.listdir = [f for f in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, f))]
-        self.listdir.sort()
-        self.length = len(self.listdir)
+        #-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
 
     def transform_image(self, img):
         """
@@ -81,8 +93,7 @@ class LoadImages(Dataset):  # for inference
         :param idx: Index (int)
         :return  path, struct_img, struct_img_inv  (str, struct, struct_inv)
         """
-        item_name = self.listdir[idx]
-        path = os.path.join(self.path, item_name)
+        path = self.list_patients[idx]
 
         pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         assert pics, 'Image Not Available at Path ' + path
@@ -193,11 +204,12 @@ class CreateDataset(Dataset):
         self.images = []
         self.labels = []
 
+        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
+        self.len_images = len(self.images)
+
         self.listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
         for s_dir in self.listdir:
-            self.images += LoadImages(path=os.path.join(path, s_dir), imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
             self.labels += LoadLabels(path=os.path.join(path, s_dir), prefix_for_log=prefix_for_log)
-        self.len_images = len(self.images)
         self.len_labels = len(self.labels)
 
         assert not self.len_images != self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
