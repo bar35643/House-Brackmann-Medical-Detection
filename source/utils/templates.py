@@ -11,7 +11,7 @@ allowed_fn = ["symmetry", "eye", "mouth", "forehead"]
 # TODO lookup and grading and Model
 house_brackmann_lookup = {
     "symmetry": {
-        "lookup": [],
+        "lookup": ["normal", "min_asymm", "asymm"],
         "model": resnet18(pretrained=True)
     },
     "eye": {
@@ -19,11 +19,11 @@ house_brackmann_lookup = {
         "model": resnet18(pretrained=True)
     },
     "mouth": {
-        "lookup": [],
+        "lookup": ["normal", "min_asymm", "asymm"],
         "model":resnet18(pretrained=True)
     },
     "forehead": {
-        "lookup": [],
+        "lookup": ["normal", "min_asymm", "asymm"],
         "model": resnet18(pretrained=True)
     }
 }
@@ -37,9 +37,11 @@ house_brackmann_template = {
 }
 
 house_brackmann_grading = {
-    "I": [],
-    "II": [],
-    "III":[],
-    "IV": [],
-
+    #       symmetry,  eye,         forehead,    mouth
+    "I"  : ["normal", "complete"  , "normal"   , "normal"   ],
+    "II" : ["normal", "complete"  , "normal"   , "min_asymm"],
+    "III": ["normal", "complete"  , "min_asymm", "min_asymm"],
+    "IV" : ["normal", "incomplete", "min_asymm", "min_asymm"],
+    "V"  : ["asymm" , "incomplete", "min_asymm", "asymm"    ],
+    "VI" : ["asymm" , "incomplete", "asymm"    , "asymm"    ],
 }
