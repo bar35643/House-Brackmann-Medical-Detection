@@ -44,7 +44,8 @@ def check_online():
     """
 
     try:
-        socket.create_connection(("8.8.8.8", 443), 5)  # check host accessibility
+        socketInstance = socket.create_connection(("8.8.8.8", 443), 5)  # check host accessibility
+        socketInstance.close()
         return True
     except OSError:
         return False
