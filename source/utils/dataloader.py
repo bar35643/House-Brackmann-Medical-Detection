@@ -21,7 +21,7 @@ from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 
 
-class LoadImages(Dataset):  # for inference
+class LoadImages(Dataset):
     """
     Loading Images from the Folders
 
@@ -51,15 +51,17 @@ class LoadImages(Dataset):  # for inference
 
         #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
         self.list_patients=[]
-        self.list_dir = [f for f in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, f))]
-        for s_dir in self.list_dir:
+        list_dir = [f for f in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, f))]
+        for s_dir in list_dir:
             path = os.path.join(self.path, s_dir)
             self.list_patients += [os.path.join(path,f) for f in os.listdir(path) if os.path.isdir(os.path.join(path,f))]
 
         if not self.list_patients: #if list_patients is emtly then the folder includes list of Patients
-            self.list_patients = [os.path.join(self.path, f) for f in self.list_dir]
+            self.list_patients = [os.path.join(self.path, f) for f in list_dir]
         if not self.list_patients: #if everything is empty asumme that this is only a single Patient
             self.list_patients = [self.path]
+
+        #TODO add Other Timestamst after Preop T000 for example T001,T002, T003 ...
 
         assert self.list_patients, "Failture no single Patient, Subcategory or all Categories with Patients included given!"
         self.list_patients.sort()
@@ -97,22 +99,31 @@ class LoadImages(Dataset):  # for inference
 
         pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         assert pics, 'Image Not Available at Path ' + path
-        #print(pics) #TODO Decide which pic is for what
+        #print(pics) #TODO Decide which pic is for what as array
 
         struct_img = deepcopy(house_brackmann_template)
-        struct_img["symmetry"] = self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))
-        struct_img["eye"] = self.cutter_class.cut_eye(path=os.path.join(path, pics[0]))
-        struct_img["mouth"] = self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]))
-        struct_img["forehead"] = self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]))
+        struct_img["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))]
+        struct_img["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]))]
+        struct_img["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]))]
+        struct_img["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]))]
+
+        #TODO Fix
+        struct_img_inv = deepcopy(house_brackmann_template)
+        struct_img_inv["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]), inv=True)]
+
 
         #assert img0 is not None, 'Image Not Found ' + path
         #print(f'image {self.count}/{self.nf} {path}: ', end='')
 
-
-        struct_img_inv = deepcopy(house_brackmann_template)
         for i in struct_img:
-            struct_img[i] = self.transform_image(struct_img[i])
-            struct_img_inv[i] = torch.fliplr(struct_img[i])
+            for j, img in enumerate(struct_img[i]):
+                #print(j, img)
+                struct_img[i][j] = self.transform_image(img)
+            for j, img_inv in enumerate(struct_img_inv[i]):
+                struct_img_inv[i][j] = self.transform_image(img_inv)
 
         return path, struct_img, struct_img_inv
 
@@ -223,7 +234,6 @@ class CreateDataset(Dataset):
         """
 
         #TODO return only right pair of Images on Label (checking if same Patient)
-        #TODO augment left right,2 times training and detection
 
         i_name, struct_img = self.images[idx]
         l_name, struct_label = self.labels[idx]
@@ -253,7 +263,7 @@ def create_dataloader(path, imgsz, device, batch_size,
 
     :returns dataloader
     """
-    # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
+    #TODO Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     dataset = CreateDataset(path=path, imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
 
 

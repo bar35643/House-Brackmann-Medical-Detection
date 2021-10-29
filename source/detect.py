@@ -3,13 +3,13 @@
 TODO
 """
 
-import os
+#import os
 import argparse
 import logging
 import time
 import timeit
 from copy import deepcopy
-import numpy
+#import numpy
 
 import torch
 from torch.utils.data.dataloader import DataLoader
@@ -61,8 +61,6 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
 
     #Init
     device = select_device(device)
-
-    print(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
     dataset = LoadImages(path=source, imgsz=imgsz, device=device, prefix_for_log=PREFIX)
@@ -72,41 +70,42 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
 
     #Calculating
     result_list = []
-    for i_name, img, img_inv in dataloader:
-        assert weights.endswith('.pt'), "File has wrong ending"
+    for i_name, img_list, img_inv_list in dataloader:
         #TODO enable assert Path(weights).exists(), "File does not exists"
+        assert weights.endswith('.pt'), "File has wrong ending"
         #TODO checkpoint = torch.load(weights)
 
         results = deepcopy(house_brackmann_template)
+        results["symmetry"] = []
+        results["eye"] = []
+        results["mouth"] = []
+        results["forehead"] = []
         for selected_function in fn_ptr:
             model=house_brackmann_lookup[selected_function]["model"]
             #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
-            img0 = img[selected_function]
-            img1 = img_inv[selected_function]
             if half:
                 model.half()  # to FP16
 
-            img0 = (img0.half() if half else img0.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-            if len(img0.shape) == 3:
-                img0 = img0[None]  # expand for batch dim
+            for img, img_inv in zip(img_list[selected_function], img_inv_list[selected_function]):
+                img = (img.half() if half else img.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
+                img = img[None] if len(img.shape) == 3 else img
 
-            img1 = (img1.half() if half else img1.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-            if len(img1.shape) == 3:
-                img1 = img1[None]  # expand for batch dim
+                img_inv = (img_inv.half() if half else img_inv.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
+                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
 
-            #TODO mean of both prediction
-            pred = model(img0.to(device))
-            pred_1 = model(img1.to(device))
+                    #TODO mean of both prediction
+                pred = model(img.to(device))
+                pred_inv = model(img_inv.to(device))
 
-            #TODO Lookup Prediction
-            #print(pred.max(1))
-            #print(pred.max(1)[1])
-            #print(numpy.argmax(pred.detach().numpy()))
+                #TODO Lookup Prediction
+                #print(pred.max(1))
+                #print(pred.max(1)[1])
+                #print(numpy.argmax(pred.detach().numpy()))
 
-            #prediction = house_brackmann_lookup[selected_function]["lookup"][numpy.argmax(pred.detach().numpy())]
+                #prediction = house_brackmann_lookup[selected_function]["lookup"][numpy.argmax(pred.detach().numpy())]
 
-            #results.append(house_brackmann_lookup[selected_function]["lookup"][pred])
-            results[selected_function] = pred.max(1)[1]
+                #results.append(house_brackmann_lookup[selected_function]["lookup"][pred])
+                results[selected_function].append(pred.max(1)[1])
 
         print(i_name, results)
 

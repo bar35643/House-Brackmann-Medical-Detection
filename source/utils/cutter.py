@@ -5,7 +5,7 @@ TODO
 
 #import statistics
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 #import matplotlib.pyplot as plt
 
 
@@ -23,6 +23,7 @@ class Cutter():
     :param exclude: List of all Requirements which will be excuded from the checking (list of packages)
     :param install: True for attempting auto update or False for manual use (True or False)
     """
+    #TODO Redo all functions (input=img_symmetry)
     def __init__(self, device='cpu', prefix_for_log=""):
         """
         Initializes Cutter Class and Face Alignment module
@@ -40,6 +41,7 @@ class Cutter():
                                                          face_detector='sfd',
                                                          network_size=4)
 
+
     def generate_marker(self, img):
         """
         Generates the Landmarks from given input (Points [x, y])
@@ -51,138 +53,143 @@ class Cutter():
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
-    def cut_symmetry(self, path):
+    def flip_input(self, img_input):
+        """
+        Flip images to correct Rotation
+
+        :param image: input Image (Image)
+        :returns  landmarks and cropped image (array, Image)
+        """
+        det = self.generate_marker(img_input)
+        if(det[0, 0] < det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 90 Degree counterclockwise
+            img_input = img_input.transpose(Image.ROTATE_270)
+            det, img_input = self.flip_input(img_input)
+        if(det[0, 0] > det[10, 0]) and (det[0, 1] < det[10, 1]): #image is turned 90 Degree clockwise
+            img_input = img_input.transpose(Image.ROTATE_90)
+            det, img_input = self.flip_input(img_input)
+        if(det[0, 0] > det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 180 Degree
+            img_input = img_input.transpose(Image.ROTATE_180)
+            det, img_input = self.flip_input(img_input)
+        return det, img_input
+
+
+    def load_image(self, path, inv):
+        #TODO docstring
+        """
+        Loading Images
+
+        :param path: Path to image (str)
+        :returns  landmarks and cropped image (array, Image)
+        """
+        img = Image.open(path)
+        if inv:
+            img = ImageOps.mirror(img)
+        dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
+
+        dyn_factor = dyn_factor+1 if (dyn_factor%2) and not (dyn_factor==1) else dyn_factor
+        new_size = (int(img.size[0]/dyn_factor), (int(img.size[1]/dyn_factor)))
+
+        #print(img.size, "to", new_size, "factor", dyn_factor)
+        det, img_res = self.flip_input(img.resize(new_size))
+
+        #TODO CROP and return original image (upscale det)
+
+        img_org = img_res
+        return det, img_org
+
+    def cut_symmetry(self, path, inv=False):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
 
-        :param path: input image (Image)
+        :param path: input path
         :returns  cropped image
         """
-        img = Image.open(path)
-        landmarks = self.generate_marker(img)
+        _, img = self.load_image(path, inv)
 
-        x_min = landmarks[landmarks[:,0].argmin()]
-        x_max = landmarks[landmarks[:,0].argmax()]
-        y_min = landmarks[landmarks[:,1].argmin()]
-        y_max = landmarks[landmarks[:,1].argmax()]
-
-        img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
-
-        # landmarks[:,0] = landmarks[:,0] - x_min[0]
-        # landmarks[:,1] = landmarks[:,1] - y_min[1]
-        #
-        # # #TODO DELETE
-        # # plt.imshow(img_slice)
-        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # # plt.show()
+        # #TODO DELETE
+        # plt.imshow(img)
+        # plt.scatter(landmarks[:,0], landmarks[:,1],5)
+        # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # plt.show()
 
 
-        return img_slice
+        return img
 
-    def cut_eye(self, path):
+    def cut_eye(self, path, inv=False):
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
 
-        :param path: input image (Image)
+        :param path: input path
         :returns  cropped image
         """
-        img = Image.open(path)
-        landmarks = self.generate_marker(img)
+        landmarks, img = self.load_image(path, inv)
         landmarks = landmarks[slice(36, 48)]
 
-        x_min = landmarks[landmarks[:,0].argmin()]
-        x_max = landmarks[landmarks[:,0].argmax()]
-        y_min = landmarks[landmarks[:,1].argmin()]
-        y_max = landmarks[landmarks[:,1].argmax()]
+        x_min = landmarks[:,0].min()
+        x_max = landmarks[:,0].max()
+        y_min = landmarks[:,1].min()
+        y_max = landmarks[:,1].max()
 
-        img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
+        #TODO seperate each eye
+        img_slice = img.crop((x_min - 1, y_min - 1, x_max + 1, y_max + 1))
 
-        # landmarks[:,0] = landmarks[:,0] - x_min[0]
-        # landmarks[:,1] = landmarks[:,1] - y_min[1]
-        #
-        # # #TODO DELETE
-        # # plt.imshow(img_slice)
-        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # # plt.show()
+        # #TODO DELETE
+        # plt.imshow(img_slice)
+        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
+        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
+        # plt.show()
 
 
         return img_slice
 
-    def cut_mouth(self, path):
+    def cut_mouth(self, path, inv=False):
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
 
-        :param path: input image (Image)
+        :param path: input path
         :returns  cropped image
         """
-        img = Image.open(path)
-        landmarks = self.generate_marker(img)
+        landmarks, img = self.load_image(path, inv)
         landmarks = landmarks[slice(48, 68)]
 
-        x_min = landmarks[landmarks[:,0].argmin()]
-        x_max = landmarks[landmarks[:,0].argmax()]
-        y_min = landmarks[landmarks[:,1].argmin()]
-        y_max = landmarks[landmarks[:,1].argmax()]
+        x_min = landmarks[:,0].min()
+        x_max = landmarks[:,0].max()
+        y_min = landmarks[:,1].min()
+        y_max = landmarks[:,1].max()
 
-        img_slice = img.crop((x_min[0] - 1, y_min[1] - 1, x_max[0] + 1, y_max[1] + 1))
+        img_slice = img.crop((x_min - 1, y_min - 1, x_max + 1, y_max + 1))
 
-        # landmarks[:,0] = landmarks[:,0] - x_min[0]
-        # landmarks[:,1] = landmarks[:,1] - y_min[1]
-        #
-        # # #TODO DELETE
-        # # plt.imshow(img_slice)
-        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # # plt.show()
+        # #TODO DELETE
+        # plt.imshow(img_slice)
+        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
+        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
+        # plt.show()
 
 
         return img_slice
 
-    def cut_forehead(self, path):
+    def cut_forehead(self, path, inv=False):
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.
 
-        :param path: input image (Image)
+        :param path: input path
         :returns  cropped image
         """
-        img = Image.open(path)
-        landmarks = self.generate_marker(img) #TODO
-
-        x_min = landmarks[landmarks[:,0].argmin()]
-        x_max = landmarks[landmarks[:,0].argmax()]
-
+        landmarks, img = self.load_image(path, inv)
         landmarks = landmarks[slice(38, 48)]
 
-        y_min = landmarks[landmarks[:,1].argmin()]
+        x_min = landmarks[:,0].min()
+        x_max = landmarks[:,0].max()
+        y_min = landmarks[:,1].min()
+        #y_max = landmarks[:,1].max()
 
-        img_slice = img.crop((x_min[0] - 1, 0, x_max[0] + 1, y_min[1] + 1))
+        img_slice = img.crop((x_min - 1, 0, x_max + 1, y_min + 1))
 
-        # landmarks[:,0] = landmarks[:,0] - x_min[0]
-        # landmarks[:,1] = landmarks[:,1] - y_min[1]
-        #
-        # # #TODO DELETE
-        # # plt.imshow(img_slice)
-        # # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
-        # # plt.scatter(x_min[0], x_min[1],15, color='red')
-        # # plt.scatter(x_max[0], x_max[1],15, color='red')
-        # # plt.scatter(y_min[0], y_min[1],15, color='red')
-        # # plt.scatter(y_max[0], y_max[1],15, color='red')
-        # # plt.show()
+        # #TODO DELETE
+        # plt.imshow(img_slice)
+        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
+        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
+        # plt.show()
 
 
         return img_slice
