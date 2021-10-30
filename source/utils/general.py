@@ -13,7 +13,8 @@ from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
-from .config import LOGGER
+from .config import LOGGER, RANK
+from .pytorch_utils import is_process_group
 
 def set_logging(level, main_inp_func, opt):
     """
@@ -21,10 +22,14 @@ def set_logging(level, main_inp_func, opt):
 
     :param level: one of (logging.DEBUG, logging.INFO)
     """
+    if is_process_group(RANK):
+        format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
+    else:
+        format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
     logging.basicConfig(
         level=level,
-        format="%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s",
+        format=format,
         #datefmt="%Y-%m-%d %H:%M:%S", #TODO enable
         handlers=[
             logging.StreamHandler(),

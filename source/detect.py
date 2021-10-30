@@ -20,8 +20,8 @@ from torch.utils.data.dataloader import DataLoader
 # start_time = time.time()
 # fn()
 # elapsed = time.time() - start_time
-from utils.config import ROOT, ROOT_RELATIVE, LOGGER
-from utils.general import check_requirements, increment_path, set_logging
+from utils.config import LOGGER
+from utils.general import check_requirements, set_logging
 from utils.pytorch_utils import select_device
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import LoadImages
@@ -34,8 +34,6 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
         source="../data",
         imgsz=640,
         device="cpu",
-        project="../results/detect",
-        name="run",
         half=False,
         function_selector="all"):
     """
@@ -53,11 +51,6 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
         else:
             assert i in allowed_fn, "given Function not in the list of the allowed Functions! Only use all, symmetry, eye, mouth or forehead"
             fn_ptr.append(i)
-
-    # Directories
-    #TODO
-    #save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
-    #save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
     #Init
     device = select_device(device)
@@ -146,10 +139,6 @@ def parse_opt():
                         help="inference size h,w")
     parser.add_argument("--device", default="cpu",
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
-    parser.add_argument("--project", default="../results/detect",
-                        help="save results to project/name")
-    parser.add_argument("--name", default="run",
-                        help="save results to project/name")
     parser.add_argument("--half", action="store_true",
                         help="use FP16 half-precision inference")
     parser.add_argument("--function_selector", type=str, default="all",

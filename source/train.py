@@ -10,29 +10,16 @@ import timeit
 from pathlib import Path
 
 import torch
-import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel
-from torch.nn import DataParallel
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
-from utils.pytorch_utils import select_device, OptimizerClass, SchedulerClass, is_master_process, is_process_group
+from utils.pytorch_utils import select_device, select_data_parallel_mode, OptimizerClass, SchedulerClass, is_master_process, is_process_group
 from utils.dataloader import create_dataloader
 from utils.common import training_epochs
 from utils.templates import allowed_fn, house_brackmann_lookup
 
 PREFIX = "train: "
 LOGGING_STATE = logging.INFO
-
-
-#https://discuss.pytorch.org/t/what-is-the-difference-between-rank-and-local-rank/61940
-#https://pytorch.org/docs/stable/elastic/run.html
-#https://pytorch.org/docs/stable/distributed.html
-#https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html
-#https://discuss.pytorch.org/t/difference-between-torch-device-cuda-and-torch-device-cuda-0/46306/18
-#https://discuss.pytorch.org/t/what-is-the-difference-between-rank-and-local-rank/61940/2
-#https://discuss.pytorch.org/t/cuda-visible-device-is-of-no-use/10018/9
-#https://pytorch.org/docs/1.9.0/generated/torch.cuda.set_device.html
 
 
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
@@ -65,12 +52,6 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
 
     # Device init
     device = select_device(device, batch_size=batch_size)
-    if is_process_group(LOCAL_RANK): #Setting Devices to LOCAL_RANK if started as a Process Group
-        assert torch.cuda.device_count() > LOCAL_RANK, "insufficient CUDA devices for DDP command"
-        assert batch_size % WORLD_SIZE == 0, "--batch-size must be multiple of CUDA device count"
-        torch.cuda.set_device(LOCAL_RANK)
-        device = torch.device("cuda", LOCAL_RANK) # Sets for each Process group the GPU
-        dist.init_process_group(backend="nccl" if dist.is_nccl_available() else "gloo")
     cuda = device.type != "cpu"
 
 
@@ -98,14 +79,7 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         else:
             model = house_brackmann_lookup[selected_function]["model"].to(device)
 
-        # DP mode
-        if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1: #Setting DataParrallel if Process Group not available but available devices more than 1
-            LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
-                        use ---> torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options>")
-            model = DataParallel(model)
-        # DDP mode
-        if cuda and is_process_group(RANK): #Setting to DistributedDataParralel if Process Group available
-            model = DistributedDataParallel(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
+        model = select_data_parallel_mode(model, cuda)
 
         # #Optimizer
         # optimizer = OptimizerClass(model).select(optimizer)
