@@ -53,23 +53,33 @@ class Cutter():
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
-    def flip_input(self, img_input):
+    def flip_image_and_return_landmarks(self, img_input):
         """
         Flip images to correct Rotation
 
         :param image: input Image (Image)
         :returns  landmarks and cropped image (array, Image)
         """
+         #try to flip image if exif tag is available see https://pillow.readthedocs.io/en/stable/reference/ImageOps.html
+        img_input = ImageOps.exif_transpose(img_input)
+        #Generate Landmarks
         det = self.generate_marker(img_input)
-        if(det[0, 0] < det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 90 Degree counterclockwise
-            img_input = img_input.transpose(Image.ROTATE_270)
-            det, img_input = self.flip_input(img_input)
-        if(det[0, 0] > det[10, 0]) and (det[0, 1] < det[10, 1]): #image is turned 90 Degree clockwise
-            img_input = img_input.transpose(Image.ROTATE_90)
-            det, img_input = self.flip_input(img_input)
-        if(det[0, 0] > det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 180 Degree
-            img_input = img_input.transpose(Image.ROTATE_180)
-            det, img_input = self.flip_input(img_input)
+
+        #only executes if rotation with exif tags did not work or rotation is wrong
+        #checks rotation from two marker in face and their relative position
+        exit_condition = 0
+        while (det[0, 0] < det[10, 0]) and (det[0, 1] < det[10, 1]) == False:
+            if(det[0, 0] < det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 90 Degree counterclockwise
+                img_input = img_input.transpose(Image.ROTATE_270)
+            if(det[0, 0] > det[10, 0]) and (det[0, 1] < det[10, 1]): #image is turned 90 Degree clockwise
+                img_input = img_input.transpose(Image.ROTATE_90)
+            if(det[0, 0] > det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 180 Degree
+                img_input = img_input.transpose(Image.ROTATE_180)
+            det = self.generate_marker(img_input)
+
+            exit_condition += 1
+            assert exit_condition!=10, "Can not turn Images automatically!!"
+
         return det, img_input
 
 
@@ -90,7 +100,7 @@ class Cutter():
         new_size = (int(img.size[0]/dyn_factor), (int(img.size[1]/dyn_factor)))
 
         #print(img.size, "to", new_size, "factor", dyn_factor)
-        det, img_res = self.flip_input(img.resize(new_size))
+        det, img_res = self.flip_image_and_return_landmarks(img.resize(new_size))
 
         #TODO CROP and return original image (upscale det)
 

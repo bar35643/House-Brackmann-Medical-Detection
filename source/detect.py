@@ -29,7 +29,7 @@ from utils.dataloader import LoadImages
 PREFIX = "detect: "
 LOGGING_STATE = logging.INFO #logging.DEBUG
 
-
+@torch.no_grad()
 def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
