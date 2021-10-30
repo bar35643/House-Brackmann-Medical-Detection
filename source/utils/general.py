@@ -14,7 +14,7 @@ from subprocess import check_output
 import pkg_resources as pkg
 
 from .config import LOGGER, RANK
-from .pytorch_utils import is_process_group
+from .pytorch_utils import is_process_group #pylint: disable=import-error
 
 def set_logging(level, main_inp_func, opt):
     """

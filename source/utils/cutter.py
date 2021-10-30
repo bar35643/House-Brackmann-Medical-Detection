@@ -68,7 +68,7 @@ class Cutter():
         #only executes if rotation with exif tags did not work or rotation is wrong
         #checks rotation from two marker in face and their relative position
         exit_condition = 0
-        while (det[0, 0] < det[10, 0]) and (det[0, 1] < det[10, 1]) == False:
+        while not ((det[0, 0] < det[10, 0]) and (det[0, 1] < det[10, 1])):
             if(det[0, 0] < det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 90 Degree counterclockwise
                 img_input = img_input.transpose(Image.ROTATE_270)
             if(det[0, 0] > det[10, 0]) and (det[0, 1] < det[10, 1]): #image is turned 90 Degree clockwise
