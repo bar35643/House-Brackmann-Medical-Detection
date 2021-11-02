@@ -146,11 +146,6 @@ def parse_opt():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    #pylint: disable=pointless-string-statement
-    """
-    TODO
-    Check internet connectivity
-    """
     opt_args = parse_opt()
     set_logging(LOGGING_STATE, PREFIX,opt_args)
     check_requirements()

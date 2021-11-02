@@ -23,14 +23,14 @@ def set_logging(level, main_inp_func, opt):
     :param level: one of (logging.DEBUG, logging.INFO)
     """
     if is_process_group(RANK):
-        format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
+        format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"  #pylint: disable=redefined-builtin
     else:
         format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
     logging.basicConfig(
         level=level,
         format=format,
-        #datefmt="%Y-%m-%d %H:%M:%S", #TODO enable
+        datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable

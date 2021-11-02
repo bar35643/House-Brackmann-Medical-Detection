@@ -4,9 +4,9 @@
 
 
 
-# DE: Graduierung von Fazialisparesen durch Methoden des Maschinellen Lernens v0.0.0
+# DE: Graduierung von Fazialisparesen durch Methoden des Maschinellen Lernens v0.1.0
 
-##### EN: Grading of Facial Palsy by Machine Learning methods
+##### EN: Grading of Facial Palsy by Machine Learning methods v0.1.0
 
 ## Thesis TODO and INFOS
 - Until final Date
@@ -60,7 +60,7 @@
    2. [ ] Function Docstring
 - [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
 - [ ] API Access via docker-compose/Dockerfile and FastAPI
-- [ ] Add License (GNU General Public License v3.0)
+- [ ] Add License (e.g. GNU General Public License v3.0)
 - [ ] Jupyter lab for vizualizing training and testing as tutorial
 
 ## Project
@@ -104,16 +104,16 @@ adding Reason
 
 | File                     | Function                        |   pylint disable                                   |   Reason    |
 | :---                     | :----                           | :----                                              | :----       |
-| detect.py                | detect                          | too-many-arguments <br> too-many-locals            |             |
-| detect.py                | main                            | pointless-string-statement <br> unnecessary-lambda |             |
-| train.py                 | train                           | too-many-arguments <br> too-many-locals            |             |
-| train.py                 | main                            | pointless-string-statement <br> unnecessary-lambda |             |
+| detect.py                | detect                          | too-many-arguments, <br> too-many-locals           | Parameters needed for direct Call as a function |
+| detect.py                | main                            | unnecessary-lambda 								  | Correct Time Measurement and Parameter handling |
+| train.py                 | train                           | too-many-arguments, <br> too-many-locals           | Parameters needed for direct Call as a function |
+| train.py                 | main                            | unnecessary-lambda 								  | Correct Time Measurement and Parameter handling |
+| unit_test.py             | n.a                             | n.a                                                |             |
+|                          |                                 |             
 | config.py                | n.a                             | n.a                                                |             |
-| unit_test.py             | test_check_python_no_exception  | no-self-use                                        |             |
-| unit_test.py             | main                            | pointless-string-statement                         |             |
-|                          |                                 |                                                    |             |
-| utils/dataloader.py      | Import                          | import-error                                       |             |
-| utils/general.py         | n.a                             | n.a                                                |             |
+| utils/dataloader.py      | Import                          | import-error                                       | works correct |
+| utils/general.py         | Import                          | import-error							              | works correct |
+| utils/general.py         | set_logging        			 | redefined-builtin               					  | For Multi GPU Logging needed to show the Rank |
 | utils/pytorch_utils.py   | n.a                             | n.a                                                |             |
 | utils/templates.py       | n.a                             | n.a                                                |             |
 

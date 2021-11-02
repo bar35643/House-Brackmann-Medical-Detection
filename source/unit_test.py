@@ -22,14 +22,14 @@ class TestCaseGeneral(unittest.TestCase):
     Test Casees of the general.py file
     """
 
-    def test_check_python_no_exception(self): #pylint: disable=no-self-use
+    def test_check_python_no_exception(self):
         """
         Testing if no exeption raises
 
         Enters: a Version that is smaller than the Version install on the Computer
         Expects: No Assertion raises
         """
-        check_python(minimum="3.7.0")
+        tst = check_python(minimum="3.7.0")
 
     def test_check_python_exception(self):
         """
@@ -122,10 +122,6 @@ def parse_opt():
 
 
 if __name__ == "__main__":
-    #pylint: disable=pointless-string-statement
-    """
-    Main Function for starting the unittest
-    """
     opt_args = parse_opt()
     set_logging(logging.ERROR, "unittest: starting...", opt_args)
     check_requirements()

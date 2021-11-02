@@ -102,14 +102,18 @@ class LoadImages(Dataset):
         #print(pics) #TODO Decide which pic is for what as array
 
         struct_img = deepcopy(house_brackmann_template)
-        struct_img["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))]
+        struct_img["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])),
+                                  self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])),
+                                  self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))]
         struct_img["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]))]
         struct_img["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]))]
         struct_img["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]))]
 
         #TODO Fix
         struct_img_inv = deepcopy(house_brackmann_template)
-        struct_img_inv["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True), self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True),
+                                      self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True),
+                                      self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True)]
         struct_img_inv["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]), inv=True)]
         struct_img_inv["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]), inv=True)]
         struct_img_inv["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]), inv=True)]
@@ -120,7 +124,6 @@ class LoadImages(Dataset):
 
         for i in struct_img:
             for j, img in enumerate(struct_img[i]):
-                #print(j, img)
                 struct_img[i][j] = self.transform_image(img)
             for j, img_inv in enumerate(struct_img_inv[i]):
                 struct_img_inv[i][j] = self.transform_image(img_inv)
@@ -193,7 +196,7 @@ class LoadLabels(Dataset):
         """
         Length of the Dataset
         """
-        return self.length  # number of files
+        return self.length  # number of items
 
 
 
@@ -248,7 +251,6 @@ class CreateDataset(Dataset):
         """
         return self.len_images
 
-#TODO caching and LoadImagesAndLabels and augment
 def create_dataloader(path, imgsz, device, batch_size,
                       rank=-1, workers=8, prefix_for_log=""):
     """
@@ -265,7 +267,7 @@ def create_dataloader(path, imgsz, device, batch_size,
 
     :returns dataloader
     """
-    #TODO Make sure only the first process in DDP process the dataset first, and the following others can use the cache
+    #TODO ?? Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     dataset = CreateDataset(path=path, imgsz=imgsz, device=device, prefix_for_log=prefix_for_log)
 
 
