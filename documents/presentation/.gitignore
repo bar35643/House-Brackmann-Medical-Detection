@@ -1,7 +1,7 @@
 .pytest_cache
 __pycache__
 
-
+*.pdf
 *.aux
 *.glo
 *.idx

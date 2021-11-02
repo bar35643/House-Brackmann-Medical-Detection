@@ -27,6 +27,7 @@ __pycache__
 *.synctex.gz
 *bcf
 *.fdb_latexmk
+*.pdf
 *.dvi
 *.brf
 *.bak

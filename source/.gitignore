@@ -1,7 +1,6 @@
 .pytest_cache
 __pycache__
 
-
 *.aux
 *.glo
 *.idx
@@ -27,6 +26,7 @@ __pycache__
 *.synctex.gz
 *bcf
 *.fdb_latexmk
+*.pdf
 *.dvi
 *.brf
 *.bak

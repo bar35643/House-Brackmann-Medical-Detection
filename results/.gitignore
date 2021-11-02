@@ -1,5 +1,9 @@
+detect
+train
+
 .pytest_cache
 __pycache__
+
 
 
 *.aux
@@ -27,6 +31,7 @@ __pycache__
 *.synctex.gz
 *bcf
 *.fdb_latexmk
+*.pdf
 *.dvi
 *.brf
 *.bak
@@ -41,3 +46,4 @@ __pycache__
 *.dll
 *.a
 *.o
+__pycache__
