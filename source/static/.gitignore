@@ -1,6 +1,6 @@
 .pytest_cache
-__pycache__
 upload_temporary
+__pycache__
 
 *.aux
 *.glo
