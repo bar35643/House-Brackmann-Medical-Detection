@@ -47,8 +47,7 @@ if __name__ == "__main__":
     print("\n\ntesting CreateDataset\n")
     tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
-    # for i in tst:
-    #     print(i)
+    print(tst[0])
 
     print("\n\ntesting LoadImages (All Categories, Single Category, Single Patient) \n")
     tst = LoadImages(path='../test_data', imgsz=640, prefix_for_log='')

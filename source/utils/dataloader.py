@@ -18,7 +18,7 @@ from torch.utils.data import Dataset
 from .config import LOGGER
 from .cutter import Cutter
 from .pytorch_utils import is_process_group #pylint: disable=import-error
-from .templates import house_brackmann_template #pylint: disable=import-error
+from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
 
 
 class LoadImages(Dataset):
@@ -178,12 +178,14 @@ class LoadLabels(Dataset):
 
         #TODO Extract Data and lookup
 
+        grade_table = house_brackmann_grading["I"]
+
         #Set and Return value
         struct_label = deepcopy(house_brackmann_template)
-        struct_label["symmetry"] = None
-        struct_label["eye"] = None
-        struct_label["mouth"] = None
-        struct_label["forehead"] = None
+        struct_label["symmetry"] = house_brackmann_lookup["symmetry"]["enum"][grade_table["symmetry"]]
+        struct_label["eye"] = house_brackmann_lookup["eye"]["enum"][grade_table["eye"]]
+        struct_label["mouth"] = house_brackmann_lookup["mouth"]["enum"][grade_table["mouth"]]
+        struct_label["forehead"] = house_brackmann_lookup["forehead"]["enum"][grade_table["forehead"]]
 
         return item_name, struct_label
 
@@ -235,10 +237,10 @@ class CreateDataset(Dataset):
 
         #TODO return only right pair of Images on Label (checking if same Patient)
 
-        i_name, struct_img = self.images[idx]
+        i_name, struct_img, struct_img_inv = self.images[idx]
         l_name, struct_label = self.labels[idx]
 
-        return struct_img, struct_label
+        return struct_img, struct_img_inv, struct_label
 
     def __len__(self):
         """
