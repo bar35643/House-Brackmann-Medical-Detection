@@ -18,7 +18,7 @@ from torch.utils.data import Dataset
 from .config import LOGGER
 from .cutter import Cutter
 from .pytorch_utils import is_process_group #pylint: disable=import-error
-from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
+from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading, allowed_fn #pylint: disable=import-error
 
 
 class LoadImages(Dataset):
@@ -178,17 +178,17 @@ class LoadLabels(Dataset):
         :return  item_name, struct_label  (str, struct)
         """
         item_name = self.list[idx]
+        #print(item_name)
 
         #TODO Extract Data and lookup
+        grade_table = house_brackmann_grading[item_name[1]]
 
-        grade_table = house_brackmann_grading["I"]
-
-        #Set and Return value
         struct_label = deepcopy(house_brackmann_template)
-        struct_label["symmetry"] = house_brackmann_lookup["symmetry"]["enum"][grade_table["symmetry"]]
-        struct_label["eye"] = house_brackmann_lookup["eye"]["enum"][grade_table["eye"]]
-        struct_label["mouth"] = house_brackmann_lookup["mouth"]["enum"][grade_table["mouth"]]
-        struct_label["forehead"] = house_brackmann_lookup["forehead"]["enum"][grade_table["forehead"]]
+        for i in allowed_fn:
+            #Create Tensor with the point e.g x=3 with Value 1 for the right label [0, 0, 0, 1, 0, 0]
+            hb_single = house_brackmann_lookup[i]["enum"]
+            hb_single_all_tensors = torch.eye(len(hb_single))
+            struct_label[i] = hb_single_all_tensors[hb_single[grade_table[i]]]
 
         return item_name, struct_label
 

@@ -14,7 +14,7 @@ from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGG
 
 from utils.general import set_logging
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
-from utils.dataloader import CreateDataset, LoadImages
+from utils.dataloader import CreateDataset, LoadImages, LoadLabels
 
 
 if __name__ == "__main__":
@@ -44,10 +44,6 @@ if __name__ == "__main__":
     print(is_process_group(LOCAL_RANK))
     print(is_master_process(LOCAL_RANK))
 
-    print("\n\ntesting CreateDataset\n")
-    tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
-    print("length: ", len(tst))
-    print(tst[0])
 
     print("\n\ntesting LoadImages (All Categories, Single Category, Single Patient) \n")
     tst = LoadImages(path='../test_data', imgsz=640, prefix_for_log='')
@@ -56,4 +52,15 @@ if __name__ == "__main__":
     print("length: ", len(tst))
     tst = LoadImages(path='../test_data/Muskeltransplantation/0001', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
+
+    print("\n\ntesting LoadLabels \n")
+    tst = LoadLabels(path='../test_data/Faziale_Reanimation')
+    for i in tst:
+        print(i)
+
+
+    print("\n\ntesting CreateDataset\n")
+    tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
+    print("length: ", len(tst))
+    #print(tst[0])
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
