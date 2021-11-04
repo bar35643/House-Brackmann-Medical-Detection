@@ -52,6 +52,7 @@ if __name__ == "__main__":
     print("length: ", len(tst))
     tst = LoadImages(path='../test_data/Muskeltransplantation/0001', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
+    print(tst[0])
 
     print("\n\ntesting LoadLabels \n")
     tst = LoadLabels(path='../test_data/Faziale_Reanimation')

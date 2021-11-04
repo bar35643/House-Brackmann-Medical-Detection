@@ -6,12 +6,14 @@ TODO
 #import statistics
 import numpy as np
 from PIL import Image, ImageOps
+from copy import deepcopy
 #import matplotlib.pyplot as plt
 
 
 import face_alignment
 
 from .config import LOGGER
+from .templates import house_brackmann_template
 
 
 
@@ -106,6 +108,16 @@ class Cutter():
 
         img_org = img_res
         return det, img_org
+
+    def cut_wrapper(self):
+        struct_func_list = deepcopy(house_brackmann_template)
+        struct_func_list["symmetry"] = self.cut_symmetry
+        struct_func_list["eye"] = self.cut_eye
+        struct_func_list["mouth"] = self.cut_mouth
+        struct_func_list["forehead"] = self.cut_forehead
+
+        return  struct_func_list
+
 
     def cut_symmetry(self, path, inv=False):
         """

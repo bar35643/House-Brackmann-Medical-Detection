@@ -101,22 +101,24 @@ class LoadImages(Dataset):
         assert pics, 'Image Not Available at Path ' + path
         #print(pics) #TODO Decide which pic is for what as array
 
+        struct_func_list = self.cutter_class.cut_wrapper()
+
         struct_img = deepcopy(house_brackmann_template)
-        struct_img["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])),
-                                  self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0])),
-                                  self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]))]
-        struct_img["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]))]
-        struct_img["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]))]
-        struct_img["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]))]
+        struct_img["symmetry"] = [struct_func_list["symmetry"](path=os.path.join(path, pics[0])),
+                                  struct_func_list["symmetry"](path=os.path.join(path, pics[0])),
+                                  struct_func_list["symmetry"](path=os.path.join(path, pics[0]))]
+        struct_img["eye"] =      [struct_func_list["eye"](path=os.path.join(path, pics[0]))]
+        struct_img["mouth"] =    [struct_func_list["mouth"](path=os.path.join(path, pics[0]))]
+        struct_img["forehead"] = [struct_func_list["forehead"](path=os.path.join(path, pics[0]))]
 
         #TODO Fix
         struct_img_inv = deepcopy(house_brackmann_template)
-        struct_img_inv["symmetry"] = [self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True),
-                                      self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True),
-                                      self.cutter_class.cut_symmetry(path=os.path.join(path, pics[0]), inv=True)]
-        struct_img_inv["eye"] = [self.cutter_class.cut_eye(path=os.path.join(path, pics[0]), inv=True)]
-        struct_img_inv["mouth"] = [self.cutter_class.cut_mouth(path=os.path.join(path, pics[0]), inv=True)]
-        struct_img_inv["forehead"] = [self.cutter_class.cut_forehead(path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["symmetry"] = [struct_func_list["symmetry"](path=os.path.join(path, pics[0]), inv=True),
+                                      struct_func_list["symmetry"](path=os.path.join(path, pics[0]), inv=True),
+                                      struct_func_list["symmetry"](path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["eye"] =      [struct_func_list["eye"](path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["mouth"] =    [struct_func_list["mouth"](path=os.path.join(path, pics[0]), inv=True)]
+        struct_img_inv["forehead"] = [struct_func_list["forehead"](path=os.path.join(path, pics[0]), inv=True)]
 
 
         #assert img0 is not None, 'Image Not Found ' + path
