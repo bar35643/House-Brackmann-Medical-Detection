@@ -9,6 +9,7 @@ import glob
 import platform
 import re
 import socket
+from copy import deepcopy
 from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
@@ -40,6 +41,17 @@ def set_logging(level, main_inp_func, opt):
         LOGGER.warning(log_str)
     else:
         LOGGER.info(log_str)
+
+def init_dict(inp_dict: dict, val):
+    """
+    Creates a new Dictionary with a Preset Value
+
+    :param inp_dict: Input dictionary which should be Initialized (dict)
+    :param val: Value which the Dictionary should be initialized (string, int, float, list, ...)
+
+    :return dict
+    """
+    return dict((k, deepcopy(val)) for k in inp_dict)
 
 def check_online():
     """

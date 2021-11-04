@@ -8,7 +8,6 @@ import argparse
 import logging
 import time
 import timeit
-from copy import deepcopy
 #import numpy
 
 import torch
@@ -21,7 +20,7 @@ from torch.utils.data.dataloader import DataLoader
 # fn()
 # elapsed = time.time() - start_time
 from utils.config import LOGGER
-from utils.general import check_requirements, set_logging
+from utils.general import check_requirements, set_logging, init_dict
 from utils.pytorch_utils import select_device
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import LoadImages
@@ -68,11 +67,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
         assert weights.endswith('.pt'), "File has wrong ending"
         #TODO checkpoint = torch.load(weights)
 
-        results = deepcopy(house_brackmann_template)
-        results["symmetry"] = []
-        results["eye"] = []
-        results["mouth"] = []
-        results["forehead"] = []
+        results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
             model=house_brackmann_lookup[selected_function]["model"]
             #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
@@ -98,7 +93,8 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
                 #prediction = house_brackmann_lookup[selected_function]["lookup"][numpy.argmax(pred.detach().numpy())]
 
                 #results.append(house_brackmann_lookup[selected_function]["lookup"][pred])
-                results[selected_function].append(pred.max(1)[1])
+                results[selected_function].append({"pred"    :pred.max(1)[1],
+                                                   "pred_inv":pred_inv.max(1)[1] })
 
         print(i_name, results)
 

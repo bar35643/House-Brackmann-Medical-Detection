@@ -65,8 +65,9 @@ class LoadImages(Dataset):
 
         assert self.list_patients, "Failture no single Patient, Subcategory or all Categories with Patients included given!"
         self.list_patients.sort()
-        print("LIST: ", self.list_patients)
         self.length = len(self.list_patients)
+
+        LOGGER.info("%sFound %s Patients. List: %s", self.prefix_for_log, self.length, self.list_patients)
         #-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
 
         #-#-#-#-#-#-#-#-#-#-#-Initializing Cutter for the Images-#-#-#-#-#-#-#-#-#-#-#-#-#

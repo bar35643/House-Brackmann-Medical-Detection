@@ -4,16 +4,16 @@ TODO
 """
 
 #import statistics
+from copy import deepcopy
 import numpy as np
 from PIL import Image, ImageOps
-from copy import deepcopy
 #import matplotlib.pyplot as plt
 
 
 import face_alignment
 
 from .config import LOGGER
-from .templates import house_brackmann_template
+from .templates import house_brackmann_template #pylint: disable=import-error
 
 
 
@@ -37,6 +37,7 @@ class Cutter():
         self.prefix_for_log = prefix_for_log
 
         #Documentation for Framework: https://github.com/1adrianb/face-alignment
+        LOGGER.debug("%sSetting up Framework for generating the Markers", prefix_for_log)
         self.fn_landmarks = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
                                                          flip_input=False,
                                                          device=str(self.device),
@@ -110,6 +111,12 @@ class Cutter():
         return det, img_org
 
     def cut_wrapper(self):
+        """
+        Function Wrapper
+
+        :returns  Dictionary with the Functions (dict))
+        """
+
         struct_func_list = deepcopy(house_brackmann_template)
         struct_func_list["symmetry"] = self.cut_symmetry
         struct_func_list["eye"] = self.cut_eye

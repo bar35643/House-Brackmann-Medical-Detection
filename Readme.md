@@ -109,8 +109,9 @@ adding Reason
 | train.py                 | train                           | too-many-arguments, <br> too-many-locals           | Parameters needed for direct Call as a function |
 | train.py                 | main                            | unnecessary-lambda 								  | Correct Time Measurement and Parameter handling |
 | unit_test.py             | n.a                             | n.a                                                |             |
-|                          |                                 |             
-| config.py                | n.a                             | n.a                                                |             |
+|                          |                                 |      											  |             |       
+| utils/config.py          | n.a                             | n.a                                                |             |
+| utils/cutter.py          | Import                          | import-error							              | works correct |
 | utils/dataloader.py      | Import                          | import-error                                       | works correct |
 | utils/general.py         | Import                          | import-error							              | works correct |
 | utils/general.py         | set_logging        			 | redefined-builtin               					  | For Multi GPU Logging needed to show the Rank |
