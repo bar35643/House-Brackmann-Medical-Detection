@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 
 from utils.general import check_requirements
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="static/templates")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
