@@ -29,7 +29,7 @@ class TestCaseGeneral(unittest.TestCase):
         Enters: a Version that is smaller than the Version install on the Computer
         Expects: No Assertion raises
         """
-        tst = check_python(minimum="3.7.0")
+        check_python(minimum="3.7.0")
 
     def test_check_python_exception(self):
         """

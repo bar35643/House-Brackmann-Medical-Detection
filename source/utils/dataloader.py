@@ -85,7 +85,7 @@ class LoadImages(Dataset):
         valid_transforms = T.Compose([
             T.Resize(self.imgsz),
             T.ToTensor(),
-            T.Normalize(mean=[0.5], std=[0.5])
+            T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
         return valid_transforms(img)
 

@@ -75,11 +75,12 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
                 model.half()  # to FP16
 
             for img, img_inv in zip(img_list[selected_function], img_inv_list[selected_function]):
-                img = (img.half() if half else img.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-                img = img[None] if len(img.shape) == 3 else img
+                img = (img.half() if half else img.float())# uint8 to fp16/32
+                #img = img[None] if len(img.shape) == 3 else img
 
-                img_inv = (img_inv.half() if half else img_inv.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
+
+                img_inv = (img_inv.half() if half else img_inv.float())# uint8 to fp16/32
+                #img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
 
                     #TODO mean of both prediction
                 pred = model(img.to(device))
