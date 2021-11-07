@@ -29,6 +29,7 @@ LOGGING_STATE = logging.INFO
 def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
+        cache=False,
         batch_size=16,
         workers=8,
         device="cpu",
@@ -60,11 +61,11 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     # Setting up the Images
     val_path = train_path = source
 
-    train_loader = create_dataloader(path=train_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
+    train_loader = create_dataloader(path=train_path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, batch_size=batch_size // WORLD_SIZE,
     rank=RANK, workers=workers, prefix_for_log="train: ")
 
     if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
-        val_loader = create_dataloader(path=val_path, imgsz=imgsz, device=device, batch_size=batch_size // WORLD_SIZE,
+        val_loader = create_dataloader(path=val_path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, batch_size=batch_size // WORLD_SIZE,
         rank=-1, workers=workers, prefix_for_log="validation: ")
 
 
@@ -81,6 +82,9 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
 
         model = select_data_parallel_mode(model, cuda)
 
+        for img, img_inv,label in train_loader[selected_function]:
+            print(selected_function, img.shape, img_inv.shape, label.shape)
+
         # #Optimizer
         # optimizer = OptimizerClass(model).select(optimizer)
         #
@@ -88,8 +92,8 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         # scheduler = SchedulerClass(optimizer).select("tmp")
 
 
-        LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
-                    Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
+        # LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
+        #             Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
 
 
         # training_epochs(path=save_dir,
@@ -143,6 +147,8 @@ def parse_opt():
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
                         help="inference size h,w")
+    parser.add_argument("--cache", action="store_true",
+                        help="Caching Images to a SQLite File (can get really big)")
     parser.add_argument("--batch-size", type=int, default=16,
                         help="total batch size for all GPUs")
     parser.add_argument("--workers", type=int, default=8,
