@@ -173,7 +173,6 @@ class OptimizerClass:
             assert False, "given Optimizer is not in the list!"
         return ret_val
 
-#TODO Scheduler
 class SchedulerClass:
     """
     TODO
