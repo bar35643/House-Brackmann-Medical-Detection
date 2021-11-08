@@ -4,6 +4,7 @@ TODO
 """
 
 import math
+from contextlib import contextmanager
 
 import torch
 from torch.optim import Adam, SGD
@@ -13,6 +14,8 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
 from .config import LOGGER,LOCAL_RANK, RANK
+
+#Ideas from https://github.com/ultralytics/yolov5
 
 
 
@@ -129,7 +132,19 @@ def select_device(device="", batch_size=None):
 
     return device
 
+@contextmanager
+def torch_distributed_zero_first(local_rank: int):
+    """
+    Decorator to make all processes in distributed training wait for each local_master to do something.
 
+
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py#L32
+    """
+    if local_rank not in [-1, 0]:
+        dist.barrier(device_ids=[local_rank])
+    yield
+    if local_rank == 0:
+        dist.barrier(device_ids=[0])
 
 
 

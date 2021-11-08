@@ -6,32 +6,32 @@ TODO
 import io
 import sqlite3
 from sqlite3 import Error
-import numpy as np
+import torch
 from .singleton import Singleton #pylint: disable=import-error
 
-def adapt_array(arr):
+def adapt_dictionary(data):
     """
     Database functions to convert np.array to entry
-    :param arr: np.array
-    :return: text
+    :param data: dict
+    :return: binary stream
     """
     out = io.BytesIO()
-    np.save(out, arr)
+    torch.save(data, out)
     out.seek(0)
     return sqlite3.Binary(out.read())
 
-def convert_array(text):
+def convert_dictionary(text):
     """
     Database functions to convert entries back to np.np_array
     :param text: text
-    :return: np.array
+    :return: dict
     """
     out = io.BytesIO(text)
     out.seek(0)
-    return np.load(out)
+    return torch.load(out)
 
-sqlite3.register_adapter(np.ndarray, adapt_array)
-sqlite3.register_converter("np_array", convert_array)
+sqlite3.register_adapter(dict, adapt_dictionary)
+sqlite3.register_converter("dict", convert_dictionary)
 
 @Singleton
 class Database():

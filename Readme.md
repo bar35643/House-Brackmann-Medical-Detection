@@ -38,7 +38,7 @@
 - [ ] Decision Tree for the Grading
 - [ ] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
-- [ ] Dataloader Sampler
+- [x] Dataloader Sampler for DP and DDP
 
 ###### Detection
 - [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
@@ -49,6 +49,8 @@
 - [ ] output result list
 
 ###### Other
+- [ ] Model save/load without overwriting data
+- [ ] num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 1, workers]) maybe Issue with Windows
 - [x] Caching Images via SQLite3
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
 - [ ] Plotting Results from training/validation
