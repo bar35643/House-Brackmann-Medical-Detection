@@ -52,7 +52,7 @@
 - [ ] Model save/load without overwriting data
 - [ ] num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 1, workers]) maybe Issue with Windows
 - [x] Caching Images via SQLite3
-- [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
+- [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
 - [ ] Plotting Results from training/validation
    1. [ ] for each Category of HB
    2. [ ] loss, gain, performance average, precison, confusion matrix

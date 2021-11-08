@@ -5,6 +5,7 @@ TODO
 
 #import statistics
 from copy import deepcopy
+from functools import lru_cache
 import numpy as np
 from PIL import Image, ImageOps
 #import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from PIL import Image, ImageOps
 import torchvision.transforms as T
 import face_alignment
 
-from .config import LOGGER  #pylint: disable=import-error
+from .config import LOGGER, LRU_MAX_SIZE  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
@@ -109,7 +110,7 @@ class Cutter():
 
         return det, img_input
 
-
+    @lru_cache(LRU_MAX_SIZE)
     def load_image(self, path, inv):
         #TODO docstring
         """
@@ -134,6 +135,7 @@ class Cutter():
         img_org = img_res
         return det, img_org
 
+    @lru_cache(LRU_MAX_SIZE)
     def cut_wrapper(self):
         """
         Function Wrapper
@@ -149,7 +151,7 @@ class Cutter():
 
         return  struct_func_list
 
-
+    @lru_cache(LRU_MAX_SIZE)
     def cut_symmetry(self, path, inv=False):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
@@ -166,6 +168,7 @@ class Cutter():
         # plt.show()
         return np.array(img)
 
+    @lru_cache(LRU_MAX_SIZE)
     def cut_eye(self, path, inv=False):
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
@@ -193,6 +196,7 @@ class Cutter():
 
         return np.array(img_slice)
 
+    @lru_cache(LRU_MAX_SIZE)
     def cut_mouth(self, path, inv=False):
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
@@ -219,6 +223,7 @@ class Cutter():
 
         return np.array(img_slice)
 
+    @lru_cache(LRU_MAX_SIZE)
     def cut_forehead(self, path, inv=False):
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.

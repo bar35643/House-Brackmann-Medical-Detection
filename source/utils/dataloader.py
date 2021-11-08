@@ -10,6 +10,7 @@ import os
 import csv
 from copy import deepcopy
 from itertools import repeat
+from functools import lru_cache
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
@@ -17,7 +18,7 @@ import torch
 import torchvision.transforms as T
 from torch.utils.data import Dataset
 
-from .config import LOGGER
+from .config import LOGGER, LRU_MAX_SIZE
 from .cutter import Cutter
 from .pytorch_utils import is_process_group, torch_distributed_zero_first #pylint: disable=import-error
 from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
@@ -161,6 +162,7 @@ class LoadImages(Dataset):
             os.remove(self.database_file)
             LOGGER.info("%s Deleted Database File (Cache)!", self.prefix_for_log)
 
+    @lru_cache(LRU_MAX_SIZE)
     def get_structs(self, idx):
         """
         Get structures from index

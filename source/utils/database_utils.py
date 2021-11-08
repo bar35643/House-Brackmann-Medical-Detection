@@ -6,8 +6,10 @@ TODO
 import io
 import sqlite3
 from sqlite3 import Error
+from functools import lru_cache
 import torch
 from .singleton import Singleton #pylint: disable=import-error
+from .config import LRU_MAX_SIZE
 
 def adapt_dictionary(data):
     """
@@ -20,6 +22,7 @@ def adapt_dictionary(data):
     out.seek(0)
     return sqlite3.Binary(out.read())
 
+@lru_cache(LRU_MAX_SIZE)
 def convert_dictionary(text):
     """
     Database functions to convert entries back to np.np_array
@@ -32,6 +35,7 @@ def convert_dictionary(text):
 
 sqlite3.register_adapter(dict, adapt_dictionary)
 sqlite3.register_converter("dict", convert_dictionary)
+
 
 @Singleton
 class Database():
@@ -90,18 +94,6 @@ class Database():
         except Error as err:
             print(err)
 
-    def insert_db(self, table, params, param_question):
-        """
-        inserting item in the table and commit it to database
-        :param table: Inserting item in Table
-        """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute("INSERT INTO "+table+" VALUES " + param_question ,params)
-            self.conn.commit()
-        except Error as err:
-            print(err)
-
     def db_table_entries_exists(self, table):
         """
         Checks if Table exixst
@@ -119,6 +111,20 @@ class Database():
 
         return False
 
+    @lru_cache(LRU_MAX_SIZE)
+    def insert_db(self, table, params, param_question):
+        """
+        inserting item in the table and commit it to database
+        :param table: Inserting item in Table
+        """
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("INSERT INTO "+table+" VALUES " + param_question ,params)
+            self.conn.commit()
+        except Error as err:
+            print(err)
+
+    @lru_cache(LRU_MAX_SIZE)
     def get_db_one(self, table, idx):
         """
         retriving one item from the table
@@ -134,6 +140,7 @@ class Database():
 
         return None
 
+    @lru_cache(LRU_MAX_SIZE)
     def get_db_all(self, table):
         """
         retriving all items from the table
