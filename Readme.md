@@ -38,6 +38,7 @@
 - [ ] Decision Tree for the Grading
 - [ ] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
+- [ ] Dataloader Sampler
 
 ###### Detection
 - [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
@@ -48,6 +49,7 @@
 - [ ] output result list
 
 ###### Other
+- [x] Caching Images via SQLite3
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions
 - [ ] Plotting Results from training/validation
    1. [ ] for each Category of HB
@@ -112,7 +114,10 @@ adding Reason
 |                          |                                 |      											  |             |       
 | utils/config.py          | n.a                             | n.a                                                |             |
 | utils/cutter.py          | Import                          | import-error							              | works correct |
-| utils/dataloader.py      | Import                          | import-error                                       | works correct |
+| utils/cutter.py          | Cutter.set                      | protected-access						              | Override Framework if other device than cpu is requested |
+| utils/dataloader.py      | Import                          | import-error							              | works correct |
+| utils/dataloader.py      | LoadImagesAsStruct.__init__     | no-member                                          | Singleton Pattern |
+| utils/dataloader.py      | LoadImages.__init__             | no-member                                          | Singleton Pattern |
 | utils/general.py         | Import                          | import-error							              | works correct |
 | utils/general.py         | set_logging        			 | redefined-builtin               					  | For Multi GPU Logging needed to show the Rank |
 | utils/pytorch_utils.py   | n.a                             | n.a                                                |             |

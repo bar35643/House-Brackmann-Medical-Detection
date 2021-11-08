@@ -58,7 +58,8 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
     #Calculating
     result_list = []
-    for i_name, img_struct, img_inv_struct in dataloader:
+    for batch, item_struct in enumerate(dataloader):
+        i_name, img_struct, img_inv_struct = item_struct
         #TODO enable assert Path(weights).exists(), "File does not exists"
         assert weights.endswith('.pt'), "File has wrong ending"
         #TODO checkpoint = torch.load(weights)
@@ -69,30 +70,36 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
             #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
             if half:
                 model.half()  # to FP16
-            for img_list, img_inv_list in zip(img_struct[selected_function], img_inv_struct[selected_function]):
-                predicted = []
-                for idx, images in enumerate(zip(img_list, img_inv_list)):
-                    img, img_inv = images
+            for idx, item_list in enumerate(zip(img_struct[selected_function], img_inv_struct[selected_function])):
+                img, img_inv = item_list
+                img = (img.half() if half else img.float()) # uint8 to fp16/32
+                img = img[None] if len(img.shape) == 3 else img
 
-                    img = (img.half() if half else img.float()) # uint8 to fp16/32
-                    img = img[None] if len(img.shape) == 3 else img
+                img_inv = (img_inv.half() if half else img_inv.float()) # uint8 to fp16/32
+                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
 
-                    img_inv = (img_inv.half() if half else img_inv.float()) # uint8 to fp16/32
-                    img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
+                #TODO mean of both prediction and lookup
+                pred = model(img.to(device))
+                #print(pred.shape)
+                pred_true = []
+                for j in torch.tensor_split(pred, len(i_name)):
+                    pred_true.append(np.argmax(j.detach().numpy()))
 
-                    #TODO mean of both prediction and lookup
-                    pred = model(img.to(device))
-                    predicted.append(np.argmax(pred.detach().numpy()))
+                results[selected_function].append({"batch": str(batch),
+                                                   "idx": str(idx),
+                                                   "name": str(i_name),
+                                                   "pred": pred_true})
 
-                    pred_inv = model(img_inv.to(device))
-                    predicted.append(np.argmax(pred_inv.detach().numpy()))
+                    #predicted.append(np.argmax(pred.detach().numpy()))
+                    #
+                    # pred_inv = model(img_inv.to(device))
+                    # predicted.append(np.argmax(pred_inv.detach().numpy()))
 
 
                     #print(pred.max(1))
                     #print(pred.max(1)[1])
                     #print(np.argmax(pred.detach().numpy()))
 
-                    results[selected_function].append({"pred_"+str(idx)    :max(predicted)*(idx+1)})
 
         print(i_name, results)
 

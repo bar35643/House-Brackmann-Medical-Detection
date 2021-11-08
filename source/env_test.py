@@ -9,12 +9,17 @@ TODO
 import logging
 from argparse import Namespace
 import torch
+import io
+import numpy as np
+import torchvision.transforms as T
+import timeit
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
 from utils.general import set_logging
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
-from utils.dataloader import CreateDataset, LoadImages, LoadLabels
+from utils.dataloader import CreateDataset, LoadImages, LoadLabels, LoadImagesAsStruct
+from utils.templates import allowed_fn
 
 
 if __name__ == "__main__":
@@ -25,7 +30,6 @@ if __name__ == "__main__":
     print("LOCAL_RANK: ", LOCAL_RANK)
     print("RANK: ", RANK)
     print("WORLD_SIZE: ", WORLD_SIZE)
-
 
     print("Cuda Avialable: ", torch.cuda.is_available())
     print("Cuda device count: ", torch.cuda.device_count())
@@ -44,24 +48,30 @@ if __name__ == "__main__":
     print(is_process_group(LOCAL_RANK))
     print(is_master_process(LOCAL_RANK))
 
-
     print("\n\ntesting LoadImages (All Categories, Single Category, Single Patient) \n")
-    tst = LoadImages(path='../test_data', imgsz=640, prefix_for_log='')
+    tst = LoadImagesAsStruct(path='../test_data', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
-    tst = LoadImages(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
+    tst = LoadImagesAsStruct(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
-    tst = LoadImages(path='../test_data/Muskeltransplantation/0001', imgsz=640, prefix_for_log='')
+    tst = LoadImagesAsStruct(path='../test_data/Muskeltransplantation/0001', imgsz=640, prefix_for_log='')
     print("length: ", len(tst))
-    print(tst[0])
-
-    print("\n\ntesting LoadLabels \n")
-    tst = LoadLabels(path='../test_data/Faziale_Reanimation')
-    for i in tst:
-        print(i)
 
 
-    print("\n\ntesting CreateDataset\n")
-    tst = CreateDataset(path='../test_data', imgsz=640, prefix_for_log='')
-    print("length: ", len(tst))
+
+    for i in allowed_fn:
+        print("\n\ntesting LoadLabels \n")
+        tst = LoadLabels(path='../test_data/Faziale_Reanimation', func=i)
+        print("length: ", len(tst))
+
+        print("\n\ntesting CreateDataset\n")
+        tst = CreateDataset(path='../test_data', func=i, imgsz=640, device="cpu", cache=True, prefix_for_log='')
+        print("length: ", len(tst))
+        print(tst.__getitem__(0)[0])
+        print(timeit.timeit(lambda: tst.__getitem__(0), number=10))
+        tst = CreateDataset(path='../test_data', func=i, imgsz=640, device="cpu", cache=False, prefix_for_log='')
+        print("length: ", len(tst))
+        print(tst.__getitem__(0)[0])
+        print(timeit.timeit(lambda: tst.__getitem__(0), number=10))
+
     #print(tst[0])
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
