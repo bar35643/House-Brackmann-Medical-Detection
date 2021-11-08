@@ -4,17 +4,19 @@ TODO
 """
 
 #import statistics
+from copy import deepcopy
 import numpy as np
 from PIL import Image, ImageOps
 #import matplotlib.pyplot as plt
 
-
+import torchvision.transforms as T
 import face_alignment
 
-from .config import LOGGER
+from .config import LOGGER  #pylint: disable=import-error
+from .templates import house_brackmann_template #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
-
-
+@Singleton
 class Cutter():
     """
     Check installed dependencies meet requirements
@@ -24,23 +26,47 @@ class Cutter():
     :param install: True for attempting auto update or False for manual use (True or False)
     """
     #TODO Redo all functions (input=img_symmetry)
-    def __init__(self, device='cpu', prefix_for_log=""):
+    def __init__(self):
         """
         Initializes Cutter Class and Face Alignment module
 
         :param device: cuda device (cpu or cuda:0)
         :param prefix_for_log: logger output prefix (str)
         """
-        self.device = device
+        self.prefix_for_log = ""
+        self.fn_landmarks = None
+
+    def set(self, device, prefix_for_log:str):
+        """
+        set Class items
+        :param device: cuda device (cpu or cuda)
+        :param prefix_for_log: logger output prefix (str)
+        """
         self.prefix_for_log = prefix_for_log
+        device = 'cpu' if str(device) == "cpu" else 'cuda'
 
         #Documentation for Framework: https://github.com/1adrianb/face-alignment
+        #pylint: disable=protected-access
+        LOGGER.debug("%sSetting up Framework for generating the Markers", self.prefix_for_log)
         self.fn_landmarks = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
                                                          flip_input=False,
-                                                         device=str(self.device),
+                                                         device=device,
                                                          face_detector='sfd',
                                                          network_size=4)
 
+    def augmentation(self, img):
+        """
+        Transform images to Tensor and do Augmentation
+
+        :param img: Image input (Image)
+        :return Transformed Image (Tensor)
+        """
+        #TODO Augmentation
+        valid_transforms = T.Compose([
+            #T.ToPILImage(),
+            #T.Resize(self.imgsz),
+        ])
+        return valid_transforms(img)
 
     def generate_marker(self, img):
         """
@@ -50,6 +76,7 @@ class Cutter():
         :returns  Array of Landmarks ([x, y], x and y from type int)
         """
         #Documentation for Framework: https://github.com/1adrianb/face-alignment
+        assert self.fn_landmarks, "Use Cutter.instanche().set(<properties>) to set the self Values!"
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
@@ -107,6 +134,22 @@ class Cutter():
         img_org = img_res
         return det, img_org
 
+    def cut_wrapper(self):
+        """
+        Function Wrapper
+
+        :returns  Dictionary with the Functions (dict))
+        """
+
+        struct_func_list = deepcopy(house_brackmann_template)
+        struct_func_list["symmetry"] = self.cut_symmetry
+        struct_func_list["eye"] = self.cut_eye
+        struct_func_list["mouth"] = self.cut_mouth
+        struct_func_list["forehead"] = self.cut_forehead
+
+        return  struct_func_list
+
+
     def cut_symmetry(self, path, inv=False):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
@@ -121,9 +164,7 @@ class Cutter():
         # plt.scatter(landmarks[:,0], landmarks[:,1],5)
         # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
         # plt.show()
-
-
-        return img
+        return np.array(img)
 
     def cut_eye(self, path, inv=False):
         """
@@ -150,7 +191,7 @@ class Cutter():
         # plt.show()
 
 
-        return img_slice
+        return np.array(img_slice)
 
     def cut_mouth(self, path, inv=False):
         """
@@ -176,7 +217,7 @@ class Cutter():
         # plt.show()
 
 
-        return img_slice
+        return np.array(img_slice)
 
     def cut_forehead(self, path, inv=False):
         """
@@ -202,4 +243,4 @@ class Cutter():
         # plt.show()
 
 
-        return img_slice
+        return np.array(img_slice)
