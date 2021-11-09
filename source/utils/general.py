@@ -16,6 +16,7 @@ import pkg_resources as pkg
 
 from .config import LOGGER, RANK
 from .pytorch_utils import is_process_group #pylint: disable=import-error
+from .decorators import try_except #pylint: disable=import-error
 
 
 def set_logging(level, main_inp_func, opt):
@@ -90,21 +91,6 @@ def check_python(minimum="3.8.0"):
     """
 
     check_version(platform.python_version(), minimum, name="Python ")
-
-def try_except(func):
-    """
-    try-except function. Usage: @try_except decorator
-
-    :param func:  Function which should be decorated (function)
-    """
-
-    def handler(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except RuntimeError as err:
-            LOGGER.error(err)
-
-    return handler
 
 @try_except
 def check_requirements(requirements="requirements.txt", exclude=(), install=True):

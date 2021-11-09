@@ -5,10 +5,11 @@ TODO
 
 import io
 import sqlite3
-from sqlite3 import Error
 from functools import lru_cache
 import torch
+
 from .singleton import Singleton #pylint: disable=import-error
+from .decorators import try_except_none, try_except, thread_safe #pylint: disable=import-error
 from .config import LRU_MAX_SIZE
 
 def adapt_dictionary(data):
@@ -69,88 +70,65 @@ class Database():
         """
         return self.conn
 
+    @try_except_none
     def create_db_connection(self):
         """
         create a database connection to the SQLite database specified by db_file
         :return: Connection object or None
         """
-        try:
-            self.conn = sqlite3.connect(self.db_file, detect_types=sqlite3.PARSE_DECLTYPES)
-            return self.conn
-        except Error as err:
-            print(err)
-
+        self.conn = sqlite3.connect(self.db_file, detect_types=sqlite3.PARSE_DECLTYPES)
         return self.conn
 
-
+    @try_except
     def create_db_table(self, table):
         """
         create a table from the table statement
         :param table: a CREATE TABLE statement
         """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute(table)
-        except Error as err:
-            print(err)
+        cursor = self.conn.cursor()
+        cursor.execute(table)
 
+    @try_except_none
     def db_table_entries_exists(self, table):
         """
         Checks if Table exixst
         :param table: Table
         :return True or False (bool)
         """
-        try:
-            cursor = self.conn.cursor()
-            item = cursor.execute("SELECT * FROM "+table).fetchall()
-        except Error as err:
-            print(err)
+        cursor = self.conn.cursor()
+        item = cursor.execute("SELECT * FROM "+table).fetchall()
+        return bool(item)
 
-        if item:
-            return True
-
-        return False
-
-    @lru_cache(LRU_MAX_SIZE)
+    @thread_safe
+    @try_except
     def insert_db(self, table, params, param_question):
         """
         inserting item in the table and commit it to database
         :param table: Inserting item in Table
         """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute("INSERT INTO "+table+" VALUES " + param_question ,params)
-            self.conn.commit()
-        except Error as err:
-            print(err)
+        cursor = self.conn.cursor()
+        cursor.execute("INSERT INTO "+table+" VALUES " + param_question ,params)
+        self.conn.commit()
 
     @lru_cache(LRU_MAX_SIZE)
+    @try_except_none
     def get_db_one(self, table, idx):
         """
         retriving one item from the table
         :param table: Retriving from Table
         :param idx: index (int)
         """
-        try:
-            cursor = self.conn.cursor()
-            item = cursor.execute("SELECT * FROM "+table+" WHERE id=?",(idx,)).fetchone()
-            return item[1], item[2]
-        except Error as err:
-            print(err)
-
-        return None
+        cursor = self.conn.cursor()
+        item = cursor.execute("SELECT * FROM "+table+" WHERE id=?",(idx,)).fetchone()
+        return item[1], item[2]
 
     @lru_cache(LRU_MAX_SIZE)
+    @try_except_none
     def get_db_all(self, table):
         """
         retriving all items from the table
         :param table: Retriving from Table
         """
-        try:
-            cursor = self.conn.cursor()
-            item = cursor.execute("SELECT * FROM "+table).fetchall()
-            return item
-        except Error as err:
-            print(err)
-
-        return None
+        cursor = self.conn.cursor()
+        item = cursor.execute("SELECT * FROM "+table).fetchall()
+        return item
