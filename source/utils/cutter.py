@@ -35,7 +35,11 @@ class Cutter():
         :param prefix_for_log: logger output prefix (str)
         """
         self.prefix_for_log = ""
-        self.fn_landmarks = None
+        self.fn_landmarks = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
+                                                         flip_input=False,
+                                                         device='cpu',
+                                                         face_detector='sfd',
+                                                         network_size=4)
 
     def set(self, device, prefix_for_log:str):
         """
@@ -54,20 +58,6 @@ class Cutter():
                                                          device=device,
                                                          face_detector='sfd',
                                                          network_size=4)
-
-    def augmentation(self, img):
-        """
-        Transform images to Tensor and do Augmentation
-
-        :param img: Image input (Image)
-        :return Transformed Image (Tensor)
-        """
-        #TODO Augmentation
-        valid_transforms = T.Compose([
-            #T.ToPILImage(),
-            #T.Resize(self.imgsz),
-        ])
-        return valid_transforms(img)
 
     def generate_marker(self, img):
         """
@@ -111,7 +101,7 @@ class Cutter():
         return det, img_input
 
     @lru_cache(LRU_MAX_SIZE)
-    def load_image(self, path, inv):
+    def load_image(self, path):
         #TODO docstring
         """
         Loading Images
@@ -120,8 +110,6 @@ class Cutter():
         :returns  landmarks and cropped image (array, Image)
         """
         img = Image.open(path)
-        if inv:
-            img = ImageOps.mirror(img)
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
 
         dyn_factor = dyn_factor+1 if (dyn_factor%2) and not (dyn_factor==1) else dyn_factor
@@ -152,31 +140,31 @@ class Cutter():
         return  struct_func_list
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_symmetry(self, path, inv=False):
+    def cut_symmetry(self, path):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        _, img = self.load_image(path, inv)
+        _, img = self.load_image(path)
 
         # #TODO DELETE
         # plt.imshow(img)
         # plt.scatter(landmarks[:,0], landmarks[:,1],5)
         # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
         # plt.show()
-        return np.array(img)
+        return img
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_eye(self, path, inv=False):
+    def cut_eye(self, path):
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, inv)
+        landmarks, img = self.load_image(path)
         landmarks = landmarks[slice(36, 48)]
 
         x_min = landmarks[:,0].min()
@@ -194,17 +182,17 @@ class Cutter():
         # plt.show()
 
 
-        return np.array(img_slice)
+        return img_slice
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_mouth(self, path, inv=False):
+    def cut_mouth(self, path):
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, inv)
+        landmarks, img = self.load_image(path)
         landmarks = landmarks[slice(48, 68)]
 
         x_min = landmarks[:,0].min()
@@ -221,17 +209,17 @@ class Cutter():
         # plt.show()
 
 
-        return np.array(img_slice)
+        return img_slice
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_forehead(self, path, inv=False):
+    def cut_forehead(self, path):
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, inv)
+        landmarks, img = self.load_image(path)
         landmarks = landmarks[slice(38, 48)]
 
         x_min = landmarks[:,0].min()
@@ -248,4 +236,4 @@ class Cutter():
         # plt.show()
 
 
-        return np.array(img_slice)
+        return img_slice
