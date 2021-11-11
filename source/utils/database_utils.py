@@ -120,7 +120,7 @@ class Database():
         """
         cursor = self.conn.cursor()
         item = cursor.execute("SELECT * FROM "+table+" WHERE id=?",(idx,)).fetchone()
-        return item[1], item[2]
+        return item
 
     @lru_cache(LRU_MAX_SIZE)
     @try_except_none
