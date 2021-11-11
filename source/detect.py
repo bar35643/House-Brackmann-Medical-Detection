@@ -8,7 +8,6 @@ import argparse
 import logging
 import time
 import timeit
-import numpy as np
 
 import torch
 
@@ -60,7 +59,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     #Calculating
     result_list = []
     for batch, item_struct in enumerate(dataloader):
-        i_name, img_struct, img_inv_struct = item_struct
+        i_name, img_struct = item_struct
         #TODO enable assert Path(weights).exists(), "File does not exists"
         assert weights.endswith('.pt'), "File has wrong ending"
         #TODO checkpoint = torch.load(weights)
@@ -71,25 +70,21 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
             #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
             if half:
                 model.half()  # to FP16
-            for idx, item_list in enumerate(zip(img_struct[selected_function], img_inv_struct[selected_function])):
-                img, img_inv = item_list
+            for idx, img in enumerate(img_struct[selected_function]):
                 img = (img.half() if half else img.float()) # uint8 to fp16/32
                 img = img[None] if len(img.shape) == 3 else img
-
-                img_inv = (img_inv.half() if half else img_inv.float()) # uint8 to fp16/32
-                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
 
                 #TODO mean of both prediction and lookup
                 pred = model(img.to(device))
                 #print(pred.shape)
-                pred_true = []
-                for j in torch.tensor_split(pred, len(i_name)):
-                    pred_true.append(np.argmax(j.detach().numpy()))
+                # pred_true = []
+                # for j in torch.tensor_split(pred, len(i_name)):
+                #     pred_true.append(np.argmax(j.detach().numpy()))
 
                 results[selected_function].append({"batch": str(batch),
                                                    "idx": str(idx),
                                                    "name": str(i_name),
-                                                   "pred": pred_true})
+                                                   "pred": pred.shape})
 
                     #predicted.append(np.argmax(pred.detach().numpy()))
                     #

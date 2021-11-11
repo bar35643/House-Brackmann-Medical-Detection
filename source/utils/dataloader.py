@@ -64,23 +64,6 @@ def get_list_patients(source_path: str):
     list_patients.sort()
     return list_patients
 
-def transform_totensor_and_normalize(img):
-    """
-    Transform images to Tensor and do Augmentation
-
-    :param img: Image input (Image)
-    :return Transformed Image (Tensor)
-    """
-    valid_transforms = T.Compose([
-        T.ToTensor(),
-        T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-    ])
-    return valid_transforms(img)
-
-
-
-
-
 class LoadImages(Dataset):
     """
     Loading Images from the Folders
@@ -108,6 +91,11 @@ class LoadImages(Dataset):
         self.path = path
         self.prefix_for_log = prefix_for_log
 
+        self.imgsz = ((640, 640), #symmetry
+                      (640, 640), #eye
+                      (640, 640), #mouth
+                      (640, 640)) #forehead
+
         self.database = None
         self.database_file = "pythonsqlite.db"
         self.table = "dataloader_table" #TODO Split train and val??
@@ -129,8 +117,7 @@ class LoadImages(Dataset):
             if self.database.create_db_connection() is not None:
                 self.database.create_db_table(f""" CREATE TABLE IF NOT EXISTS {self.table} (
                                                 id integer PRIMARY KEY,
-                                                struct_img dict,
-                                                struct_img_inv dict
+                                                struct_img dict
                                               ); """)
 
                 if not self.database.db_table_entries_exists(self.table):
@@ -139,7 +126,7 @@ class LoadImages(Dataset):
                     results = ThreadPool(THREADPOOL_NUM_THREADS).imap(self.get_structs, range(self.length))
                     pbar = tqdm(enumerate(results), total=self.length, desc=f'{self.prefix_for_log}Caching images')
                     for idx, item in pbar:
-                        self.database.insert_db(self.table, (idx, item[0], item[1]), "(?, ?, ?)")
+                        self.database.insert_db(self.table, (idx, item), "(?, ?)")
                     pbar.close()
                     LOGGER.info("%sDone Writing to Database.", self.prefix_for_log)
                 else:
@@ -163,6 +150,34 @@ class LoadImages(Dataset):
             os.remove(self.database_file)
             LOGGER.info("%s Deleted Database File (Cache)!", self.prefix_for_log)
 
+    def transform_resize_and_to_tensor(self, img, idx):
+        """
+        Resize images and Transform images to Tensor
+
+        :param img: Image input (Image)
+        :return Transformed Image as Tensor (Tensor)
+        """
+        valid_transforms = T.Compose([
+            T.Resize(self.imgsz[idx]),
+            T.ToTensor()
+        ])
+        return valid_transforms(img)
+
+    def augmentation(self, img_tensor):
+        """
+        do Augmentation
+
+        :param img: Tensor (Tensor)
+        :return Transformed Tensor (Tensor)
+        """
+        valid_transforms = T.Compose([
+            T.ToPILImage(),
+            T.RandomHorizontalFlip(p=0.5),
+            T.ToTensor(),
+            T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
+        return valid_transforms(img_tensor)
+
     @lru_cache(LRU_MAX_SIZE)
     def get_structs(self, idx):
         """
@@ -177,15 +192,14 @@ class LoadImages(Dataset):
 
         struct_func_list = self.cutter_class.cut_wrapper()
         struct_img = init_dict(house_brackmann_template, [])
-        struct_img_inv = init_dict(house_brackmann_template, [])
-        for func in struct_img:
+        for number, func in enumerate(struct_img):
             pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
             for item in path_list[func]:
-                struct_img[func].append(     transform_totensor_and_normalize(struct_func_list[func](path=os.path.join(path, pics[item]), inv=False))  )
-                struct_img_inv[func].append( transform_totensor_and_normalize(struct_func_list[func](path=os.path.join(path, pics[item]), inv=True))  )
+                struct_img[func].append(     self.transform_resize_and_to_tensor(struct_func_list[func](path=os.path.join(path, pics[item])), number  )  )
 
-        return struct_img, struct_img_inv
+        return struct_img
 
+    @lru_cache(LRU_MAX_SIZE)
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -196,11 +210,15 @@ class LoadImages(Dataset):
         path = self.list_patients[idx]
 
         if self.database:
-            struct_img, struct_img_inv = self.database.get_db_one(self.table, idx)
+            struct_img = self.database.get_db_one(self.table, idx)[1]
         else:
-            struct_img, struct_img_inv = self.get_structs(idx)
+            struct_img = self.get_structs(idx)
 
-        return path, struct_img, struct_img_inv
+        for i in struct_img:
+            for number, j in enumerate(struct_img[i]):
+                struct_img[i][number] = self.augmentation(j)
+
+        return path, struct_img
 
     def __len__(self):
         """
@@ -244,6 +262,7 @@ class CreateDataset(Dataset):
 
         assert self.len_images == self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
 
+    @lru_cache(LRU_MAX_SIZE)
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -265,9 +284,9 @@ class CreateDataset(Dataset):
 
 
 
-        path, struct_img, struct_img_inv = self.images[idx]
+        path, struct_img = self.images[idx]
 
-        return path, struct_img, struct_img_inv, struct_label
+        return path, struct_img, struct_label
 
     def __len__(self):
         """

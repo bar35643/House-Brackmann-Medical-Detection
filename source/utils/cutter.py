@@ -10,7 +10,6 @@ import numpy as np
 from PIL import Image, ImageOps
 #import matplotlib.pyplot as plt
 
-import torchvision.transforms as T
 import face_alignment
 
 from .config import LOGGER, LRU_MAX_SIZE  #pylint: disable=import-error

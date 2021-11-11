@@ -80,10 +80,10 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
 
         model = select_data_parallel_mode(model, cuda)
 
-        for i_name, img_struct, img_inv_struct,label_struct in train_loader:
-            for idx, item_list in enumerate(zip(img_struct[selected_function], img_inv_struct[selected_function], label_struct[selected_function])):
-                img, img_inv, label = item_list
-                print(idx, selected_function, i_name, img.shape, img_inv.shape, label.shape)
+        for i_name, img_struct,label_struct in train_loader:
+            for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
+                img, label = item_list
+                print(idx, selected_function, i_name, img.shape, label.shape)
 
         # #Optimizer
         # optimizer = OptimizerClass(model).select(optimizer)

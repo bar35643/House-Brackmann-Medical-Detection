@@ -35,7 +35,7 @@
    6. [x] Flipping/Invert Image
 - [ ] Training function for epochs
 - [ ] Process Images twice (img and inv_img) for better training results
-- [ ] Decision Tree for the Grading
+- [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
 - [x] Dataloader Sampler for DP and DDP
@@ -45,7 +45,7 @@
 - [ ] Input single Picture ???
 - [ ] Process Images twice (img and inv_img) and build median
 - [ ] Prediction interpreter
-- [ ] Decision Tree for the Grading
+- [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] output result list
 
 ###### Other
