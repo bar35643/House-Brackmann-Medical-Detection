@@ -48,6 +48,7 @@
 - [ ] output result list
 
 ###### Other
+- [x] Train/Validation Split
 - [ ] Model save/load without overwriting data
 - [ ] num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 1, workers]) maybe Issue with Windows [?? Solution](https://github.com/pytorch/vision/issues/689)
 - [x] Caching Images via SQLite3

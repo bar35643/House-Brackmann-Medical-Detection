@@ -13,8 +13,9 @@ matplotlib>=3.4.3
 #torchvision>=0.10.1
 #torchaudio>=0.9.1
 
-#FaceAlignment (getting landmarks) ++++++++++++++++++++++++
-face_alignment>=1.3.5
+#Other ++++++++++++++++++++++++
+face_alignment>=1.3.5 #getting landmarks
+scikit-learn>=1.0
 
 # Debugging and Testing ++++++++++++++++++++++++
 pylint>=2.11.0

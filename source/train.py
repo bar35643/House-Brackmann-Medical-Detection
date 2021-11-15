@@ -14,6 +14,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
+from utils.argparse_utils import restricted_val_split
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel
@@ -33,6 +34,7 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         imgsz=640,
         cache=False,
         batch_size=16,
+        val_split=None,
         # workers=8,
         device="cpu",
         optimizer="SGD",
@@ -63,11 +65,7 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     # Setting up the Images
     val_path = train_path = source
     params = (device, cache, nosave, batch_size // WORLD_SIZE)
-    train_loader = create_dataloader(path=train_path, imgsz=imgsz, params=params, rank=RANK, prefix_for_log="train: ")
-
-    if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
-        val_loader = create_dataloader(path=val_path, imgsz=imgsz, params=params, rank=-1, prefix_for_log="validation: ")
-
+    train_loader, val_loader = create_dataloader(path=train_path, imgsz=imgsz, params=params, val_split=val_split)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
         last, best = save_dir / "last.pt", save_dir / "best.pt"
@@ -183,6 +181,9 @@ def parse_opt():
                         help="Caching Images to a SQLite File (can get really big)")
     parser.add_argument("--batch-size", type=int, default=16,
                         help="total batch size for all GPUs")
+    parser.add_argument("--val-split", type=restricted_val_split, default=None,
+                        help="Factor for splitting Train and Validation for x=len(dataset):  \
+                        None --> Train=Val=x, float between [0,1] --> Train=(1-fac)*x Val=fac*x, int --> Train=dataset-x Val=x")
     # parser.add_argument("--workers", type=int, default=8,
     #                     help="maximum number of dataloader workers")
     parser.add_argument("--device", default="cpu",

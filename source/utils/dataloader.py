@@ -16,17 +16,16 @@ from tqdm import tqdm
 
 import torch
 import torchvision.transforms as T
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader, Subset
+from sklearn.model_selection import train_test_split
 
-from .config import LOGGER, LRU_MAX_SIZE
+from .config import LOGGER, LRU_MAX_SIZE, RANK, THREADPOOL_NUM_THREADS
 from .cutter import Cutter
 from .database_utils import Database
-from .pytorch_utils import is_process_group, torch_distributed_zero_first #pylint: disable=import-error
+from .pytorch_utils import is_process_group, is_master_process, torch_distributed_zero_first #pylint: disable=import-error
 from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
 from .general import init_dict #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
-
-THREADPOOL_NUM_THREADS = min(8, os.cpu_count())  # number of multiprocessing threads
 
 #TODO Decide which pic is for what as array
 path_list = deepcopy(house_brackmann_template)
@@ -301,7 +300,9 @@ def create_dataloader_only_images(path, imgsz, params, prefix_for_log=""):
 
     :param path: path to the dataset (str/Path)
     :param imgsz: crop images to the given size (int)
-    :param device: cuda device (cpu or cuda:0)
+    :param param: (device,batch_size) combined type
+        :param device: cuda device (cpu or cuda:0)
+        :param batch_size: Batch Size (int)
     :param prefix_for_log: logger output prefix (str)
 
     :returns dataloader
@@ -316,28 +317,44 @@ def create_dataloader_only_images(path, imgsz, params, prefix_for_log=""):
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 
-def create_dataloader(path, imgsz, params, rank=-1, prefix_for_log=""):
+def create_dataloader(path, imgsz, params, val_split):
     """
     creates and returns the DataLoader
     checks the batch size
 
     :param path: path to the dataset (str/Path)
     :param imgsz: crop images to the given size (int)
-    :param device: cuda device (cpu or cuda:0)
-    :param cache: True or False (bool)
-    :param nosave: True or Fale (bool)
-    :param rank: Rank of the Cluster/Tread (int)
+    :param params: (device, cache, nosave, batch_size) combined type
+        :param device: cuda device (cpu or cuda:0)
+        :param cache: True or False (bool)
+        :param nosave: True or Fale (bool)
+        :param batch_size: Batch Size (int)
     :param prefix_for_log: logger output prefix (str)
 
     :returns dataloader
     """
     device, settings["cache"], settings["nosave"], batch_size = params
     settings["imgsz"] = imgsz
+    prefix_for_log="Set Train & Validation Data: "
 
-    with torch_distributed_zero_first(rank):
+    with torch_distributed_zero_first(RANK):
         dataset = CreateDataset(path=path, device=device, prefix_for_log=prefix_for_log)
-    batch_size = min(batch_size, len(dataset))
 
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset) if is_process_group(rank) else None
-    loader = torch.utils.data.DataLoader
-    return loader(dataset, batch_size=batch_size, sampler=sampler, shuffle=True)
+    val_loader = train_loader = None
+
+    if val_split:
+        train_idx, val_idx = train_test_split(list(range(len(dataset))), test_size=val_split)
+
+        train_dataset = Subset(dataset, train_idx)
+        val_dataset = Subset(dataset, val_idx)
+    else:
+        train_dataset = val_dataset = dataset
+
+    LOGGER.info("%sLength of >> Training=%s >> Validation=%s >> Total=%s", prefix_for_log, len(train_dataset), len(val_dataset), len(dataset))
+
+    sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(RANK) else None
+    train_loader = DataLoader(train_dataset, batch_size=min(batch_size, len(train_dataset)), sampler=sampler, shuffle=True)
+
+    if is_master_process(RANK):
+        val_loader = DataLoader(val_dataset, batch_size=min(batch_size, len(val_dataset)), sampler=None, shuffle=False)
+    return train_loader, val_loader
