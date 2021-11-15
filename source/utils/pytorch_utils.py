@@ -8,6 +8,7 @@ from contextlib import contextmanager
 
 import torch
 from torch.optim import Adam, SGD
+from torch.optim import lr_scheduler
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
@@ -138,7 +139,7 @@ def torch_distributed_zero_first(local_rank: int):
     Decorator to make all processes in distributed training wait for each local_master to do something.
 
 
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py#L32
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
     if local_rank not in [-1, 0]:
         dist.barrier(device_ids=[local_rank])
@@ -146,67 +147,72 @@ def torch_distributed_zero_first(local_rank: int):
     if local_rank == 0:
         dist.barrier(device_ids=[0])
 
-
-
-
-#TODO  scheduler and optimizer to function
-class OptimizerClass:
+def is_parallel(model):
     """
-    TODO
-    Check internet connectivity
+    Returns True if model is of type DP or DDP
+
+    :param model:  Model (Model)
+    :returns: True or false (bool)
+
+    Source:
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
+    """
+    return type(model) in (DataParallel, DistributedDataParallel)
+
+
+def de_parallel(model):
+    """
+    De-parallelize a model: returns single-GPU model if model is of type DP or DDP
+
+    :param model:  Model (Model)
+    :returns: De-parallelized model (Model)
+
+    Source:
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
+    """
+    return model.module if is_parallel(model) else model
+
+
+def select_optimizer(neural_net, argument="SGD"):
+    """
+    Selecting the Optimizer from the list
+
+    :param neural_net:  Model (Model)
+    :param argument: argument for selecting the optimizer (str)
+    :returns: optimizer
     """
 
-    def __init__(self, neural_net):
-        """
-        TODO
-        Check internet connectivity
-        """
-        self.neural_net = neural_net
+    optimizer_list = {
+    "SGD": SGD(neural_net.parameters(), lr=0.001, momentum=0.9, nesterov=True),
+    "ADAM": Adam(neural_net.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
+    #Adadelta(neural_net.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0),
+    #Adagrad(neural_net.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0),
+    #SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
+    #Adamax(neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
+    #ASGD(neural_net.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
+    #LBFGS(neural_net.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-05, tolerance_change=1e-09, history_size=100, line_search_fn=None),
+    #RMSprop(neural_net.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
+    #Rprop(neural_net.parameters(), lr=0.01, etas=(0.5, 1.2), step_sizes=(1e-06, 50))
+    }
+    assert argument in optimizer_list, "given Optimizer is not in the list!"
+    return optimizer_list[argument]
 
-        self.optimizer_list = {
-        "SGD": SGD(self.neural_net.parameters(), lr=0.001, momentum=0.9, nesterov=True),
-        "ADAM": Adam(self.neural_net.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
-        #Adadelta(neural_net.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0),
-        #Adagrad(neural_net.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0),
-        #SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
-        #Adamax(neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
-        #ASGD(neural_net.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
-        #LBFGS(neural_net.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-05, tolerance_change=1e-09, history_size=100, line_search_fn=None),
-        #RMSprop(neural_net.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
-        #Rprop(neural_net.parameters(), lr=0.01, etas=(0.5, 1.2), step_sizes=(1e-06, 50))
-        }
-
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.optimizer_list:
-            ret_val =  self.optimizer_list[argument]
-        else:
-            assert False, "given Optimizer is not in the list!"
-        return ret_val
-
-class SchedulerClass:
+def select_scheduler(optimizer, argument="StepLR"):
     """
-    TODO
-    Check internet connectivity
+    Selecting the Scheduler from the list
+
+    :param optimizer:  type of optimizer
+    :param argument: argument for selecting the scheduler (str)
+    :returns: scheduler
     """
-    def __init__(self, optimizer):
-        self.optimizer = optimizer
 
-        self.scheduler_list = {
-        }
-
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.scheduler_list:
-            ret_val =  self.scheduler_list[argument]
-        else:
-            assert False, "given Scheduler is not in the list!"
-        return ret_val
+    scheduler_list = {
+    "StepLR": lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
+    "MultiStepLR": lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.1),
+    #lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1),
+    #lr_scheduler.CosineAnnealingLR(optimizer, T_max = 30, eta_min=0, last_epoch=-1),
+    #lr_scheduler.ReduceLROnPlateau(optimizer, 'min'),
+    #lr_scheduler.CyclicLR(optimizer, base_lr=0.0001, max_lr=0.001)
+    }
+    assert argument in scheduler_list, "given Scheduler is not in the list!"
+    return scheduler_list[argument]
