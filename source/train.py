@@ -7,15 +7,17 @@ TODO
 import argparse
 import logging
 import timeit
+from copy import deepcopy
 from pathlib import Path
 
 import torch
+from torch.nn import CrossEntropyLoss
+from torch.cuda import amp
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
-from utils.pytorch_utils import select_device, select_data_parallel_mode, OptimizerClass, SchedulerClass, is_master_process, is_process_group
+from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel
 from utils.dataloader import create_dataloader
-from utils.common import training_epochs
 from utils.templates import allowed_fn, house_brackmann_lookup
 
 PREFIX = "train: "
@@ -23,7 +25,7 @@ LOGGING_STATE = logging.INFO
 
 
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
-
+#https://pytorch.org/docs/stable/amp.html
 
 
 def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
@@ -66,9 +68,10 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     if is_master_process(RANK): # Validation Data only needed in Process 0 (GPU) or -1 (CPU)
         val_loader = create_dataloader(path=val_path, imgsz=imgsz, params=params, rank=-1, prefix_for_log="validation: ")
 
-
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
+        last, best = save_dir / "last.pt", save_dir / "best.pt"
+
         if weights.endswith('.pt') and Path(weights).exists():
             model = house_brackmann_lookup[selected_function]["model"].to(device)
             ckpt = torch.load(weights, map_location=device)  # load checkpoint
@@ -78,31 +81,60 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
         else:
             model = house_brackmann_lookup[selected_function]["model"].to(device)
 
-        model = select_data_parallel_mode(model, cuda)
-
-        for i_name, img_struct,label_struct in train_loader:
-            for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
-                img, label = item_list
-                print(idx, selected_function, i_name, img.shape, label.shape)
-
-        # #Optimizer
-        # optimizer = OptimizerClass(model).select(optimizer)
-        #
-        # #TODO Scheduler
-        # scheduler = SchedulerClass(optimizer).select("tmp")
-
-
         # LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
         #             Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
 
+        # #Optimizer & Scheduler
+        _optimizer = select_optimizer(model, optimizer)
+        _scheduler = select_scheduler(_optimizer, "StepLR")
 
-        # training_epochs(path=save_dir,
-        #                 model=model,
-        #                 optimizer=optimizer,
-        #                 scheduler=scheduler,
-        #                 device=device,
-        #                 train_loader=train_loader,
-        #                 epochs=epochs)
+        model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
+        compute_loss = CrossEntropyLoss()
+        scaler = amp.GradScaler(enabled=cuda)
+        _scheduler.last_epoch = epochs - 1  # do not move
+
+        for epoch in range(epochs):
+            model.train()
+            if is_process_group(RANK):
+                train_loader.sampler.set_epoch(epoch)
+            _optimizer.zero_grad()
+
+            for i_name, img_struct,label_struct in train_loader:
+                for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
+                    img, label = item_list
+                    print(epoch, idx, selected_function, i_name, img.shape, label.shape)
+
+                    img = img.to(device, non_blocking=True).float() # uint8 to float32
+                    with amp.autocast(enabled=cuda):
+                        pred = model(img)  # forward
+                        loss = compute_loss(pred, torch.max(label, 1)[1])  # loss scaled by batch_size
+
+                    #Backward & Optimize
+                    scaler.scale(loss).backward() #loss.backward()
+                    scaler.step(_optimizer)  #optimizer.step
+                    scaler.update()
+
+                #Scheduler
+                _scheduler.step()
+                if is_master_process(RANK):
+                    #TODO validation
+
+                    # Save model
+                    if not nosave:  # if save
+                        ckpt = {"epoch": epoch,
+                                #"best_fitness": best_fitness,
+                                "model": deepcopy(de_parallel(model)),
+                                "optimizer": _optimizer.state_dict(),}
+
+
+                        # Save last, best and delete
+                        torch.save(ckpt, last)
+                        #if best_fitness == fi:
+                        #    torch.save(ckpt, best)
+                        del ckpt
+
+
+
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         pass #TODO LOGGING and Plotting and validating

@@ -23,18 +23,18 @@
 #### TODO-LIST
 
 ###### Training
-- [ ] OptimizerClass/SchedulerClass to functions
-   1. [ ] Adding Scheduler to list
+- [] OptimizerClass/SchedulerClass to functions
+   1. [x] Adding Scheduler to list
    2. [ ] Make it available via argparse
+   3. [ ] Expand list
 - [ ] Dataloader
    1. [x] Adding Dataloader Class
    2. [ ] Gather Data from the images
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
    5. [ ] Augmentation for Images
-   6. [x] Flipping/Invert Image
-- [ ] Training function for epochs
-- [ ] Process Images twice (img and inv_img) for better training results
+   6. [x] Flipping/Invert Image as Augmentation
+- [x] Training function for epochs
 - [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
@@ -42,8 +42,7 @@
 
 ###### Detection
 - [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
-- [ ] Input single Picture ???
-- [ ] Process Images twice (img and inv_img) and build median
+- [ ] Input single Picture
 - [ ] Prediction interpreter
 - [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] output result list

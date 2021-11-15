@@ -58,7 +58,7 @@ if __name__ == "__main__":
     print("length: ", len(tst))
 
     print("\n\nTestin Caching and Lru Cache\n")
-    for x in range(300):
+    for x in range(1, 300):
         print(f"cached {x}x (lru_cache):"    , timeit.timeit(lambda: run(source="../test_data",cache=True,nosave=False,batch_size=4,device="cpu"), number=x))
         print(f"not cached {x}x (lru_cache):", timeit.timeit(lambda: run(source="../test_data",cache=False,nosave=False,batch_size=4,device="cpu"), number=x))
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
