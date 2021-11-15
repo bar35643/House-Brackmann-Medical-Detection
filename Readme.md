@@ -99,7 +99,7 @@ pip install -r source/requirements.txt
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
 
 ~~~shell
-pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=170
+pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=170 --max-attributes=10 --max-args=10
 ~~~
 <!---
 adding Reason

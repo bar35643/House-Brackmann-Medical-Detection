@@ -54,8 +54,7 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     device = select_device(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-    params = (device, batch_size)
-    dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, params=params, prefix_for_log=PREFIX)
+    dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
     #Calculating
     result_list = []
     for batch, item_struct in enumerate(dataloader):

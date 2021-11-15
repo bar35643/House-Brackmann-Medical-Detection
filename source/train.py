@@ -59,13 +59,9 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     device = select_device(device, batch_size=batch_size)
     cuda = device.type != "cpu"
 
-
-
-    #TODO splitting up data
     # Setting up the Images
-    val_path = train_path = source
-    params = (device, cache, nosave, batch_size // WORLD_SIZE)
-    train_loader, val_loader = create_dataloader(path=train_path, imgsz=imgsz, params=params, val_split=val_split)
+    train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
+                                                 nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
         last, best = save_dir / "last.pt", save_dir / "best.pt"

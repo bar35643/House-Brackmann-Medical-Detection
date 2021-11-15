@@ -34,12 +34,6 @@ path_list["eye"] =      [0, 0, 0]
 path_list["mouth"] =    [0, 0]
 path_list["forehead"] = [0]
 
-settings = {
-    "cache": False,
-    "nosave": False,
-    "imgsz": 640
-}
-
 def get_list_patients(source_path: str):
     """
     Generating a list from the Patients
@@ -75,7 +69,7 @@ class LoadImages(Dataset):
                      /data/muscle_transplant/0002
                      /data/muscle_transplant/0003
     """
-    def __init__(self, path, device="cpu", prefix_for_log=""):
+    def __init__(self, path, imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=""):
         """
         Initializes the LoadImages class
 
@@ -89,7 +83,7 @@ class LoadImages(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-
+        self.nosave = nosave
         self.imgsz = ((640, 640), #symmetry
                       (640, 640), #eye
                       (640, 640), #mouth
@@ -110,7 +104,7 @@ class LoadImages(Dataset):
         self.cutter_class.set(device, self.prefix_for_log)
 
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-        if settings["cache"]:
+        if cache:
             self.database = Database.instance() #pylint: disable=no-member
             self.database.set(self.database_file, self.prefix_for_log)
             if self.database.create_db_connection() is not None:
@@ -131,7 +125,6 @@ class LoadImages(Dataset):
                 else:
                     LOGGER.info("%sUsing Already Cached File.", self.prefix_for_log)
             else:
-                settings["cache"]=False
                 LOGGER.info("%sError! cannot create the database connection. Using Native Image Access!", self.prefix_for_log)
         else:
             LOGGER.info("%sFound %s Images. Using Native Image Access!", self.prefix_for_log, self.length)
@@ -145,7 +138,7 @@ class LoadImages(Dataset):
             conn = self.database.get_conn()
             if conn is not None:
                 conn.close()
-        if os.path.exists(self.database_file) and settings["nosave"]:
+        if os.path.exists(self.database_file) and self.nosave:
             os.remove(self.database_file)
             LOGGER.info("%s Deleted Database File (Cache)!", self.prefix_for_log)
 
@@ -230,7 +223,7 @@ class CreateDataset(Dataset):
     """
     Loading Labels and Images and build it together
     """
-    def __init__(self, path='',device="cpu", prefix_for_log=''):
+    def __init__(self, path='', imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=''):
         """
         Initializes the CreateDataset class
 
@@ -242,8 +235,7 @@ class CreateDataset(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-
-        self.images = LoadImages(path=self.path, device=device, prefix_for_log=prefix_for_log)
+        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
 
         self.labels = []
@@ -293,52 +285,44 @@ class CreateDataset(Dataset):
         return self.len_images
 
 
-def create_dataloader_only_images(path, imgsz, params, prefix_for_log=""):
+def create_dataloader_only_images(path, imgsz, device, batch_size, prefix_for_log=""):
     """
     creates and returns the DataLoader
     checks the batch size
 
     :param path: path to the dataset (str/Path)
     :param imgsz: crop images to the given size (int)
-    :param param: (device,batch_size) combined type
-        :param device: cuda device (cpu or cuda:0)
-        :param batch_size: Batch Size (int)
+    :param device: cuda device (cpu or cuda:0)
+    :param batch_size: Batch Size (int)
     :param prefix_for_log: logger output prefix (str)
 
     :returns dataloader
     """
-    device, batch_size = params
-    settings["imgsz"] = imgsz
-
-    dataset = LoadImages(path=path, device=device, prefix_for_log=prefix_for_log)
+    dataset = LoadImages(path=path, imgsz=imgsz, device=device, cache=False, nosave=False, prefix_for_log=prefix_for_log)
     assert dataset, "No data in dataset given!"
 
-    batch_size = min(batch_size, len(dataset))
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return DataLoader(dataset, batch_size=min(batch_size, len(dataset)), shuffle=False)
 
 
-def create_dataloader(path, imgsz, params, val_split):
+def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split):
     """
     creates and returns the DataLoader
     checks the batch size
 
     :param path: path to the dataset (str/Path)
     :param imgsz: crop images to the given size (int)
-    :param params: (device, cache, nosave, batch_size) combined type
-        :param device: cuda device (cpu or cuda:0)
-        :param cache: True or False (bool)
-        :param nosave: True or Fale (bool)
-        :param batch_size: Batch Size (int)
-    :param prefix_for_log: logger output prefix (str)
+    :param device: cuda device (cpu or cuda:0)
+    :param cache: True or False (bool)
+    :param nosave: True or Fale (bool)
+    :param batch_size: Batch Size (int)
+    :param val_split: Factor for splitting (float, int, None)
 
     :returns dataloader
     """
-    device, settings["cache"], settings["nosave"], batch_size = params
-    settings["imgsz"] = imgsz
-    prefix_for_log="Set Train & Validation Data: "
+    prefix_for_log="Setup Train & Validation Data: "
 
     with torch_distributed_zero_first(RANK):
-        dataset = CreateDataset(path=path, device=device, prefix_for_log=prefix_for_log)
+        dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
 
     val_loader = train_loader = None
 
