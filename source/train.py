@@ -107,7 +107,7 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
                     img = img.to(device, non_blocking=True).float() # uint8 to float32
                     with amp.autocast(enabled=cuda):
                         pred = model(img)  # forward
-                        loss = compute_loss(pred, torch.max(label, 1)[1])  # loss scaled by batch_size
+                        loss = compute_loss(pred, label)  # loss scaled by batch_size
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()

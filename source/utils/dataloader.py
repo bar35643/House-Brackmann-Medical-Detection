@@ -279,8 +279,7 @@ class CreateDataset(Dataset):
         struct_label = init_dict(house_brackmann_template, [])
         for func in struct_label:
             hb_single = house_brackmann_lookup[func]["enum"]
-            hb_single_all_tensors = torch.eye(len(hb_single))
-            struct_label[func].extend(repeat(   hb_single_all_tensors[hb_single[grade_table[func]]]  , len(path_list[func])  ))
+            struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(path_list[func])  ))
 
 
 
