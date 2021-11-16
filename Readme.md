@@ -23,13 +23,17 @@
 #### TODO-LIST
 
 ###### Training
-- [] OptimizerClass/SchedulerClass to functions
+- [ ] OptimizerClass/SchedulerClass to functions
    1. [x] Adding Scheduler to list
    2. [ ] Make it available via argparse
    3. [ ] Expand list
 - [ ] Dataloader
    1. [x] Adding Dataloader Class
    2. [ ] Gather Data from the images
+      - [x] Symmetry Cutting
+      - [ ] Eye Cutting
+      - [x] Mouth Cutting
+      - [x] Forehead Cutting
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
    5. [ ] Augmentation for Images
@@ -97,6 +101,8 @@ pip install -r source/requirements.txt
 #### Debug
 <details open>
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
+
+Info: [Pylint features](https://docs.pylint.org/en/1.6.0/features.html)
 
 ~~~shell
 pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=170 --max-attributes=10 --max-args=10

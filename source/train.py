@@ -167,8 +167,8 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", nargs="+", type=str, default="model/model.pt",
-                        help="model path(s)")
+    parser.add_argument("--weights", type=str, default="model/model.pt",
+                        help="model path")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],

@@ -3,7 +3,6 @@
 TODO
 """
 
-#import statistics
 from copy import deepcopy
 from functools import lru_cache
 import numpy as np
@@ -70,7 +69,7 @@ class Cutter():
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
-    def flip_image_and_return_landmarks(self, img_input):
+    def flip_image_and_return_landmarks(self, img_input, dyn_factor):
         """
         Flip images to correct Rotation
 
@@ -79,8 +78,9 @@ class Cutter():
         """
          #try to flip image if exif tag is available see https://pillow.readthedocs.io/en/stable/reference/ImageOps.html
         img_input = ImageOps.exif_transpose(img_input)
+        img_resized = img_input.resize((int(img_input.size[0]/dyn_factor), int(img_input.size[1]/dyn_factor)))
         #Generate Landmarks
-        det = self.generate_marker(img_input)
+        det = self.generate_marker(img_resized)
 
         #only executes if rotation with exif tags did not work or rotation is wrong
         #checks rotation from two marker in face and their relative position
@@ -92,7 +92,9 @@ class Cutter():
                 img_input = img_input.transpose(Image.ROTATE_90)
             if(det[0, 0] > det[10, 0]) and (det[0, 1] > det[10, 1]): #image is turned 180 Degree
                 img_input = img_input.transpose(Image.ROTATE_180)
-            det = self.generate_marker(img_input)
+
+            img_resized = img_input.resize((int(img_input.size[0]/dyn_factor), int(img_input.size[1]/dyn_factor)))
+            det = self.generate_marker(img_resized)
 
             exit_condition += 1
             assert exit_condition!=10, "Can not turn Images automatically!!"
@@ -110,17 +112,30 @@ class Cutter():
         """
         img = Image.open(path)
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
-
-        dyn_factor = dyn_factor+1 if (dyn_factor%2) and not (dyn_factor==1) else dyn_factor
-        new_size = (int(img.size[0]/dyn_factor), (int(img.size[1]/dyn_factor)))
-
+        dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
         #print(img.size, "to", new_size, "factor", dyn_factor)
-        det, img_res = self.flip_image_and_return_landmarks(img.resize(new_size))
+        det, img_flip_org = self.flip_image_and_return_landmarks(img, dyn_factor)
 
-        #TODO CROP and return original image (upscale det)
+        assert len(det), "Marker Detection Failture"
 
-        img_org = img_res
-        return det, img_org
+        x_min_det = det[:,0].min()*dyn_factor
+        x_max_det = det[:,0].max()*dyn_factor
+        y_min_det = det[:,1].min()*dyn_factor
+        y_max_det = det[:,1].max()*dyn_factor
+
+        x_diff = abs(x_max_det-x_min_det)
+        y_diff = abs(y_max_det-y_min_det)
+
+        x_min = int(x_min_det - (x_diff/8)) if int(x_min_det - (x_diff/8)) > 0 else 0
+        x_max = int(x_max_det + (x_diff/8)) if int(x_max_det + (x_diff/8)) < img.size[0] else img.size[0]
+
+        y_min = int(y_min_det - (y_diff/2)) if int(y_min_det - (y_diff/2)) > 0 else 0
+        y_max = int(y_max_det + (y_diff/4)) if int(y_max_det + (y_diff/4)) < img.size[1] else img.size[1]
+
+        img_crop = img_flip_org.crop((x_min,y_min,x_max,y_max))
+        det = det*dyn_factor - [x_min, y_min]
+
+        return det, img_crop
 
     @lru_cache(LRU_MAX_SIZE)
     def cut_wrapper(self):
@@ -147,11 +162,8 @@ class Cutter():
         :returns  cropped image
         """
         _, img = self.load_image(path)
-
-        # #TODO DELETE
         # plt.imshow(img)
-        # plt.scatter(landmarks[:,0], landmarks[:,1],5)
-        # plt.scatter(statistics.median(landmarks[:,0]), statistics.median(landmarks[:,1]),10)
+        # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
         return img
 
@@ -163,25 +175,26 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
+        #TODO seperate each eye or fuse them
         landmarks, img = self.load_image(path)
-        landmarks = landmarks[slice(36, 48)]
+        landmarks = landmarks[slice(36, 42)]
+        fac = (landmarks[:,0].min())/4
 
-        x_min = landmarks[:,0].min()
-        x_max = landmarks[:,0].max()
-        y_min = landmarks[:,1].min()
-        y_max = landmarks[:,1].max()
+        x_min_eye = int(eye[:,0].min() -fac)
+        x_max_eye = int(eye[:,0].max() +fac)
+        y_min_eye = int(eye[:,1].min() -fac)
+        y_max_eye = int(eye[:,1].max() +fac)
 
-        #TODO seperate each eye
-        img_slice = img.crop((x_min - 1, y_min - 1, x_max + 1, y_max + 1))
+        img_slice_left = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
 
-        # #TODO DELETE
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
-        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
-        # plt.show()
+        eye = det[slice(42, 48)]
+        x_min_eye = int(eye[:,0].min() -fac)
+        x_max_eye = int(eye[:,0].max() +fac)
+        y_min_eye = int(eye[:,1].min() -fac)
+        y_max_eye = int(eye[:,1].max() +fac)
 
-
-        return img_slice
+        img_slice_right = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
+        return img_slice_right
 
     @lru_cache(LRU_MAX_SIZE)
     def cut_mouth(self, path):
@@ -193,21 +206,17 @@ class Cutter():
         """
         landmarks, img = self.load_image(path)
         landmarks = landmarks[slice(48, 68)]
+        fac = (landmarks[:,0].min())/4
 
-        x_min = landmarks[:,0].min()
-        x_max = landmarks[:,0].max()
-        y_min = landmarks[:,1].min()
-        y_max = landmarks[:,1].max()
+        x_min_mouth = int(landmarks[:,0].min() -fac)
+        x_max_mouth = int(landmarks[:,0].max() +fac)
+        y_min_mouth = int(landmarks[:,1].min() -fac)
+        y_max_mouth = int(landmarks[:,1].max() +fac)
 
-        img_slice = img.crop((x_min - 1, y_min - 1, x_max + 1, y_max + 1))
-
-        # #TODO DELETE
+        img_slice = img.crop((x_min_mouth,y_min_mouth,x_max_mouth,y_max_mouth))
         # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
-        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
+        # plt.scatter(landmarks[:,0]-x_min_mouth, landmarks[:,1]-y_min_mouth,10, color=[1, 0, 0, 1])
         # plt.show()
-
-
         return img_slice
 
     @lru_cache(LRU_MAX_SIZE)
@@ -219,20 +228,16 @@ class Cutter():
         :returns  cropped image
         """
         landmarks, img = self.load_image(path)
-        landmarks = landmarks[slice(38, 48)]
+        landmarks = landmarks[slice(17, 27)]
+        fac = (landmarks[:,0].min())/16
 
-        x_min = landmarks[:,0].min()
-        x_max = landmarks[:,0].max()
-        y_min = landmarks[:,1].min()
-        #y_max = landmarks[:,1].max()
+        x_min_forehead = 0
+        x_max_forehead = img.size[0]
+        y_min_forehead = 0
+        y_max_forehead = int(landmarks[:,1].max()+fac)
 
-        img_slice = img.crop((x_min - 1, 0, x_max + 1, y_min + 1))
-
-        # #TODO DELETE
+        img_slice = img.crop((x_min_forehead,y_min_forehead,x_max_forehead,y_max_forehead))
         # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0]-(x_min - 1), landmarks[:,1]-(y_min - 1),5)
-        # plt.scatter(statistics.median(landmarks[:,0]-(x_min - 1)), statistics.median(landmarks[:,1]-(y_min - 1)),10)
+        # plt.scatter(landmarks[:,0]-x_min_forehead, landmarks[:,1]-y_min_forehead,10, color=[1, 0, 0, 1])
         # plt.show()
-
-
         return img_slice
