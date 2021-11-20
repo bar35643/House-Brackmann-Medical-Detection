@@ -38,6 +38,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         # workers=8,
         device="cpu",
         optimizer="SGD",
+        scheduler="StepLR",
         nosave=False,
         project="../results/train",
         name="run",
@@ -82,7 +83,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
         # #Optimizer & Scheduler
         _optimizer = select_optimizer(model, optimizer)
-        _scheduler = select_scheduler(_optimizer, "StepLR")
+        _scheduler = select_scheduler(_optimizer, scheduler)
 
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
         compute_loss = CrossEntropyLoss()
@@ -188,6 +189,8 @@ def parse_opt():
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--optimizer", default="SGD",
                         help="Select the Optimizer")
+    parser.add_argument("--scheduler", default="StepLR",
+                        help="Select the Scheduler. If using more than one Scheduler, seperate with Comma")
     parser.add_argument("--nosave", action="store_true",
                         help="do not save")
     parser.add_argument("--project", default="../results/train",

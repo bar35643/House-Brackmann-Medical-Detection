@@ -7,7 +7,7 @@ import math
 from contextlib import contextmanager
 
 import torch
-from torch.optim import Adam, SGD
+from torch import optim
 from torch.optim import lr_scheduler
 
 import torch.distributed as dist
@@ -184,39 +184,66 @@ def select_optimizer(neural_net, argument="SGD"):
     :param neural_net:  Model (Model)
     :param argument: argument for selecting the optimizer (str)
     :returns: optimizer
+
+    Info:
+    https://pytorch.org/docs/stable/optim.html
     """
 
     optimizer_list = {
-    "SGD": SGD(neural_net.parameters(), lr=0.001, momentum=0.9, nesterov=True),
-    "ADAM": Adam(neural_net.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
-    #Adadelta(neural_net.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0),
-    #Adagrad(neural_net.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0),
-    #SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
-    #Adamax(neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
-    #ASGD(neural_net.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
-    #LBFGS(neural_net.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-05, tolerance_change=1e-09, history_size=100, line_search_fn=None),
-    #RMSprop(neural_net.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
-    #Rprop(neural_net.parameters(), lr=0.01, etas=(0.5, 1.2), step_sizes=(1e-06, 50))
+    "Adadelta":   optim.Adadelta(  neural_net.parameters(), lr=1.000, rho=0.9, eps=1e-06, weight_decay=0),
+    "Adagrad":    optim.Adagrad(   neural_net.parameters(), lr=0.010, lr_decay=0, weight_decay=0, initial_accumulator_value=0, eps=1e-10),
+    "Adam":       optim.Adam(      neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
+    "AdamW":      optim.AdamW(     neural_net.parameters(), lr=0.010, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False),
+    "SparseAdam": optim.SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
+    "Adamax":     optim.Adamax(    neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
+    "ASGD":       optim.ASGD(      neural_net.parameters(), lr=0.010, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
+    "LBFGS":      optim.LBFGS(     neural_net.parameters(), lr=1.000, max_iter=20, max_eval=None, tolerance_grad=1e-07, tolerance_change=1e-09, history_size=100, line_search_fn=None),
+    "NAdam":      optim.NAdam(     neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, momentum_decay=0.004),
+    "RAdam":      optim.RAdam(     neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
+    "RMSprop":    optim.RMSprop(   neural_net.parameters(), lr=0.010, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
+    "Rprop":      optim.Rprop(     neural_net.parameters(), lr=0.010, etas=(0.5, 1.2), step_sizes=(1e-06, 50)),
+    "SGD":        optim.SGD(       neural_net.parameters(), lr=0.001, momentum=0.9, dampening=0, weight_decay=0, nesterov=True)
     }
     assert argument in optimizer_list, "given Optimizer is not in the list!"
     return optimizer_list[argument]
 
-def select_scheduler(optimizer, argument="StepLR"):
+def select_scheduler(optimizer, argument="StepLR", sequential=False):
     """
     Selecting the Scheduler from the list
 
     :param optimizer:  type of optimizer
     :param argument: argument for selecting the scheduler (str)
     :returns: scheduler
+
+    Info:
+    https://pytorch.org/docs/stable/optim.html
     """
 
     scheduler_list = {
-    "StepLR": lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
-    "MultiStepLR": lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.1),
-    #lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1),
-    #lr_scheduler.CosineAnnealingLR(optimizer, T_max = 30, eta_min=0, last_epoch=-1),
-    #lr_scheduler.ReduceLROnPlateau(optimizer, 'min'),
-    #lr_scheduler.CyclicLR(optimizer, base_lr=0.0001, max_lr=0.001)
+    #"LambdaLR": lr_scheduler.LambdaLR(optimizer, lr_lambda, last_epoch=- 1, verbose=False),
+    #"MultiplicativeLR": lr_scheduler.MultiplicativeLR(optimizer, lr_lambda, last_epoch=- 1, verbose=False),
+    "StepLR": lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1, last_epoch=- 1, verbose=False),
+    "MultiStepLR": lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.1, last_epoch=- 1, verbose=False),
+    "ConstantLR": lr_scheduler.ConstantLR(optimizer, factor=0.3333333333333333, total_iters=5, last_epoch=- 1, verbose=False),
+    "LinearLR": lr_scheduler.LinearLR(optimizer, start_factor=0.3333333333333333, end_factor=1.0, total_iters=5, last_epoch=- 1, verbose=False),
+    "ExponentialLR": lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=- 1, verbose=False),
+    "CosineAnnealingLR": lr_scheduler.CosineAnnealingLR(optimizer, T_max=30, eta_min=0, last_epoch=- 1, verbose=False),
+    "ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08, verbose=False),
+    "CyclicLR": lr_scheduler.CyclicLR(optimizer, base_lr=0.0001, max_lr=0.001, step_size_up=2000, step_size_down=None, mode='triangular', gamma=1.0, scale_fn=None, scale_mode='cycle', cycle_momentum=True, base_momentum=0.8, max_momentum=0.9, last_epoch=- 1, verbose=False),
+    #"OneCycleLR": lr_scheduler.OneCycleLR(optimizer, max_lr=0.001, total_steps=None, epochs=None, steps_per_epoch=None, pct_start=0.3, anneal_strategy='cos', cycle_momentum=True, base_momentum=0.85, max_momentum=0.95, div_factor=25.0, final_div_factor=10000.0, three_phase=False, last_epoch=- 1, verbose=False),
+    #"CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=1, eta_min=0, last_epoch=- 1, verbose=False)
     }
-    assert argument in scheduler_list, "given Scheduler is not in the list!"
-    return scheduler_list[argument]
+
+    argument_split = argument.strip().replace(" ", "").split(",")
+    if len(argument_split) == 1:
+        assert argument in scheduler_list, "given Scheduler is not in the list!"
+        scheduler = scheduler_list[argument]
+    else:
+        for idx, item in enumerate(argument_split):
+            assert item in scheduler_list, f"given Scheduler {item} is not in the list!"
+            argument_split[idx] = scheduler_list[item]
+        if sequential:
+            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=argument_split, milestones=[len(argument_split)], last_epoch=- 1, verbose=False)
+        else:
+            scheduler = lr_scheduler.ChainedScheduler(argument_split)
+    return scheduler
