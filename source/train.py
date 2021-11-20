@@ -10,8 +10,11 @@ import os
 import timeit
 from pathlib import Path
 
+import yaml
+
 import torch
 from torch.nn import CrossEntropyLoss
+import torch.distributed as dist
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split
@@ -23,8 +26,7 @@ from utils.templates import allowed_fn, house_brackmann_lookup
 
 PREFIX = "train: "
 LOGGING_STATE = logging.INFO
-
-
+opt_args = None
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
 #https://pytorch.org/docs/stable/amp.html
 
@@ -56,6 +58,9 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
+
+    with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as f:
+        yaml.safe_dump(vars(opt_args), f, sort_keys=False)
 
 
     # Device init
@@ -113,7 +118,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
                 #Scheduler
                 _scheduler.step()
-                if is_master_process(RANK):
+                if is_master_process(RANK): #Master Process 0 or -1
                     #TODO validation
 
                     # Save model
@@ -138,7 +143,9 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
 
     torch.cuda.empty_cache()
-#    return results
+    if WORLD_SIZE > 1 and RANK == 0:
+        LOGGER.info('Destroying process group... ')
+        dist.destroy_process_group()
 
 
 
@@ -192,7 +199,7 @@ def parse_opt():
     parser.add_argument("--scheduler", default="StepLR",
                         help="Select the Scheduler. If using more than one Scheduler, seperate with Comma")
     parser.add_argument("--nosave", action="store_true",
-                        help="do not save")
+                        help="do not save if activated")
     parser.add_argument("--project", default="../results/train",
                         help="save results to project/name")
     parser.add_argument("--name", default="run",
@@ -204,6 +211,7 @@ def parse_opt():
 if __name__ == "__main__":
     opt_args = parse_opt()
     set_logging(LOGGING_STATE, PREFIX, opt_args)
-    check_requirements()
+    if is_master_process(RANK):  #Master Process 0 or -1
+        check_requirements()
     time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)

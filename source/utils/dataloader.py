@@ -91,7 +91,7 @@ class LoadImages(Dataset):
 
         self.database = None
         self.database_file = "pythonsqlite.db"
-        self.table = "dataloader_table" #TODO Split train and val??
+        self.table = "dataloader_table"
         #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
         self.list_patients=get_list_patients(self.path)
         self.length = len(self.list_patients)
@@ -155,12 +155,16 @@ class LoadImages(Dataset):
         ])
         return valid_transforms(img)
 
+    #TODO Augmentation
     def augmentation(self, img_tensor):
         """
         do Augmentation
 
         :param img: Tensor (Tensor)
         :return Transformed Tensor (Tensor)
+
+        Info:
+        https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
         """
         valid_transforms = T.Compose([
             T.ToPILImage(),
