@@ -6,8 +6,10 @@ TODO
 #import os
 import argparse
 import logging
+import os
 import time
 import timeit
+from pathlib import Path
 
 import torch
 
@@ -27,7 +29,7 @@ PREFIX = "detect: "
 LOGGING_STATE = logging.INFO #logging.DEBUG
 
 @torch.no_grad()
-def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
         batch_size=16,
@@ -59,19 +61,21 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     result_list = []
     for batch, item_struct in enumerate(dataloader):
         i_name, img_struct = item_struct
-        #TODO enable assert Path(weights).exists(), "File does not exists"
-        assert weights.endswith('.pt'), "File has wrong ending"
-        #TODO checkpoint = torch.load(weights)
 
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model=house_brackmann_lookup[selected_function]["model"]
-            #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
+            model_weights = os.path.join(Path(weights), selected_function+".pt")
+            #assert model_weights.endswith('.pt'), f"File {model_weights} has wrong ending"
+            assert Path(model_weights).exists(), f"Model-File {model_weights} does not exists"
+
+            model=house_brackmann_lookup[selected_function]["model"].to(device)
+            checkpoint = torch.load(model_weights)
+            model.load_state_dict(checkpoint["model"])
             if half:
                 model.half()  # to FP16
             for idx, img in enumerate(img_struct[selected_function]):
+
                 img = (img.half() if half else img.float()) # uint8 to fp16/32
-                img = img[None] if len(img.shape) == 3 else img
 
                 #TODO mean of both prediction and lookup
                 pred = model(img.to(device))
@@ -82,7 +86,6 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
 
                 results[selected_function].append({"batch": str(batch),
                                                    "idx": str(idx),
-                                                   "name": str(i_name),
                                                    "pred": pred.shape})
 
                     #predicted.append(np.argmax(pred.detach().numpy()))
@@ -127,8 +130,8 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="models/model.pt",
-                        help="model path")
+    parser.add_argument("--weights", type=str, default="models",
+                        help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],

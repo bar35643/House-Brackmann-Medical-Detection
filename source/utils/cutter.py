@@ -177,7 +177,7 @@ class Cutter():
         """
         #TODO seperate each eye or fuse them
         landmarks, img = self.load_image(path)
-        landmarks = landmarks[slice(36, 42)]
+        eye = landmarks[slice(36, 42)]
         fac = (landmarks[:,0].min())/4
 
         x_min_eye = int(eye[:,0].min() -fac)
@@ -187,7 +187,7 @@ class Cutter():
 
         img_slice_left = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
 
-        eye = det[slice(42, 48)]
+        eye = landmarks[slice(42, 48)]
         x_min_eye = int(eye[:,0].min() -fac)
         x_max_eye = int(eye[:,0].max() +fac)
         y_min_eye = int(eye[:,1].min() -fac)

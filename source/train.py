@@ -6,8 +6,8 @@ TODO
 
 import argparse
 import logging
+import os
 import timeit
-from copy import deepcopy
 from pathlib import Path
 
 import torch
@@ -15,7 +15,7 @@ from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split
-from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
+from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel
 from utils.dataloader import create_dataloader
@@ -29,7 +29,7 @@ LOGGING_STATE = logging.INFO
 #https://pytorch.org/docs/stable/amp.html
 
 
-def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
         cache=False,
@@ -53,6 +53,8 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
     #TODO
     save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
+    model_save_dir = save_dir /"models"
+    model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
 
     # Device init
@@ -64,12 +66,12 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
                                                  nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
-        last, best = save_dir / "last.pt", save_dir / "best.pt"
-
-        if weights.endswith('.pt') and Path(weights).exists():
+        last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
+        weights_from_func = os.path.join(Path(weights), selected_function + ".pt")
+        if weights_from_func.endswith('.pt') and Path(weights_from_func).exists():
             model = house_brackmann_lookup[selected_function]["model"].to(device)
-            ckpt = torch.load(weights, map_location=device)  # load checkpoint
-            csd = ckpt[selected_function].float().state_dict()  # checkpoint state_dict as FP32
+            ckpt = torch.load(weights_from_func, map_location=device)  # load checkpoint
+            csd = ckpt["model"].float().state_dict()  # checkpoint state_dict as FP32
             model.load_state_dict(csd, strict=False)  # load
             #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
         else:
@@ -117,7 +119,7 @@ def run(weights="model/model.pt", #pylint: disable=too-many-arguments, too-many-
                     if not nosave:  # if save
                         ckpt = {"epoch": epoch,
                                 #"best_fitness": best_fitness,
-                                "model": deepcopy(de_parallel(model)),
+                                "model": de_parallel(model).state_dict(),
                                 "optimizer": _optimizer.state_dict(),}
 
 
@@ -167,8 +169,8 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="model/model.pt",
-                        help="model path")
+    parser.add_argument("--weights", type=str, default="model",
+                        help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],

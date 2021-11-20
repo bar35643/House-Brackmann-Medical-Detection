@@ -19,7 +19,7 @@ import torchvision.transforms as T
 from torch.utils.data import Dataset, DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
-from .config import LOGGER, LRU_MAX_SIZE, RANK, THREADPOOL_NUM_THREADS
+from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
 from .cutter import Cutter
 from .database_utils import Database
 from .pytorch_utils import is_process_group, is_master_process, torch_distributed_zero_first #pylint: disable=import-error
@@ -321,7 +321,7 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split)
     """
     prefix_for_log="Setup Train & Validation Data: "
 
-    with torch_distributed_zero_first(RANK):
+    with torch_distributed_zero_first():
         dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
 
     val_loader = train_loader = None
@@ -336,9 +336,9 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split)
 
     LOGGER.info("%sLength of >> Training=%s >> Validation=%s >> Total=%s", prefix_for_log, len(train_dataset), len(val_dataset), len(dataset))
 
-    sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(RANK) else None
+    sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(LOCAL_RANK) else None
     train_loader = DataLoader(train_dataset, batch_size=min(batch_size, len(train_dataset)), sampler=sampler, shuffle=True)
 
-    if is_master_process(RANK):
+    if is_master_process(RANK): #Only Process 0
         val_loader = DataLoader(val_dataset, batch_size=min(batch_size, len(val_dataset)), sampler=None, shuffle=False)
     return train_loader, val_loader

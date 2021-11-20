@@ -134,17 +134,18 @@ def select_device(device="", batch_size=None):
     return device
 
 @contextmanager
-def torch_distributed_zero_first(local_rank: int):
+def torch_distributed_zero_first():
     """
     Decorator to make all processes in distributed training wait for each local_master to do something.
 
 
     https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
-    if local_rank not in [-1, 0]:
-        dist.barrier(device_ids=[local_rank])
+
+    if not is_master_process(LOCAL_RANK):
+        dist.barrier(device_ids=[LOCAL_RANK])
     yield
-    if local_rank == 0:
+    if LOCAL_RANK == 0:
         dist.barrier(device_ids=[0])
 
 def is_parallel(model):
@@ -166,6 +167,9 @@ def de_parallel(model):
 
     :param model:  Model (Model)
     :returns: De-parallelized model (Model)
+
+    Info:
+    https://pytorch.org/tutorials/beginner/saving_loading_models.html
 
     Source:
     https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py

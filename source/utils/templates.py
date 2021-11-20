@@ -15,34 +15,37 @@ model_2_label.fc = nn.Linear(model_2_label.fc.in_features, 2)
 model_3_label = resnet18(pretrained=True)
 model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3)
 
+model_4_label = resnet18(pretrained=True)
+model_4_label.fc = nn.Linear(model_3_label.fc.in_features, 4)
 
 # TODO lookup and grading and Model
 house_brackmann_lookup = {
     "symmetry": {
         "enum":{
-            "normal": 0,
-            "min_asymm":1,
-            "asymm":2},
+            "normal":0,
+            "asymm" :1,
+            "none"  :2},
         "model": model_3_label
     },
     "eye": {
         "enum":{
-            "complete":0,
+            "complete"  :0,
             "incomplete":1},
         "model": model_2_label
     },
     "mouth": {
         "enum":{
-            "normal":0,
+            "normal"   :0,
             "min_asymm":1,
-            "asymm":2},
-        "model":model_3_label
+            "asymm"    :2,
+            "none"     :3},
+        "model":model_4_label
     },
     "forehead": {
         "enum":{
-            "normal":0,
+            "normal"   :0,
             "min_asymm":1,
-            "asymm":2},
+            "none"     :2},
         "model": model_3_label
     }
 }
@@ -70,9 +73,9 @@ image_input_template = {
 house_brackmann_grading = {
     #       symmetry,  eye,         forehead,    mouth
     "I"    : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"normal"   },
-    "II"   : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"min_asymm",   "mouth":"min_asymm"},
+    "II"   : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"min_asymm"},
     "III"  : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"min_asymm",   "mouth":"min_asymm"},
-    "IV"   : {"symmetry":"normal",   "eye":"incomplete",   "forehead":"min_asymm",   "mouth":"min_asymm"},
-    "V"    : {"symmetry":"asymm" ,   "eye":"incomplete",   "forehead":"min_asymm",   "mouth":"asymm"    },
-    "VI"   : {"symmetry":"asymm" ,   "eye":"incomplete",   "forehead":"asymm"    ,   "mouth":"asymm"    },
+    "IV"   : {"symmetry":"normal",   "eye":"incomplete",   "forehead":"none"     ,   "mouth":"asymm"    },
+    "V"    : {"symmetry":"asymm" ,   "eye":"incomplete",   "forehead":"none"     ,   "mouth":"asymm"    },
+    "VI"   : {"symmetry":"none"  ,   "eye":"incomplete",   "forehead":"none"     ,   "mouth":"none"     },
 }
