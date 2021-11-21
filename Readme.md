@@ -60,8 +60,12 @@
 - [x] Caching Images via SQLite3
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
 - [ ] Plotting Results from training/validation
-   1. [ ] for each Category of HB
-   2. [ ] loss, gain, performance average, precison, confusion matrix
+   1. [ ] Singleton Class for Plotting
+   2. [ ] for each Category of HB
+   3. [ ] loss, accurancy
+   4. [ ] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
+   5. [ ] label bar graph
+   3. [ ] [precison/recall](https://builtin.com/data-science/precision-and-recall)
 - [ ] Linting and Unittests
    1. [ ] Linting Code and write all #pylint: disable to a list
    2. [ ] Write Unittest code for all relevant Functions
@@ -72,6 +76,7 @@
 - [ ] API Access via docker-compose/Dockerfile and FastAPI
 - [ ] Add License (e.g. GNU General Public License v3.0)
 - [ ] Jupyter lab for vizualizing training and testing as tutorial
+- [ ] [Tips](https://towardsdatascience.com/7-tips-for-squeezing-maximum-performance-from-pytorch-ca4a40951259)
 
 ## Project
 

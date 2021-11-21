@@ -11,6 +11,8 @@ import timeit
 from pathlib import Path
 
 import yaml
+import numpy as np
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 import torch
 from torch.nn import CrossEntropyLoss
@@ -29,6 +31,9 @@ LOGGING_STATE = logging.INFO
 opt_args = None
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
 #https://pytorch.org/docs/stable/amp.html
+#https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
+#https://towardsdatascience.com/7-tips-for-squeezing-maximum-performance-from-pytorch-ca4a40951259
+#https://discuss.pytorch.org/t/calculating-precision-recall-and-f1-score-in-case-of-multi-label-classification/28265
 
 
 def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
@@ -91,49 +96,69 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         _scheduler = select_scheduler(_optimizer, scheduler)
 
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
-        compute_loss = CrossEntropyLoss()
+        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
         scaler = amp.GradScaler(enabled=cuda)
         _scheduler.last_epoch = epochs - 1  # do not move
+
+        len_enum = len(house_brackmann_lookup[selected_function]["enum"])
+        conf_matrix = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
+
 
         for epoch in range(epochs):
             model.train()
             if is_process_group(RANK):
                 train_loader.sampler.set_epoch(epoch)
-            _optimizer.zero_grad()
 
+            #------------------------------BATCH------------------------------#
             for i_name, img_struct,label_struct in train_loader:
+                _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
                     img, label = item_list
                     print(epoch, idx, selected_function, i_name, img.shape, label.shape)
 
                     img = img.to(device, non_blocking=True).float() # uint8 to float32
+
+                    #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                    #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                     with amp.autocast(enabled=cuda):
                         pred = model(img)  # forward
-                        loss = compute_loss(pred, label)  # loss scaled by batch_size
+                        loss = criterion(pred, label)  # loss scaled by batch_size
+                        accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+
+                    print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()
                     scaler.step(_optimizer)  #optimizer.step
                     scaler.update()
 
-                #Scheduler
-                _scheduler.step()
-                if is_master_process(RANK): #Master Process 0 or -1
-                    #TODO validation
+                    #https://en.wikipedia.org/wiki/Confusion_matrix
+                    #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
+                    #https://deeplizard.com/learn/video/0LhiS6yu2qQ
+                    cm = confusion_matrix(label, pred.argmax(dim=1))
+                    conf_matrix[:cm.shape[0],:cm.shape[1]] += cm
+            print(conf_matrix)
+            #----------------------------END BATCH----------------------------#
 
-                    # Save model
-                    if not nosave:  # if save
-                        ckpt = {"epoch": epoch,
-                                #"best_fitness": best_fitness,
-                                "model": de_parallel(model).state_dict(),
-                                "optimizer": _optimizer.state_dict(),}
+            #Scheduler
+            _scheduler.step()
 
+            model.eval()
+            if is_master_process(RANK): #Master Process 0 or -1
+                #TODO validation
 
-                        # Save last, best and delete
-                        torch.save(ckpt, last)
-                        #if best_fitness == fi:
-                        #    torch.save(ckpt, best)
-                        del ckpt
+                # Save model
+                if not nosave:  # if save
+                    ckpt = {"epoch": epoch,
+                            #"best_fitness": best_fitness,
+                            "model": de_parallel(model).state_dict(),
+                            "optimizer": _optimizer.state_dict(),}
+
+                    # Save last, best and delete
+                    torch.save(ckpt, last)
+                    #if best_fitness == fi:
+                    #    torch.save(ckpt, best)
+                    del ckpt
 
 
 
