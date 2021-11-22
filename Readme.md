@@ -60,10 +60,10 @@
 - [x] Caching Images via SQLite3
 - [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
 - [ ] Plotting Results from training/validation
-   1. [ ] Singleton Class for Plotting
+   1. [x] Class for Plotting
    2. [ ] for each Category of HB
-   3. [ ] loss, accurancy
-   4. [ ] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
+   3. [ ] loss, accurancy (AverageMeter --> To Plotting Class)
+   4. [x] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
    5. [ ] label bar graph
    3. [ ] [precison/recall](https://builtin.com/data-science/precision-and-recall)
 - [ ] Linting and Unittests

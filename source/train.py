@@ -11,8 +11,7 @@ import timeit
 from pathlib import Path
 
 import yaml
-import numpy as np
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 
 import torch
 from torch.nn import CrossEntropyLoss
@@ -23,8 +22,9 @@ from utils.argparse_utils import restricted_val_split
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
 from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, AverageMeter, load_model
-from utils.dataloader import create_dataloader
-from utils.templates import allowed_fn, house_brackmann_lookup
+from utils.dataloader import create_dataloader, BoolAugmentation
+from utils.templates import allowed_fn
+from utils.plotting import Plotting
 
 PREFIX = "train: "
 LOGGING_STATE = logging.INFO
@@ -64,8 +64,8 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
-    with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as f:
-        yaml.safe_dump(vars(opt_args), f, sort_keys=False)
+    with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
+        yaml.safe_dump(vars(opt_args), file, sort_keys=False)
 
 
     # Device init
@@ -75,6 +75,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
     # Setting up the Images
     train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
                                                  nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split)
+    plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
@@ -92,11 +93,8 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         _scheduler = select_scheduler(_optimizer, scheduler)
         scaler = amp.GradScaler(enabled=cuda)
 
-        len_enum = len(house_brackmann_lookup[selected_function]["enum"])
-        conf_matrix = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
-
-
         for epoch in range(epochs):
+            BoolAugmentation.instance().train() #pylint: disable=no-member
             model.train()
             if is_process_group(RANK):
                 train_loader.sampler.set_epoch(epoch)
@@ -133,17 +131,47 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                     #https://en.wikipedia.org/wiki/Confusion_matrix
                     #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
                     #https://deeplizard.com/learn/video/0LhiS6yu2qQ
-                    cm = confusion_matrix(label, pred.argmax(dim=1))
-                    conf_matrix[:cm.shape[0],:cm.shape[1]] += cm
-            print(conf_matrix)
+                    plotter.confusion_matrix_update("train", selected_function, label, pred)
             #----------------------------END BATCH----------------------------#
 
             #Scheduler
             _scheduler.step()
 
+            BoolAugmentation.instance().eval() #pylint: disable=no-member
             model.eval()
             if is_master_process(RANK): #Master Process 0 or -1
                 #TODO validation
+            #------------------------------BATCH------------------------------#
+                loss_meter     = AverageMeter()
+                accuracy_meter = AverageMeter()
+                for i_name, img_struct,label_struct in val_loader:
+                    _optimizer.zero_grad()
+                    for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
+                        img, label = item_list
+                        print(epoch, idx, selected_function, i_name, img.shape, label.shape)
+
+                        img = img.to(device, non_blocking=True).float() # uint8 to float32
+
+                        #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                        #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
+                        #with amp.autocast(enabled=cuda):
+                        pred = model(img)  # forward
+                        loss = criterion(pred, label)  # loss scaled by batch_size
+                        accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+
+                        loss_meter.update(loss.item())
+                        accuracy_meter.update(accurancy)
+
+                        print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                        print("loss_avg: ", loss_meter.avg, "accurancy_avg: ", accuracy_meter.avg)
+
+                        #https://en.wikipedia.org/wiki/Confusion_matrix
+                        #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
+                        #https://deeplizard.com/learn/video/0LhiS6yu2qQ
+                        plotter.confusion_matrix_update("val", selected_function, label, pred)
+            #----------------------------END BATCH----------------------------#
+
+
 
                 # Save model
                 if not nosave:  # if save
@@ -162,7 +190,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
-        pass #TODO LOGGING and Plotting and validating
+        plotter.plot(show=True)
 
 
     torch.cuda.empty_cache()
