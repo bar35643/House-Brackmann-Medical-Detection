@@ -26,6 +26,7 @@ from .pytorch_utils import is_process_group, is_master_process, torch_distribute
 from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
 from .general import init_dict #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 #TODO Decide which pic is for what as array
 path_list = deepcopy(house_brackmann_template)
@@ -33,6 +34,35 @@ path_list["symmetry"] = [0, 0, 0, 0]
 path_list["eye"] =      [0, 0, 0]
 path_list["mouth"] =    [0, 0]
 path_list["forehead"] = [0]
+
+@Singleton
+class BoolAugmentation():
+    """
+    Class for setting the augmentation to true or false globally
+    """
+    def __init__(self):
+        """
+        Initializes the class
+        :param val: value (bool)
+        """
+        self.val = False
+
+    def train(self):
+        """
+        Set the value to False
+        """
+        self.val = True
+    def eval(self):
+        """
+        Set the value to True
+        """
+        self.val = False
+    def __call__(self):
+        """
+        Return the value
+        :return val (bool)
+        """
+        return self.val
 
 def get_list_patients(source_path: str):
     """
@@ -166,12 +196,16 @@ class LoadImages(Dataset):
         Info:
         https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
         """
-        valid_transforms = T.Compose([
-            T.ToPILImage(),
-            T.RandomHorizontalFlip(p=0.5),
-            T.ToTensor(),
-            T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-        ])
+        LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BoolAugmentation.instance()()) #pylint: disable=no-member
+        if BoolAugmentation.instance()(): #pylint: disable=no-member
+            valid_transforms = T.Compose([
+                T.ToPILImage(),
+                T.RandomHorizontalFlip(p=0.5),
+                T.ToTensor(),
+                T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+                ])
+        else:
+            valid_transforms = T.Compose([T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
         return valid_transforms(img_tensor)
 
     @lru_cache(LRU_MAX_SIZE)
