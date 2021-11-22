@@ -22,7 +22,7 @@ from torch.cuda import amp
 from utils.argparse_utils import restricted_val_split
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging
-from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel
+from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, AverageMeter, load_model
 from utils.dataloader import create_dataloader
 from utils.templates import allowed_fn, house_brackmann_lookup
 
@@ -78,27 +78,19 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
-        weights_from_func = os.path.join(Path(weights), selected_function + ".pt")
-        if weights_from_func.endswith('.pt') and Path(weights_from_func).exists():
-            model = house_brackmann_lookup[selected_function]["model"].to(device)
-            ckpt = torch.load(weights_from_func, map_location=device)  # load checkpoint
-            csd = ckpt["model"].float().state_dict()  # checkpoint state_dict as FP32
-            model.load_state_dict(csd, strict=False)  # load
-            #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
-        else:
-            model = house_brackmann_lookup[selected_function]["model"].to(device)
 
         # LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
         #             Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
 
-        # #Optimizer & Scheduler
+        model = load_model(weights, selected_function)
+        model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
+
+        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
+
+        #Optimizer & Scheduler
         _optimizer = select_optimizer(model, optimizer)
         _scheduler = select_scheduler(_optimizer, scheduler)
-
-        model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
-        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
         scaler = amp.GradScaler(enabled=cuda)
-        _scheduler.last_epoch = epochs - 1  # do not move
 
         len_enum = len(house_brackmann_lookup[selected_function]["enum"])
         conf_matrix = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
@@ -110,6 +102,8 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                 train_loader.sampler.set_epoch(epoch)
 
             #------------------------------BATCH------------------------------#
+            loss_meter     = AverageMeter()
+            accuracy_meter = AverageMeter()
             for i_name, img_struct,label_struct in train_loader:
                 _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -120,12 +114,16 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
                     #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
                     #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
-                    with amp.autocast(enabled=cuda):
-                        pred = model(img)  # forward
-                        loss = criterion(pred, label)  # loss scaled by batch_size
-                        accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+                    #with amp.autocast(enabled=cuda):
+                    pred = model(img)  # forward
+                    loss = criterion(pred, label)  # loss scaled by batch_size
+                    accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+
+                    loss_meter.update(loss.item())
+                    accuracy_meter.update(accurancy)
 
                     print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                    print("loss_avg: ", loss_meter.avg, "accurancy_avg: ", accuracy_meter.avg)
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()

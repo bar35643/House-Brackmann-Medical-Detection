@@ -3,8 +3,10 @@
 TODO
 """
 
+import os
 import math
 from contextlib import contextmanager
+from pathlib import Path
 
 import torch
 from torch import optim
@@ -14,6 +16,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
+from .templates import house_brackmann_lookup #pylint: disable=import-error
 from .config import LOGGER,LOCAL_RANK, RANK
 
 #Ideas from https://github.com/ultralytics/yolov5
@@ -81,6 +84,26 @@ def select_data_parallel_mode(model, cuda: bool):
     if cuda and is_process_group(RANK):
         model = DistributedDataParallel(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
+    return model
+
+def load_model(pth_to_weights, func):
+    """
+    Selecting Cuda/Cpu devices
+
+    :param pth_to_weights:  Path to weights (str)
+    :param func: function name (str)
+    :returns: model
+    """
+
+    pth = os.path.join(Path(pth_to_weights), func + ".pt")
+    if pth.endswith('.pt') and Path(pth).exists():
+        model = house_brackmann_lookup[func]["model"]
+        ckpt = torch.load(pth)  # load checkpoint
+        csd = ckpt["model"].float().state_dict()  # checkpoint state_dict as FP32
+        model.load_state_dict(csd, strict=False)  # load
+        #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
+    else:
+        model = house_brackmann_lookup[func]["model"]
     return model
 
 def select_device(device="", batch_size=None):
@@ -247,3 +270,22 @@ def select_scheduler(optimizer, argument="StepLR", sequential=False):
         else:
             scheduler = lr_scheduler.ChainedScheduler(argument_split)
     return scheduler
+
+
+
+class AverageMeter():
+    """Computes and stores the average and sum of values"""
+    def __init__(self):
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def reset(self):
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, nun=1):
+        self.sum += val * nun
+        self.count += nun
+        self.avg = self.sum / self.count
