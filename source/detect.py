@@ -20,7 +20,7 @@ import torch
 # fn()
 # elapsed = time.time() - start_time
 from utils.config import LOGGER
-from utils.general import check_requirements, set_logging, init_dict
+from utils.general import check_requirements, set_logging, init_dict, OptArgs
 from utils.pytorch_utils import select_device
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
@@ -147,8 +147,11 @@ def parse_opt():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    opt_args = parse_opt()
-    set_logging(LOGGING_STATE, PREFIX,opt_args)
+    opt_args = vars(parse_opt())
+    OptArgs.instance()(opt_args)
+
+    set_logging(LOGGING_STATE, PREFIX)
     check_requirements()
-    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+
+    time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Detection. Finished in %s s", time)

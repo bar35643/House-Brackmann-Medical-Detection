@@ -17,9 +17,35 @@ import pkg_resources as pkg
 from .config import LOGGER, RANK
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 
-def set_logging(level, main_inp_func, opt):
+@Singleton
+class OptArgs():
+    """
+    Class for setting the augmentation to true or false globally
+    """
+    def __init__(self):
+        """
+        Initializes the class
+        :param val: value (bool)
+        """
+        self.args = None
+    def get_arg_from_key(self, key):
+        """
+        Setting the value
+        :param item: kewword in dict (dict)
+        """
+        return self.args[key]
+        
+    def __call__(self, args):
+        """
+        Setting the value
+        :param args: args (dict)
+        """
+        self.args = args
+
+def set_logging(level, main_inp_func):
     """
     Setting up the logger
 
@@ -38,7 +64,7 @@ def set_logging(level, main_inp_func, opt):
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in vars(opt).items())
+    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
     if level == logging.WARN:
         LOGGER.warning(log_str)
     else:

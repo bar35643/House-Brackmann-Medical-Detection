@@ -270,22 +270,3 @@ def select_scheduler(optimizer, argument="StepLR", sequential=False):
         else:
             scheduler = lr_scheduler.ChainedScheduler(argument_split)
     return scheduler
-
-
-
-class AverageMeter():
-    """Computes and stores the average and sum of values"""
-    def __init__(self):
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def reset(self):
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, nun=1):
-        self.sum += val * nun
-        self.count += nun
-        self.avg = self.sum / self.count

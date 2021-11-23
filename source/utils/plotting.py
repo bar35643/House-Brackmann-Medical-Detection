@@ -3,14 +3,48 @@ import os
 from copy import deepcopy
 import itertools
 
+import csv
+
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
 
 from .config import LOGGER
 from .templates import house_brackmann_template, house_brackmann_lookup #pylint: disable=import-error
 
 
+
+class AverageMeter():
+    """Computes and stores the average and sum of values"""
+    def __init__(self):
+        """
+        Initializes AverageMeter Class
+
+        :param avg: Average Value (float)
+        :param sum: Sum Value (float)
+        :param count: N-Values handled (int)
+        """
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def reset(self):
+        """
+        Reset all values to 0
+        """
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, nun=1):
+        """
+        update the values
+        :param val: Value (float)
+        :param num: N times this value (int)
+        """
+        self.sum += val * nun
+        self.count += nun
+        self.avg = self.sum / self.count
 
 class Plotting():
     """
@@ -25,17 +59,6 @@ class Plotting():
         self.prefix_for_log = prefix_for_log
         self.path = path
         self.nosave=nosave
-
-        conf_matrix = deepcopy(house_brackmann_template)
-        for i in conf_matrix:
-            len_enum = len(house_brackmann_lookup[i]["enum"])
-            conf_matrix[i] = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
-
-        self.conf_matrix = {
-            "train": deepcopy(conf_matrix),
-            "val": deepcopy(conf_matrix),
-        }
-
         self.params = {
             "dpi": 500, #higher dpi higher res
             "saveformat": "png", #eps, png, ...
@@ -47,6 +70,107 @@ class Plotting():
                              #                              'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn'
         }
 
+
+
+        self.conf_matrix_template = deepcopy(house_brackmann_template)
+
+        for i in self.conf_matrix_template:
+            len_enum = len(house_brackmann_lookup[i]["enum"])
+            self.conf_matrix_template[i] = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
+
+        self.conf_matrix = {
+            "train": deepcopy(self.conf_matrix_template),
+            "val": deepcopy(self.conf_matrix_template),
+        }
+        self.conf_matrix_epoch = {
+            "train": deepcopy(self.conf_matrix_template),
+            "val": deepcopy(self.conf_matrix_template),
+        }
+
+
+
+        self.averagemeter = {
+            "train": {
+                "loss": AverageMeter(),
+                "accurancy": AverageMeter()
+            },
+            "val": {
+                "loss": AverageMeter(),
+                "accurancy": AverageMeter()
+            }
+        }
+
+    def reset_averagemeter(self):
+        """
+        Reset all average Meters to 0
+        """
+        for i in self.averagemeter:
+            for j in self.averagemeter[i]:
+                self.averagemeter[i][j] = AverageMeter()
+
+    def update_epoch(self, func):
+        """
+        Update every epoch
+
+        :param func: function (str)
+        """
+        print(self.conf_matrix_epoch["train"][func])
+
+        for i in self.conf_matrix_epoch:
+            self.conf_matrix_epoch[i] = deepcopy(self.conf_matrix_template)
+
+        #print(self.conf_matrix_epoch["train"][func])
+
+        #Saving as CSV for Each Epoch (Averaged Values)
+        fieldnames = ['loss', 'val_loss', 'accuracy', 'val_accuracy']
+        to_be_saved_dict = {'loss': self.averagemeter["train"]["loss"].avg,
+                            'val_loss': self.averagemeter["val"]["loss"].avg,
+
+                            'accuracy': self.averagemeter["train"]["accurancy"].avg,
+                            'val_accuracy': self.averagemeter["val"]["accurancy"].avg,}
+
+        filename = os.path.join(self.path, func + ".csv")
+        file_exists = os.path.isfile(filename)
+        with open(filename, 'a+', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(to_be_saved_dict)
+
+
+    def update(self, dataset:str, func:str, label, pred, loss):
+        """
+        Update
+
+        :param dataset: "test" or "val" (str)
+        :param func: function (str)
+        :param label: True Labels (tensor)
+        :param pred: Predicted Labels (tensor)
+        :param loss: loss
+        """
+
+        #Update Confusion Matrix
+        tmp = confusion_matrix(label, pred.argmax(dim=1))
+        self.conf_matrix[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
+        self.conf_matrix_epoch[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
+
+
+        #Update AverageMeter
+        #use conf_matrix_epoch for recall and ...
+
+        accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+        self.averagemeter[dataset]["loss"].update(loss.item())
+        self.averagemeter[dataset]["accurancy"].update(accurancy)
+
+
+        print("loss_avg: ", self.averagemeter[dataset]["loss"].avg,
+              "accurancy_avg: ", self.averagemeter[dataset]["accurancy"].avg)
+
+
+
+
+
+
     def plot(self, show=False):
         """
         Creates a new Dictionary with a Preset Value
@@ -57,18 +181,6 @@ class Plotting():
 
         if show:
             plt.show()
-
-    def confusion_matrix_update(self, dataset:str, func:str, label, pred):
-        """
-        Update Confusion Martix Values
-
-        :param set: "test" or "val" (str)
-        :param func: function (str)
-        :param label: True Labels (tensor)
-        :param pred: Predicted Labels (tensor)
-        """
-        tmp = confusion_matrix(label, pred.argmax(dim=1))
-        self.conf_matrix[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
 
     def confusion_matrix_plot(self, normalize=False, title='Confusion Matrix'):
         """

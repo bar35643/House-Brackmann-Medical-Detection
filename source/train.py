@@ -20,15 +20,14 @@ from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
-from utils.general import check_requirements, increment_path, set_logging
-from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, AverageMeter, load_model
+from utils.general import check_requirements, increment_path, set_logging, OptArgs
+from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, load_model
 from utils.dataloader import create_dataloader, BoolAugmentation
 from utils.templates import allowed_fn
 from utils.plotting import Plotting
 
 PREFIX = "train: "
 LOGGING_STATE = logging.INFO
-opt_args = None
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
 #https://pytorch.org/docs/stable/amp.html
 #https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
@@ -65,7 +64,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
     with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
-        yaml.safe_dump(vars(opt_args), file, sort_keys=False)
+        yaml.safe_dump(OptArgs.instance().args, file, sort_keys=False) #pylint: disable=no-member
 
 
     # Device init
@@ -94,14 +93,14 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         scaler = amp.GradScaler(enabled=cuda)
 
         for epoch in range(epochs):
+            plotter.reset_averagemeter()
+
             BoolAugmentation.instance().train() #pylint: disable=no-member
             model.train()
             if is_process_group(RANK):
                 train_loader.sampler.set_epoch(epoch)
 
             #------------------------------BATCH------------------------------#
-            loss_meter     = AverageMeter()
-            accuracy_meter = AverageMeter()
             for i_name, img_struct,label_struct in train_loader:
                 _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -117,11 +116,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                     loss = criterion(pred, label)  # loss scaled by batch_size
                     accurancy = accuracy_score(label, pred.max(1)[1].cpu())
 
-                    loss_meter.update(loss.item())
-                    accuracy_meter.update(accurancy)
-
                     print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
-                    print("loss_avg: ", loss_meter.avg, "accurancy_avg: ", accuracy_meter.avg)
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()
@@ -131,7 +126,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                     #https://en.wikipedia.org/wiki/Confusion_matrix
                     #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
                     #https://deeplizard.com/learn/video/0LhiS6yu2qQ
-                    plotter.confusion_matrix_update("train", selected_function, label, pred)
+                    plotter.update("train", selected_function, label, pred, loss)
             #----------------------------END BATCH----------------------------#
 
             #Scheduler
@@ -142,8 +137,6 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
             if is_master_process(RANK): #Master Process 0 or -1
                 #TODO validation
             #------------------------------BATCH------------------------------#
-                loss_meter     = AverageMeter()
-                accuracy_meter = AverageMeter()
                 for i_name, img_struct,label_struct in val_loader:
                     _optimizer.zero_grad()
                     for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -159,16 +152,12 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                         loss = criterion(pred, label)  # loss scaled by batch_size
                         accurancy = accuracy_score(label, pred.max(1)[1].cpu())
 
-                        loss_meter.update(loss.item())
-                        accuracy_meter.update(accurancy)
-
                         print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
-                        print("loss_avg: ", loss_meter.avg, "accurancy_avg: ", accuracy_meter.avg)
 
                         #https://en.wikipedia.org/wiki/Confusion_matrix
                         #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
                         #https://deeplizard.com/learn/video/0LhiS6yu2qQ
-                        plotter.confusion_matrix_update("val", selected_function, label, pred)
+                        plotter.update("val", selected_function, label, pred, loss)
             #----------------------------END BATCH----------------------------#
 
 
@@ -187,7 +176,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                     del ckpt
 
 
-
+            plotter.update_epoch(selected_function)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=True)
@@ -260,9 +249,12 @@ def parse_opt():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    opt_args = parse_opt()
-    set_logging(LOGGING_STATE, PREFIX, opt_args)
+    opt_args = vars(parse_opt())
+    OptArgs.instance()(opt_args)
+
+    set_logging(LOGGING_STATE, PREFIX)
+
     if is_master_process(RANK):  #Master Process 0 or -1
         check_requirements()
-    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+    time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)
