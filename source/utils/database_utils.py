@@ -3,6 +3,7 @@
 TODO
 """
 
+import os
 import io
 import sqlite3
 from functools import lru_cache
@@ -10,7 +11,7 @@ import torch
 
 from .singleton import Singleton #pylint: disable=import-error
 from .decorators import try_except_none, try_except, thread_safe #pylint: disable=import-error
-from .config import LRU_MAX_SIZE
+from .config import LRU_MAX_SIZE, LOGGER
 
 def adapt_dictionary(data):
     """
@@ -49,19 +50,36 @@ class Database():
 
         :param db_file: File name (str)
         :param prefix_for_log: logger output prefix (str)
+        :param conn: connection cursor
+        :param nosave: If True save (bool)
         """
         self.prefix_for_log = ""
         self.db_file = 'pythonsqlite.db'
         self.conn = None
+        self.nosave = False
 
-    def set(self, db_file:str, prefix_for_log:str):
+    @try_except
+    def delete(self):
+        """
+        Destructor: remove database
+        """
+        if self.conn is not None:
+            self.conn.close()
+            LOGGER.info("%sClosed Connection to Database", self.prefix_for_log)
+        if os.path.exists(self.db_file) and self.nosave:
+            os.remove(self.db_file)
+            LOGGER.info("%sDeleted Database File (Cache)!", self.prefix_for_log)
+
+    def set(self, db_file:str, prefix_for_log:str, nosave:bool):
         """
         set Class items
         :param db_file: database file name (str)
         :param prefix_for_log: logger output prefix (str)
+        :param nosave: If True save (bool)
         """
         self.prefix_for_log = prefix_for_log
         self.db_file=db_file
+        self.nosave=nosave
 
     def get_conn(self):
         """

@@ -136,7 +136,7 @@ class LoadImages(Dataset):
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         if cache:
             self.database = Database.instance() #pylint: disable=no-member
-            self.database.set(self.database_file, self.prefix_for_log)
+            self.database.set(self.database_file, self.prefix_for_log, self.nosave)
             if self.database.create_db_connection() is not None:
                 self.database.create_db_table(f""" CREATE TABLE IF NOT EXISTS {self.table} (
                                                 id integer PRIMARY KEY,
@@ -165,12 +165,7 @@ class LoadImages(Dataset):
         Destructor: remove database
         """
         if self.database:
-            conn = self.database.get_conn()
-            if conn is not None:
-                conn.close()
-        if os.path.exists(self.database_file) and self.nosave:
-            os.remove(self.database_file)
-            LOGGER.info("%s Deleted Database File (Cache)!", self.prefix_for_log)
+            self.database.delete()
 
     def transform_resize_and_to_tensor(self, img, idx):
         """
