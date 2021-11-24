@@ -337,7 +337,7 @@ def create_dataloader_only_images(path, imgsz, device, batch_size, prefix_for_lo
     return DataLoader(dataset, batch_size=min(batch_size, len(dataset)), shuffle=False)
 
 
-def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split):
+def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=None, train_split=None):
     """
     creates and returns the DataLoader
     checks the batch size
@@ -359,8 +359,8 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split)
 
     val_loader = train_loader = None
 
-    if val_split:
-        train_idx, val_idx = train_test_split(list(range(len(dataset))), test_size=val_split)
+    if val_split or train_split:
+        train_idx, val_idx = train_test_split(list(range(len(dataset))), test_size=val_split, train_size=train_split)
 
         train_dataset = Subset(dataset, train_idx)
         val_dataset = Subset(dataset, val_idx)

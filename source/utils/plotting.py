@@ -100,14 +100,6 @@ class Plotting():
             }
         }
 
-    def reset_averagemeter(self):
-        """
-        Reset all average Meters to 0
-        """
-        for i in self.averagemeter:
-            for j in self.averagemeter[i]:
-                self.averagemeter[i][j] = AverageMeter()
-
     def update_epoch(self, func):
         """
         Update every epoch
@@ -115,11 +107,8 @@ class Plotting():
         :param func: function (str)
         """
         print(self.conf_matrix_epoch["train"][func])
+        #TODO calculate Senfitivity, Specivity, PPV, NPV, ...
 
-        for i in self.conf_matrix_epoch:
-            self.conf_matrix_epoch[i] = deepcopy(self.conf_matrix_template)
-
-        #print(self.conf_matrix_epoch["train"][func])
 
         #Saving as CSV for Each Epoch (Averaged Values)
         fieldnames = ['loss', 'val_loss', 'accuracy', 'val_accuracy']
@@ -136,6 +125,17 @@ class Plotting():
             if not file_exists:
                 writer.writeheader()
             writer.writerow(to_be_saved_dict)
+
+
+
+        #Reset conf_matrix_epoch
+        for i in self.conf_matrix_epoch:
+            self.conf_matrix_epoch[i] = deepcopy(self.conf_matrix_template)
+
+        #Reset all AverageMeter
+        for i in self.averagemeter:
+            for j in self.averagemeter[i]:
+                self.averagemeter[i][j] = AverageMeter()
 
 
     def update(self, dataset:str, func:str, label, pred, loss):
@@ -182,6 +182,7 @@ class Plotting():
         if show:
             plt.show()
 
+
     def confusion_matrix_plot(self, normalize=False, title='Confusion Matrix'):
         """
         Creates the Confusion Matrix as Matplotlib
@@ -204,6 +205,7 @@ class Plotting():
             for row, func in enumerate(list(house_brackmann_lookup.keys())):
 
                 tmp = self.conf_matrix[dataset][func]
+                #print(dataset, func,  tmp)
                 tmp = tmp.astype('int') if not normalize else tmp.astype('float') / tmp.sum(axis=1)[:, np.newaxis]
 
                 axs[col, row].imshow(tmp, interpolation='nearest', cmap=self.params["cmap"])
@@ -219,7 +221,7 @@ class Plotting():
                 axs[col, row].set_yticklabels(keys)
 
                 fmt = '.2f' if normalize else 'd'
-                thresh = tmp.max() / 2.
+                thresh = tmp.max() / 1.2
                 for i, j in itertools.product(range(tmp.shape[0]), range(tmp.shape[1])):
                     axs[col, row].text(j, i,                                               #Positon
                                        format(tmp[i, j], fmt),                             #Formatted Value

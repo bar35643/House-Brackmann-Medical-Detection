@@ -18,7 +18,7 @@ from torch.nn import CrossEntropyLoss
 import torch.distributed as dist
 from torch.cuda import amp
 
-from utils.argparse_utils import restricted_val_split
+from utils.argparse_utils import restricted_val_split, SmartFormatter
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, load_model
@@ -41,6 +41,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         cache=False,
         batch_size=16,
         val_split=None,
+        train_split=None,
         # workers=8,
         device="cpu",
         optimizer="SGD",
@@ -73,7 +74,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
 
     # Setting up the Images
     train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
-                                                 nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split)
+                                                 nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in allowed_fn:
@@ -93,8 +94,6 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
         scaler = amp.GradScaler(enabled=cuda)
 
         for epoch in range(epochs):
-            plotter.reset_averagemeter()
-
             BoolAugmentation.instance().train() #pylint: disable=no-member
             model.train()
             if is_process_group(RANK):
@@ -216,7 +215,7 @@ def parse_opt():
     TODO
     Check internet connectivity
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
     parser.add_argument("--weights", type=str, default="model",
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
@@ -228,8 +227,19 @@ def parse_opt():
     parser.add_argument("--batch-size", type=int, default=16,
                         help="total batch size for all GPUs")
     parser.add_argument("--val-split", type=restricted_val_split, default=None,
-                        help="Factor for splitting Train and Validation for x=len(dataset):  \
-                        None --> Train=Val=x, float between [0,1] --> Train=(1-fac)*x Val=fac*x, int --> Train=dataset-x Val=x")
+                        help="R|Factor for splitting Validation for x=len(dataset) fac=Value:                           \n"
+                        "None  (both --val-split and --train-split)                --> Val=Train=x,                     \n"
+                        "float (if --train-split=None) between [0,1]               --> Val=fac*x      Train=(1-fac)*x,  \n"
+                        "float sum of --train-split and --val-split between [0,1]  --> Val=fac*x,                       \n"
+                        "int   (if --train-split=None)                             --> Val=fac        Train=x-fac       \n"
+                        "int   (if --train-split=float or int)                     --> Val=fac                            ")
+    parser.add_argument("--train-split", type=restricted_val_split, default=None,
+                        help="R|Factor for splitting Train for x=len(dataset) fac=Value:                                \n"
+                        "None  (both --val-split and --train-split)                --> Train=Val=x,                     \n"
+                        "float (if --val-split=None) between [0,1]                 --> Train=fac*x      Val=(1-fac)*x,  \n"
+                        "float sum of --train-split and --val-split between [0,1]  --> Train=fac*x,                     \n"
+                        "int   (if --val-split=None)                               --> Train=fac        Val=x-fac       \n"
+                        "int   (if --val-split=float or int)                       --> Train=fac                          ")
     # parser.add_argument("--workers", type=int, default=8,
     #                     help="maximum number of dataloader workers")
     parser.add_argument("--device", default="cpu",
