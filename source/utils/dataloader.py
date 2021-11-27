@@ -349,6 +349,7 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=
     :param nosave: True or Fale (bool)
     :param batch_size: Batch Size (int)
     :param val_split: Factor for splitting (float, int, None)
+    :param train_split: Factor for splitting (float, int, None)
 
     :returns dataloader
     """

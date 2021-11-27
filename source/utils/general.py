@@ -14,7 +14,9 @@ from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
-from .config import LOGGER, RANK
+import torch
+
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
@@ -37,7 +39,7 @@ class OptArgs():
         :param item: kewword in dict (dict)
         """
         return self.args[key]
-        
+
     def __call__(self, args):
         """
         Setting the value
@@ -67,8 +69,33 @@ def set_logging(level, main_inp_func):
     log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
     if level == logging.WARN:
         LOGGER.warning(log_str)
+        LOGGER.warning("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
+        LOGGER.warning("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
     else:
         LOGGER.info(log_str)
+        LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
+        LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
+
+
+
+
+
+
+
+def merge_two_dicts(dict1, dict2):
+    """
+    merges two dictionary
+    :param dict1: Dictionary 1 (dict)
+    :param dict2: Dictionary 2 (dict)
+    :return dict
+    """
+    res_dict = dict1.copy()   # start with keys and values of dict1
+    res_dict.update(dict2)    # modifies res_dict with keys and values of dict2
+    return res_dict
 
 def init_dict(inp_dict: dict, val):
     """
@@ -80,6 +107,12 @@ def init_dict(inp_dict: dict, val):
     :return dict
     """
     return dict((k, deepcopy(val)) for k in inp_dict)
+
+
+
+
+
+
 
 def check_online():
     """
@@ -151,6 +184,12 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
                     LOGGER.error("requirements:  %s", err)
             else:
                 LOGGER.error("requirements: %s not found and is required by this Package. Please install it manually and rerun your command.", req)
+
+
+
+
+
+
 
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """

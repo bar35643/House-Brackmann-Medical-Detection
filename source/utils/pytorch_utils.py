@@ -122,7 +122,7 @@ def select_device(device="", batch_size=None):
     """
 
     # device = "cpu" or "0" or "0,1,2,3"
-    torch_str = f"torch {torch.__version__} "  # string
+    torch_str = f"Torch Version: torch {torch.__version__} Selected Devices: "  # string
     device = str(device).strip().lower().replace("cuda:", "").replace(" ", "")  # to string, "cuda:0" to "0" and "CPU" to "cpu"
     cpu = (device == "cpu") # set cpu to True/False
     cuda = not cpu and torch.cuda.is_available()

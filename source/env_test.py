@@ -16,7 +16,7 @@ import timeit
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
-from utils.general import set_logging
+from utils.general import set_logging, OptArgs
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
 from utils.dataloader import CreateDataset, LoadImages
 from utils.templates import allowed_fn
@@ -24,7 +24,9 @@ from train import run
 
 
 if __name__ == "__main__":
-    set_logging(logging.WARNING, "env_test: ", Namespace())
+    opt_args = vars(Namespace())
+    OptArgs.instance()(opt_args)
+    set_logging(logging.INFO, "env_test: ")
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
     print("ROOT: ", ROOT)
     print("ROOT_RELATIVE: ", ROOT_RELATIVE)
@@ -58,7 +60,9 @@ if __name__ == "__main__":
     print("length: ", len(tst))
 
     print("\n\nTestin Caching and Lru Cache\n")
+    """
     for x in range(1, 300):
         print(f"cached {x}x (lru_cache):"    , timeit.timeit(lambda: run(source="../test_data",cache=True,nosave=False,batch_size=4,device="cpu"), number=x))
         print(f"not cached {x}x (lru_cache):", timeit.timeit(lambda: run(source="../test_data",cache=False,nosave=False,batch_size=4,device="cpu"), number=x))
+    """
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
