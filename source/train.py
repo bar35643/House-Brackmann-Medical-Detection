@@ -80,8 +80,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
     for selected_function in allowed_fn:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
 
-        # LOGGER.info("Training %s. Using %s workers and Logging results to %s \n \
-        #             Starting training for %s epochs...", selected_function, train_loader.num_workers, save_dir, epochs)
+        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...\n", selected_function, batch_size, save_dir, epochs)
 
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
@@ -100,6 +99,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                 train_loader.sampler.set_epoch(epoch)
 
             #------------------------------BATCH------------------------------#
+            LOGGER.info("train Epoch=%s", epoch)
             for i_name, img_struct,label_struct in train_loader:
                 _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -126,6 +126,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                     #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
                     #https://deeplizard.com/learn/video/0LhiS6yu2qQ
                     plotter.update("train", selected_function, label, pred, loss)
+            LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
 
             #Scheduler
@@ -136,6 +137,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
             if is_master_process(RANK): #Master Process 0 or -1
                 #TODO validation
             #------------------------------BATCH------------------------------#
+                LOGGER.info("val Epoch=%s", epoch)
                 for i_name, img_struct,label_struct in val_loader:
                     _optimizer.zero_grad()
                     for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -157,6 +159,7 @@ def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
                         #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
                         #https://deeplizard.com/learn/video/0LhiS6yu2qQ
                         plotter.update("val", selected_function, label, pred, loss)
+                LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
 
 

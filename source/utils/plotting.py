@@ -4,6 +4,7 @@ from copy import deepcopy
 import itertools
 
 import csv
+#import json
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,6 +30,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
+        self.vallist = []
 
     def reset(self):
         """
@@ -37,6 +39,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
+        self.vallist = np.array([])
 
     def update(self, val, nun=1):
         """
@@ -44,6 +47,7 @@ class AverageMeter():
         :param val: Value (float)
         :param num: N times this value (int)
         """
+        self.vallist = np.append(val, self.vallist, axis=None)
         self.sum += val * nun
         self.count += nun
         self.avg = self.sum / self.count
@@ -93,7 +97,7 @@ class Plotting():
         }
 
 
-        #TODO DELETE accurancy
+        #TODO DELETE deprecated accurancy
         self.averagemeter = {
             "train": {
                 "loss": AverageMeter(),
@@ -140,95 +144,80 @@ class Plotting():
 
 
 
-        FP = (conf_matrix.sum(axis=0) - np.diag(conf_matrix))
-        FN = (conf_matrix.sum(axis=1) - np.diag(conf_matrix))
-        TP = (np.diag(conf_matrix))
-        TN = (conf_matrix.sum() - (FP + FN + TP))
+        false_positive = (conf_matrix.sum(axis=0) - np.diag(conf_matrix))
+        false_negative = (conf_matrix.sum(axis=1) - np.diag(conf_matrix))
+        true_positive = (np.diag(conf_matrix))
+        true_negative = (conf_matrix.sum() - (false_positive + false_negative + true_positive))
 
         # Sensitivity, hit rate, recall, or true positive rate
-        TPR = TP/(TP+FN)
-        # Specificity or true negative rate
-        TNR = TN/(TN+FP)
+        # Counterpart: miss rate or False negative rate fnr=1-tpr
+        tpr = true_positive/(true_positive+false_negative)
+
+        # Specificity, correct rejection rate or true negative rate
+        # Counterpart: Fallout or false positive rate fpr=1-tnr
+        tnr = true_negative/(true_negative+false_positive)
+
         # Precision or positive predictive value
-        PPV = TP/(TP+FP)
+        # Counterpart: False discovery rate fdr=1-ppv
+        ppv = true_positive/(true_positive+false_positive)
+
         # Negative predictive value
-        NPV = TN/(TN+FN)
-        # Fall out or false positive rate
-        #Not Needed FPR = FP/(FP+TN)
-        # False negative rate
-        #Not Needed FNR = FN/(TP+FN)
-        # False discovery rate
-        #Not Needed FDR = FP/(TP+FP)
-        # false omission rate
-        #Not Needed FOR = FN/(TP+FP)
+        # Counterpart: False omission rate for=1-npv
+        npv = true_negative/(true_negative+false_negative)
 
-        # Overall accuracy
-        ACC = (TP+TN)/(TP+FP+FN+TN)
+        # accuracy
+        acc = (true_positive+true_negative)/(true_positive+false_positive+false_negative+true_negative)
 
-        # F1 Score
-        F1 = (2*TP)/(2*TP+FP+FN)
+        # F1 Score ( harmonic mean of precision and sensitivity)
+        f1_score = (2*true_positive)/(2*true_positive+false_positive+false_negative)
 
-        #TODO ???????? Temporary
-        #Correction Terms
-        TPR = np.where(np.isnan(TPR)==True, 0, TPR)
-        TNR = np.where(np.isnan(TNR)==True, 0, TNR)
-        PPV = np.where(np.isnan(PPV)==True, 0, PPV)
-        NPV = np.where(np.isnan(NPV)==True, 0, NPV)
-        #Not Needed FPR = np.where(np.isnan(FPR)==True, 0, FPR)
-        #Not Needed FNR = np.where(np.isnan(FNR)==True, 0, FNR)
-        #Not Needed FDR = np.where(np.isnan(FDR)==True, 0, FDR)
-        #Not Needed FOR = np.where(np.isnan(FOR)==True, 0, FOR)
-        ACC = np.where(np.isnan(ACC)==True, 0, ACC)
-        F1  = np.where(np.isnan(F1)==True, 0, F1)
+        #TODO LR+, LR-, DOR ??
 
-        # TPR = np.where(np.isposinf(TPR)==True, 1, TPR)
-        # TNR = np.where(np.isposinf(TNR)==True, 1, TNR)
-        # PPV = np.where(np.isposinf(PPV)==True, 1, PPV)
-        # NPV = np.where(np.isposinf(NPV)==True, 1, NPV)
-        # FPR = np.where(np.isposinf(FPR)==True, 1, FPR)
-        # FNR = np.where(np.isposinf(FNR)==True, 1, FNR)
-        # FDR = np.where(np.isposinf(FDR)==True, 1, FDR)
-        # FOR = np.where(np.isposinf(FOR)==True, 1, FOR)
-        # ACC = np.where(np.isposinf(ACC)==True, 1, ACC)
-        # F1  = np.where(np.isposinf(F1)==True, 1, F1)
+        #Correction Terms if nan occurs
+        tpr       = np.where(np.isnan(tpr)        , 0, tpr)
+        tnr       = np.where(np.isnan(tnr)        , 0, tnr)
+        ppv       = np.where(np.isnan(ppv)        , 0, ppv)
+        npv       = np.where(np.isnan(npv)        , 0, npv)
+        acc       = np.where(np.isnan(acc)        , 0, acc)
+        f1_score  = np.where(np.isnan(f1_score)   , 0, f1_score)
 
+        #Correction Terms if inf occurs
+        tpr       = np.where(np.isposinf(tpr)     , 1, tpr)
+        tnr       = np.where(np.isposinf(tnr)     , 1, tnr)
+        ppv       = np.where(np.isposinf(ppv)     , 1, ppv)
+        npv       = np.where(np.isposinf(npv)     , 1, npv)
+        acc       = np.where(np.isposinf(acc)     , 1, acc)
+        f1_score  = np.where(np.isposinf(f1_score), 1, f1_score)
 
-
+        print("\n")
+        print(dataset)
         print(conf_matrix)
 
         print("\n")
-        print("FP: ",               FP)
-        print("FN: ",               FN)
-        print("TP: ",               TP)
-        print("TN: ",               TN)
-        print("\n")
+        print("FP: ",               false_positive)
+        print("FN: ",               false_negative)
+        print("TP: ",               true_positive)
+        print("TN: ",               true_negative)
 
 
-
-
-        print("\n Sensitivity: ",               TPR, TPR.mean(),
-              "\n Specificity: ",               TNR, TNR.mean(),
-              "\n positive predictive value: ", PPV, PPV.mean(),
-              "\n Negative predictive value: ", NPV, NPV.mean(),
-              #Not Needed "\n false positive rate:",        FPR, FPR.mean(),
-              #Not Needed "\n False negative rate: ",       FNR, FNR.mean(),
-              #Not Needed "\n False discovery rate: ",      FDR, FDR.mean(),
-              #Not Needed "\n false omission rate: ",       FOR, FOR.mean(),
-              "\n F1 Score: ",                  F1, F1.mean(),
-              "\n Accurancy: ",                 ACC, ACC.mean())
+        print("\n Loss: ",               self.averagemeter[dataset]["loss"].vallist, self.averagemeter[dataset]["loss"].vallist.mean(),
+              "\n Sensitivity: ",               tpr, tpr.mean(),
+              "\n Specificity: ",               tnr, tnr.mean(),
+              "\n positive predictive value: ", ppv, ppv.mean(),
+              "\n Negative predictive value: ", npv, npv.mean(),
+              "\n F1 Score: ",                  f1_score, f1_score.mean(),
+              "\n Accurancy: ",                 acc, acc.mean())
         print("\n")
 
         ret_dict = { dataset+"_loss": self.averagemeter[dataset]["loss"].avg,
-                     dataset+"_TPR": TPR.mean(),
-                     dataset+"_TNR": TNR.mean(),
-                     dataset+"_PPV": PPV.mean(),
-                     dataset+"_NPV": NPV.mean(),
-                     #Not Needed dataset+"_FPR": FPR.mean(),
-                     #Not Needed dataset+"_FNR": FNR.mean(),
-                     #Not Needed dataset+"_FDR": FDR.mean(),
-                     #Not Needed dataset+"_FOR": FOR.mean(),
-                     dataset+"_F1": F1.mean(),
-                     dataset+"_ACC": ACC.mean()}
+                     dataset+"_tpr": tpr.mean(),
+                     dataset+"_tnr": tnr.mean(),
+                     dataset+"_ppv": ppv.mean(),
+                     dataset+"_npv": npv.mean(),
+                     dataset+"_f1" : f1_score.mean(),
+                     dataset+"_acc": acc.mean()}
+
+        #print(json.dumps(ret_dict, indent = 4))
         return ret_dict
 
     def update_epoch(self, func):
@@ -246,7 +235,7 @@ class Plotting():
         #Saving as CSV for Each Epoch (Averaged Values)
         filename = os.path.join(self.path, func + ".csv")
         file_exists = os.path.isfile(filename)
-        with open(filename, 'a+', newline='') as csvfile:
+        with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
             if not file_exists:
                 writer.writeheader()
@@ -282,7 +271,7 @@ class Plotting():
 
 
         #Update AverageMeter
-        #TODO DELETE accurancy
+        #TODO DELETE deprecated accurancy
         accurancy = accuracy_score(label, pred.max(1)[1].cpu())
         self.averagemeter[dataset]["loss"].update(loss.item())
         self.averagemeter[dataset]["accurancy"].update(accurancy)

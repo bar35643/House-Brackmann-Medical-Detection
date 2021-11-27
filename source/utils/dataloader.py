@@ -157,7 +157,7 @@ class LoadImages(Dataset):
             else:
                 LOGGER.info("%sError! cannot create the database connection. Using Native Image Access!", self.prefix_for_log)
         else:
-            LOGGER.info("%sFound %s Images. Using Native Image Access!", self.prefix_for_log, self.length)
+            LOGGER.info("%sUsing Native Image Access!", self.prefix_for_log)
         #-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
     @try_except
     def __del__(self):
@@ -368,7 +368,9 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=
     else:
         train_dataset = val_dataset = dataset
 
-    LOGGER.info("%sLength of >> Training=%s >> Validation=%s >> Total=%s", prefix_for_log, len(train_dataset), len(val_dataset), len(dataset))
+    LOGGER.debug("%strain-indices=%s, val-indices=%s",prefix_for_log, train_dataset.indices, val_dataset.indices)
+
+    LOGGER.info("%sLength of >> Training=%s >> Validation=%s", prefix_for_log, len(train_dataset), len(val_dataset))
 
     sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(LOCAL_RANK) else None
     train_loader = DataLoader(train_dataset, batch_size=min(batch_size, len(train_dataset)), sampler=sampler, shuffle=True)
