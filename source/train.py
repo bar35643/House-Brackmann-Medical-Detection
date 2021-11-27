@@ -35,7 +35,7 @@ LOGGING_STATE = logging.INFO
 #https://discuss.pytorch.org/t/calculating-precision-recall-and-f1-score-in-case-of-multi-label-classification/28265
 
 
-def run(weights="model", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
         cache=False,
@@ -219,7 +219,7 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
-    parser.add_argument("--weights", type=str, default="model",
+    parser.add_argument("--weights", type=str, default="models",
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")

@@ -97,12 +97,15 @@ def load_model(pth_to_weights, func):
 
     pth = os.path.join(Path(pth_to_weights), func + ".pt")
     if pth.endswith('.pt') and Path(pth).exists():
+        LOGGER.debug("Using Pretrained model at Path %s", pth)
+
         model = house_brackmann_lookup[func]["model"]
         ckpt = torch.load(pth)  # load checkpoint
-        csd = ckpt["model"].float().state_dict()  # checkpoint state_dict as FP32
-        model.load_state_dict(csd, strict=False)  # load
+        model.load_state_dict(ckpt["model"], strict=False)  # load
+        model.float()
         #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
     else:
+        LOGGER.debug("", pth)
         model = house_brackmann_lookup[func]["model"]
     return model
 

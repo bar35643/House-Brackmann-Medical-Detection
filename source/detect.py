@@ -21,7 +21,7 @@ import torch
 # elapsed = time.time() - start_time
 from utils.config import LOGGER
 from utils.general import check_requirements, set_logging, init_dict, OptArgs
-from utils.pytorch_utils import select_device
+from utils.pytorch_utils import select_device, load_model
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
 
@@ -64,13 +64,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model_weights = os.path.join(Path(weights), selected_function+".pt")
-            #assert model_weights.endswith('.pt'), f"File {model_weights} has wrong ending"
-            assert Path(model_weights).exists(), f"Model-File {model_weights} does not exists"
-
-            model=house_brackmann_lookup[selected_function]["model"].to(device)
-            checkpoint = torch.load(model_weights)
-            model.load_state_dict(checkpoint["model"])
+            model = load_model(weights, selected_function)
             if half:
                 model.half()  # to FP16
             for idx, img in enumerate(img_struct[selected_function]):
