@@ -89,7 +89,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         #Optimizer & Scheduler
         _optimizer = select_optimizer(model, optimizer)
-        _scheduler = select_scheduler(_optimizer, scheduler)
+        _scheduler = select_scheduler(_optimizer, scheduler, epochs)
         scaler = amp.GradScaler(enabled=cuda)
 
         for epoch in range(epochs):
@@ -129,9 +129,6 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
 
-            #Scheduler
-            _scheduler.step()
-
             BoolAugmentation.instance().eval() #pylint: disable=no-member
             model.eval()
             if is_master_process(RANK): #Master Process 0 or -1
@@ -169,7 +166,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     ckpt = {"epoch": epoch,
                             #"best_fitness": best_fitness,
                             "model": de_parallel(model).state_dict(),
-                            "optimizer": _optimizer.state_dict(),}
+                            "optimizer": _optimizer.state_dict(),
+                            "scheduler": _scheduler.state_dict(),}
 
                     # Save last, best and delete
                     torch.save(ckpt, last)
@@ -177,6 +175,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     #    torch.save(ckpt, best)
                     del ckpt
 
+            #Scheduler
+            _scheduler.step()
 
             plotter.update_epoch(selected_function)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-

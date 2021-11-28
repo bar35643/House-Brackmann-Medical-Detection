@@ -233,7 +233,7 @@ def select_optimizer(neural_net, argument="SGD"):
     assert argument in optimizer_list, "given Optimizer is not in the list!"
     return optimizer_list[argument]
 
-def select_scheduler(optimizer, argument="StepLR", sequential=False):
+def select_scheduler(optimizer, argument="StepLR", epoch=100, sequential=False):
     """
     Selecting the Scheduler from the list
 
@@ -244,20 +244,21 @@ def select_scheduler(optimizer, argument="StepLR", sequential=False):
     Info:
     https://pytorch.org/docs/stable/optim.html
     """
+    lmbda = lambda epoch: 0.95 ** epoch #pow
 
     scheduler_list = {
-    #"LambdaLR": lr_scheduler.LambdaLR(optimizer, lr_lambda, last_epoch=- 1, verbose=False),
-    #"MultiplicativeLR": lr_scheduler.MultiplicativeLR(optimizer, lr_lambda, last_epoch=- 1, verbose=False),
+    "LambdaLR": lr_scheduler.LambdaLR(optimizer, lr_lambda=lmbda, last_epoch=- 1, verbose=False),
+    "MultiplicativeLR": lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lmbda, last_epoch=- 1, verbose=False),
     "StepLR": lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1, last_epoch=- 1, verbose=False),
     "MultiStepLR": lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.1, last_epoch=- 1, verbose=False),
     "ConstantLR": lr_scheduler.ConstantLR(optimizer, factor=0.3333333333333333, total_iters=5, last_epoch=- 1, verbose=False),
     "LinearLR": lr_scheduler.LinearLR(optimizer, start_factor=0.3333333333333333, end_factor=1.0, total_iters=5, last_epoch=- 1, verbose=False),
-    "ExponentialLR": lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=- 1, verbose=False),
+    "ExponentialLR": lr_scheduler.ExponentialLR(optimizer, gamma=0.9, last_epoch=- 1, verbose=False),
     "CosineAnnealingLR": lr_scheduler.CosineAnnealingLR(optimizer, T_max=30, eta_min=0, last_epoch=- 1, verbose=False),
-    "ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08, verbose=False),
+    #"ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08, verbose=False),
     "CyclicLR": lr_scheduler.CyclicLR(optimizer, base_lr=0.0001, max_lr=0.001, step_size_up=2000, step_size_down=None, mode='triangular', gamma=1.0, scale_fn=None, scale_mode='cycle', cycle_momentum=True, base_momentum=0.8, max_momentum=0.9, last_epoch=- 1, verbose=False),
-    #"OneCycleLR": lr_scheduler.OneCycleLR(optimizer, max_lr=0.001, total_steps=None, epochs=None, steps_per_epoch=None, pct_start=0.3, anneal_strategy='cos', cycle_momentum=True, base_momentum=0.85, max_momentum=0.95, div_factor=25.0, final_div_factor=10000.0, three_phase=False, last_epoch=- 1, verbose=False),
-    #"CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=1, eta_min=0, last_epoch=- 1, verbose=False)
+    "OneCycleLR": lr_scheduler.OneCycleLR(optimizer, max_lr=0.001, total_steps=epoch, epochs=None, steps_per_epoch=None, pct_start=0.3, anneal_strategy='cos', cycle_momentum=True, base_momentum=0.85, max_momentum=0.95, div_factor=25.0, final_div_factor=10000.0, three_phase=False, last_epoch=- 1, verbose=False),
+    "CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=1, eta_min=0, last_epoch=- 1, verbose=False)
     }
 
     argument_split = argument.strip().replace(" ", "").split(",")
@@ -269,7 +270,9 @@ def select_scheduler(optimizer, argument="StepLR", sequential=False):
             assert item in scheduler_list, f"given Scheduler {item} is not in the list!"
             argument_split[idx] = scheduler_list[item]
         if sequential:
-            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=argument_split, milestones=[len(argument_split)], last_epoch=- 1, verbose=False)
+            length = len(argument_split)
+            milestone_size = epoch/length
+            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=argument_split, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
         else:
             scheduler = lr_scheduler.ChainedScheduler(argument_split)
     return scheduler
