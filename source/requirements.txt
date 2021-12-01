@@ -6,6 +6,9 @@ numpy>=1.19.5
 PyYAML>=5.4.1
 tqdm>=4.62.3
 
+#Validation of Yaml files +++++++++
+mapproxy>=1.14.0
+
 #Plotting ++++++++++++++++++++++++
 matplotlib>=3.4.3
 

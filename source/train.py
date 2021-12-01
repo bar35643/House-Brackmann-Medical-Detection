@@ -21,7 +21,7 @@ from torch.cuda import amp
 from utils.argparse_utils import restricted_val_split, SmartFormatter
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
-from utils.pytorch_utils import select_device, select_data_parallel_mode, select_optimizer, select_scheduler, is_master_process, is_process_group, de_parallel, load_model
+from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
 from utils.dataloader import create_dataloader, BoolAugmentation
 from utils.templates import allowed_fn
 from utils.plotting import Plotting
@@ -37,6 +37,7 @@ LOGGING_STATE = logging.INFO
 
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
+        hyp="./hyp.yaml",
         imgsz=640,
         cache=False,
         batch_size=16,
@@ -44,8 +45,6 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         train_split=None,
         # workers=8,
         device="cpu",
-        optimizer="SGD",
-        scheduler="StepLR",
         nosave=False,
         project="../results/train",
         name="run",
@@ -88,8 +87,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         #Optimizer & Scheduler
-        _optimizer = select_optimizer(model, optimizer)
-        _scheduler = select_scheduler(_optimizer, scheduler, epochs)
+        _scheduler, _optimizer = select_optimizer_and_scheduler(hyp, model, epochs)
+
         scaler = amp.GradScaler(enabled=cuda)
 
         for epoch in range(epochs):
@@ -223,6 +222,8 @@ def parse_opt():
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
+    parser.add_argument("--hyp", "--hyperparameter", type=str, default="./hyp.yaml",
+                        help="path to hyperparamer file")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
                         help="inference size h,w")
     parser.add_argument("--cache", action="store_true",
@@ -247,10 +248,6 @@ def parse_opt():
     #                     help="maximum number of dataloader workers")
     parser.add_argument("--device", default="cpu",
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
-    parser.add_argument("--optimizer", default="SGD",
-                        help="Select the Optimizer")
-    parser.add_argument("--scheduler", default="StepLR",
-                        help="Select the Scheduler. If using more than one Scheduler, seperate with Comma")
     parser.add_argument("--nosave", action="store_true",
                         help="do not save if activated")
     parser.add_argument("--project", default="../results/train",
