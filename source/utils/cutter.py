@@ -2,7 +2,8 @@
 """
 TODO
 """
-
+import sys
+import os
 from copy import deepcopy
 from functools import lru_cache
 import numpy as np
@@ -11,9 +12,58 @@ from PIL import Image, ImageOps
 
 import face_alignment
 
-from .config import LOGGER, LRU_MAX_SIZE  #pylint: disable=import-error
+from .config import LOGGER, LRU_MAX_SIZE, IMG_FORMATS  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
+
+if sys.platform == 'win32':
+    import errorimports as pyheif #pylint: disable=import-error
+if sys.platform == 'linux':
+    import pyheif #pylint: disable=import-error
+
+
+def load_images_format(path, img_name):
+    """
+    Loading images in correct Format
+
+    :param path: Path to folder (str)
+    :param img_name: Name of the Image (str)
+    :returns  Image (Image)
+    """
+    matching_folders = [os.path.join(path, s) for s in path if ("T000" in s) and ("postop" not in s)]
+
+    if not matching_folders:
+        matching_folders = [path]
+
+    matching_img_path = []
+    for i in matching_folders:
+        matching_img_path += [os.path.join(i, s) for s in os.listdir(i)]
+
+    matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not ("IMG" in x)]
+    matching_img_path_name   = [x for x in matching_img_path_format if img_name in x.split('/')[-1]]
+    matching_img_path_name.sort()
+
+    # print("------")
+    # for j in matching_img_path_format:
+    #     print(pic                        , "   ########   ",
+    #           (pic in j.split('/')[-1]) , "   ########   ",
+    #           j.split('/')[-1]         , "   ########   ",
+    #           j.split('.')[-1].lower() , "   ########   ",
+    #           j  )
+    #
+    # print("------")
+
+    image = matching_img_path_name if matching_img_path_name else matching_img_path_format
+    assert image, f"Error While loading Image at Path {matching_img_path}"
+    
+    if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
+        return Image.open(image[0])
+
+    if image[0].split('.')[-1].lower() in ['heic']:
+        temp = pyheif.read_heif(image[0])
+        return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data)
+
+    return None
 
 @Singleton
 class Cutter():
@@ -102,15 +152,18 @@ class Cutter():
         return det, img_input
 
     @lru_cache(LRU_MAX_SIZE)
-    def load_image(self, path):
-        #TODO docstring
+    def load_image(self, path, img_name):
         """
         Loading Images
 
         :param path: Path to image (str)
         :returns  landmarks and cropped image (array, Image)
         """
-        img = Image.open(path)
+
+
+
+        img = load_images_format(path, img_name)
+
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
         dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
         #print(img.size, "to", new_size, "factor", dyn_factor)
@@ -154,29 +207,28 @@ class Cutter():
         return  struct_func_list
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_symmetry(self, path):
+    def cut_symmetry(self, path, img_name):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        _, img = self.load_image(path)
+        _, img = self.load_image(path, img_name)
         # plt.imshow(img)
         # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
         return img
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_eye(self, path):
+    def cut_eye(self, path, img_name):
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        #TODO seperate each eye or fuse them
-        landmarks, img = self.load_image(path)
+        landmarks, img = self.load_image(path, img_name)
         eye = landmarks[slice(36, 42)]
         fac = (landmarks[:,0].min())/4
 
@@ -194,17 +246,32 @@ class Cutter():
         y_max_eye = int(eye[:,1].max() +fac)
 
         img_slice_right = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
+
+
+        width = img_slice_right.width   if img_slice_right.width  >= img_slice_left.width  else img_slice_left.width
+        height = img_slice_right.height if img_slice_right.height >= img_slice_left.height else img_slice_left.height
+
+        img_slice_right = img_slice_right.resize((width,height))
+        img_slice_left  =  img_slice_left.resize((width,height))
+
+        dst = Image.new('RGB', (img_slice_left.width + img_slice_right.width, img_slice_left.height))
+        dst.paste(img_slice_left, (0, 0))
+        dst.paste(img_slice_right, (img_slice_left.width, 0))
+
+        # plt.imshow(dst)
+        # plt.show()
+
         return img_slice_right
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_mouth(self, path):
+    def cut_mouth(self, path, img_name):
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path)
+        landmarks, img = self.load_image(path, img_name)
         landmarks = landmarks[slice(48, 68)]
         fac = (landmarks[:,0].min())/4
 
@@ -220,14 +287,14 @@ class Cutter():
         return img_slice
 
     @lru_cache(LRU_MAX_SIZE)
-    def cut_forehead(self, path):
+    def cut_forehead(self, path, img_name):
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.
 
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path)
+        landmarks, img = self.load_image(path, img_name)
         landmarks = landmarks[slice(17, 27)]
         fac = (landmarks[:,0].min())/16
 

@@ -16,7 +16,7 @@ import timeit
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
-from utils.general import set_logging, OptArgs
+from utils.general import set_logging, OptArgs, check_requirements
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
 from utils.dataloader import CreateDataset, LoadImages
 from utils.templates import allowed_fn
@@ -26,6 +26,7 @@ from train import run
 if __name__ == "__main__":
     opt_args = vars(Namespace())
     OptArgs.instance()(opt_args)
+    check_requirements()
     set_logging(logging.INFO, "env_test: ")
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
     print("ROOT: ", ROOT)

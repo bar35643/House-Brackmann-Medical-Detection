@@ -23,18 +23,19 @@
 #### TODO-LIST
 
 ###### Training
-- [x] OptimizerClass/SchedulerClass to functions
+- [ ] OptimizerClass/SchedulerClass to functions
    1. [x] Adding Scheduler to list
    2. [x] Make it available via argparse
    3. [x] Expand list
    4. [x] Chain Schedulers / Chain Schedulers sequential
    5. [x] How to set the Parameter (Concept for setting these is needed)
    6. [x] via File
+   7. [ ] sequential option via file
 - [ ] Dataloader
    1. [x] Adding Dataloader Class
-   2. [ ] Gather Data from the images
+   2. [x] Gather Data from the images
       - [x] Symmetry Cutting
-      - [ ] Eye Cutting
+      - [x] Eye Cutting
       - [x] Mouth Cutting
       - [x] Forehead Cutting
    3. [x] Structure of the images and labels (use template see in settings.py)
@@ -63,7 +64,7 @@
 - [ ] Plotting Results from training/validation
    1. [x] Class for Plotting
    2. [x] for each Category of HB
-   3. [ ] loss, accurancy (AverageMeter --> To Plotting Class)
+   3. [x] loss, accurancy (AverageMeter --> To Plotting Class)
    4. [x] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
    5. [ ] label bar graph
    3. [x] [precison/recall](https://builtin.com/data-science/precision-and-recall)

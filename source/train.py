@@ -8,6 +8,7 @@ import argparse
 import logging
 import os
 import timeit
+import datetime
 from pathlib import Path
 
 import yaml
@@ -22,8 +23,8 @@ from utils.argparse_utils import restricted_val_split, SmartFormatter
 from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
-from utils.dataloader import create_dataloader, BoolAugmentation
-from utils.templates import allowed_fn
+from utils.dataloader import create_dataloader, BatchSettings
+from utils.templates import house_brackmann_lookup
 from utils.plotting import Plotting
 
 PREFIX = "train: "
@@ -76,7 +77,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                                                  nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-    for selected_function in allowed_fn:
+    for selected_function in house_brackmann_lookup:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
 
         LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...\n", selected_function, batch_size, save_dir, epochs)
@@ -91,8 +92,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         scaler = amp.GradScaler(enabled=cuda)
 
+        best_score = 0
         for epoch in range(epochs):
-            BoolAugmentation.instance().train() #pylint: disable=no-member
+            BatchSettings.instance().train() #pylint: disable=no-member
             model.train()
             if is_process_group(RANK):
                 train_loader.sampler.set_epoch(epoch)
@@ -128,7 +130,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
 
-            BoolAugmentation.instance().eval() #pylint: disable=no-member
+            BatchSettings.instance().eval() #pylint: disable=no-member
             model.eval()
             if is_master_process(RANK): #Master Process 0 or -1
                 #TODO validation
@@ -151,33 +153,29 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
                         print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
 
-                        #https://en.wikipedia.org/wiki/Confusion_matrix
-                        #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
-                        #https://deeplizard.com/learn/video/0LhiS6yu2qQ
                         plotter.update("val", selected_function, label, pred, loss)
                 LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
-
-
+                val_dict = plotter.update_epoch(selected_function)
 
                 # Save model
                 if not nosave:  # if save
-                    ckpt = {"epoch": epoch,
-                            #"best_fitness": best_fitness,
+                    ckpt = {"timestamp": datetime.datetime.now(),
+                            "epoch": epoch,
+                            "score": val_dict,
                             "model": de_parallel(model).state_dict(),
                             "optimizer": _optimizer.state_dict(),
                             "scheduler": _scheduler.state_dict(),}
 
-                    # Save last, best and delete
+                    # Save last, best and delete ckpt
                     torch.save(ckpt, last)
-                    #if best_fitness == fi:
-                    #    torch.save(ckpt, best)
+                    if best_score <= val_dict["val_f1"]:
+                        torch.save(ckpt, best)
+                        best_score = val_dict["val_f1"]
                     del ckpt
 
             #Scheduler
             _scheduler.step()
-
-            plotter.update_epoch(selected_function)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=True)

@@ -15,8 +15,8 @@ from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
 import torch
-import torchvision.transforms as T
 from torch.utils.data import Dataset, DataLoader, Subset
+import torchvision.transforms as T
 from sklearn.model_selection import train_test_split
 
 from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
@@ -30,39 +30,46 @@ from .singleton import Singleton #pylint: disable=import-error
 
 #TODO Decide which pic is for what as array
 path_list = deepcopy(house_brackmann_template)
-path_list["symmetry"] = [0, 0, 0, 0]
-path_list["eye"] =      [0, 0, 0]
-path_list["mouth"] =    [0, 0]
-path_list["forehead"] = [0]
+path_list["symmetry"] = [0]
+path_list["eye"] =      [5, 6]
+path_list["mouth"] =    [2, 3, 4, 7, 8]
+path_list["forehead"] = [1]
 
 @Singleton
-class BoolAugmentation():
+class BatchSettings():
     """
     Class for setting the augmentation to true or false globally
     """
     def __init__(self):
         """
         Initializes the class
-        :param val: value (bool)
+        :param augmentation: (bool)
+        :param func: (str)
         """
-        self.val = False
+        self.augmentation = False
+        self.func = None
 
     def train(self):
         """
-        Set the value to False
+        Set the augmentation to False
         """
-        self.val = True
+        self.augmentation = True
+
     def eval(self):
         """
-        Set the value to True
+        Set the augmentation to True
         """
-        self.val = False
+        self.augmentation = False
+    def get_augmentation(self):
+        """
+        Return the augmentation value
+
+        :returns augmentation (bool)
+        """
+        return self.augmentation
+
     def __call__(self):
-        """
-        Return the value
-        :return val (bool)
-        """
-        return self.val
+        assert False, f"Select one of the functions from this class: {dir(self)}"
 
 def get_list_patients(source_path: str):
     """
@@ -191,8 +198,8 @@ class LoadImages(Dataset):
         Info:
         https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
         """
-        LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BoolAugmentation.instance()()) #pylint: disable=no-member
-        if BoolAugmentation.instance()(): #pylint: disable=no-member
+        LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BatchSettings.instance().get_augmentation()) #pylint: disable=no-member
+        if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
             valid_transforms = T.Compose([
                 T.ToPILImage(),
                 T.RandomHorizontalFlip(p=0.5),
@@ -212,15 +219,31 @@ class LoadImages(Dataset):
         :return  struct_img, struct_img_inv  (struct, struct_inv)
         """
         path = self.list_patients[idx]
-        pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        assert pics, 'Image Not Available at Path ' + path
 
-        struct_func_list = self.cutter_class.cut_wrapper()
-        struct_img = init_dict(house_brackmann_template, [])
-        for number, func in enumerate(struct_img):
-            pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-            for item in path_list[func]:
-                struct_img[func].append(     self.transform_resize_and_to_tensor(struct_func_list[func](path=os.path.join(path, pics[item])), number  )  )
+
+        #pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        #assert matching_folders, 'Image Not Available at Path ' + path
+
+        func_list = self.cutter_class.cut_wrapper()
+
+        image_input= {
+            "1_rest":                 self.transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), 0  ),
+            "2_lift_eyebrow":         self.transform_resize_and_to_tensor(func_list["forehead"](path, "02"), 3  ),
+            "3_smile_closed":         self.transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), 2  ),
+            "4_smile_open":           self.transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), 2  ),
+            "5_Duckface":             self.transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), 2  ),
+            "6_eye_closed_easy":      self.transform_resize_and_to_tensor(     func_list["eye"](path, "06"), 1  ),
+            "7_eye_closed_forced":    self.transform_resize_and_to_tensor     (func_list["eye"](path, "07"), 1  ),
+            "8_blow_nose":            self.transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), 2  ),
+            "9_depression_lower_lip": self.transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), 2  ),
+        }
+
+        struct_img = deepcopy(house_brackmann_template)
+        struct_img["symmetry"]  = [  image_input["1_rest"]   ]
+        struct_img["eye"]       = [  image_input["6_eye_closed_easy"], image_input["7_eye_closed_forced"]   ]
+        struct_img["mouth"]     = [  image_input["3_smile_closed"], image_input["4_smile_open"], image_input["5_Duckface"],
+                                     image_input["8_blow_nose"], image_input["9_depression_lower_lip"]   ]
+        struct_img["forehead"]  = [  image_input["2_lift_eyebrow"]   ]
 
         return struct_img
 
@@ -365,10 +388,9 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=
 
         train_dataset = Subset(dataset, train_idx)
         val_dataset = Subset(dataset, val_idx)
+        LOGGER.debug("%strain-indices=%s, val-indices=%s",prefix_for_log, train_dataset.indices, val_dataset.indices)
     else:
         train_dataset = val_dataset = dataset
-
-    LOGGER.debug("%strain-indices=%s, val-indices=%s",prefix_for_log, train_dataset.indices, val_dataset.indices)
 
     LOGGER.info("%sLength of >> Training=%s >> Validation=%s", prefix_for_log, len(train_dataset), len(val_dataset))
 

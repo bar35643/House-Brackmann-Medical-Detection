@@ -17,6 +17,10 @@ from .general import merge_two_dicts
 
 np.seterr(divide='ignore', invalid='ignore')
 
+#https://en.wikipedia.org/wiki/Confusion_matrix
+#https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
+#https://deeplizard.com/learn/video/0LhiS6yu2qQ
+
 class AverageMeter():
     """Computes and stores the average and sum of values"""
     def __init__(self):
@@ -251,6 +255,8 @@ class Plotting():
         for i in self.averagemeter:
             for j in self.averagemeter[i]:
                 self.averagemeter[i][j] = AverageMeter()
+
+        return val_dict
 
 
     def update(self, dataset:str, func:str, label, pred, loss):
