@@ -12,7 +12,7 @@ from PIL import Image, ImageOps
 
 import face_alignment
 
-from .config import LOGGER, LRU_MAX_SIZE, IMG_FORMATS  #pylint: disable=import-error
+from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
@@ -30,7 +30,8 @@ def load_images_format(path, img_name):
     :param img_name: Name of the Image (str)
     :returns  Image (Image)
     """
-    matching_folders = [os.path.join(path, s) for s in path if ("T000" in s) and ("postop" not in s)]
+    path_list = os.listdir(path)
+    matching_folders = [os.path.join(path, s) for s in path_list if ("T000" in s) and ("postop" not in s)]
 
     if not matching_folders:
         matching_folders = [path]
@@ -55,7 +56,7 @@ def load_images_format(path, img_name):
 
     image = matching_img_path_name if matching_img_path_name else matching_img_path_format
     assert image, f"Error While loading Image at Path {matching_img_path}"
-    
+
     if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
         return Image.open(image[0])
 
@@ -151,7 +152,6 @@ class Cutter():
 
         return det, img_input
 
-    @lru_cache(LRU_MAX_SIZE)
     def load_image(self, path, img_name):
         """
         Loading Images
@@ -190,7 +190,6 @@ class Cutter():
 
         return det, img_crop
 
-    @lru_cache(LRU_MAX_SIZE)
     def cut_wrapper(self):
         """
         Function Wrapper
@@ -206,7 +205,6 @@ class Cutter():
 
         return  struct_func_list
 
-    @lru_cache(LRU_MAX_SIZE)
     def cut_symmetry(self, path, img_name):
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
@@ -220,7 +218,6 @@ class Cutter():
         # plt.show()
         return img
 
-    @lru_cache(LRU_MAX_SIZE)
     def cut_eye(self, path, img_name):
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
@@ -263,7 +260,6 @@ class Cutter():
 
         return img_slice_right
 
-    @lru_cache(LRU_MAX_SIZE)
     def cut_mouth(self, path, img_name):
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
@@ -286,7 +282,6 @@ class Cutter():
         # plt.show()
         return img_slice
 
-    @lru_cache(LRU_MAX_SIZE)
     def cut_forehead(self, path, img_name):
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.

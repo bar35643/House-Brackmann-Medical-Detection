@@ -113,8 +113,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                     #with amp.autocast(enabled=cuda):
                     pred = model(img)  # forward
-                    loss = criterion(pred, label)  # loss scaled by batch_size
-                    accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+                    loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                    accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
                     print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
 
@@ -123,10 +123,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     scaler.step(_optimizer)  #optimizer.step
                     scaler.update()
 
-                    #https://en.wikipedia.org/wiki/Confusion_matrix
-                    #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html#sklearn.metrics.confusion_matrix
-                    #https://deeplizard.com/learn/video/0LhiS6yu2qQ
-                    plotter.update("train", selected_function, label, pred, loss)
+                    plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
             LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
 
@@ -148,12 +145,12 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                         #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                         #with amp.autocast(enabled=cuda):
                         pred = model(img)  # forward
-                        loss = criterion(pred, label)  # loss scaled by batch_size
-                        accurancy = accuracy_score(label, pred.max(1)[1].cpu())
+                        loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                        accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
                         print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
 
-                        plotter.update("val", selected_function, label, pred, loss)
+                        plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
                 LOGGER.info("\n")
             #----------------------------END BATCH----------------------------#
                 val_dict = plotter.update_epoch(selected_function)
@@ -178,7 +175,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             _scheduler.step()
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
-        plotter.plot(show=True)
+        plotter.plot(show=False)
 
 
     torch.cuda.empty_cache()

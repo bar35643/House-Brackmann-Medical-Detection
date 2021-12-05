@@ -8,6 +8,7 @@
 
 ##### EN: Grading of Facial Palsy by Machine Learning methods v0.1.0
 
+
 ## Thesis TODO and INFOS
 - Until final Date
    1. generate Poster
@@ -31,7 +32,7 @@
    5. [x] How to set the Parameter (Concept for setting these is needed)
    6. [x] via File
    7. [ ] sequential option via file
-- [ ] Dataloader
+- [x] Dataloader
    1. [x] Adding Dataloader Class
    2. [x] Gather Data from the images
       - [x] Symmetry Cutting
@@ -95,6 +96,14 @@ pip install -r source/requirements.txt
 
 #### Use Cases
  --> Will be added soon! (How to start and use the Code)
+
+ ~~~shell
+watch -n0.5 nvidia-smi
+htop
+
+python train.py --batch-size 16 --epochs 50 --source ../../images/Fazialisparese --device 0 --val-split 0.25
+python detect.py --batch-size 16 --source ../../images/Fazialisparese --device 0
+ ~~~
 
 ###### Coding of the Pictures
 1. Ruhender Gesichtsausdruck

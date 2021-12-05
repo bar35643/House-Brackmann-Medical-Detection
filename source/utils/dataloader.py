@@ -247,7 +247,8 @@ class LoadImages(Dataset):
 
         return struct_img
 
-    @lru_cache(LRU_MAX_SIZE)
+    #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
+    #augmentation needs to calculated every epoch
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -296,6 +297,9 @@ class CreateDataset(Dataset):
 
         self.labels = []
         listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        #Errorfix Jupyterlab: listdir.pop(0)
+        #Errorfix Jupyterlab: listdir.pop(-1)
+
         for s_dir in listdir:
             csv_path = os.path.join(self.path, s_dir) + '.csv'
             #load CSV
@@ -309,7 +313,8 @@ class CreateDataset(Dataset):
 
         assert self.len_images == self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
 
-    @lru_cache(LRU_MAX_SIZE)
+    #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
+    #augmentation needs to calculated every epoch
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -320,14 +325,16 @@ class CreateDataset(Dataset):
 
         #TODO return only right pair of Images on Label (checking if same Patient)
 
-        #TODO Extract Data and lookup
-        grade_table = house_brackmann_grading[self.labels[idx][1]]
+        tmp = ["I", "II", "III", "IV", "V", "VI"]
+        tmp2 = tmp[int(self.labels[idx][1]) -1]
+
+        grade_table = house_brackmann_grading[tmp2]
+        #grade_table = house_brackmann_grading[self.labels[idx][1]]
 
         struct_label = init_dict(house_brackmann_template, [])
         for func in struct_label:
             hb_single = house_brackmann_lookup[func]["enum"]
             struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(path_list[func])  ))
-
 
 
         path, struct_img = self.images[idx]
