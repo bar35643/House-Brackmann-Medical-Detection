@@ -14,11 +14,40 @@ from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
-from .config import LOGGER, RANK
+import torch
+
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE
 from .pytorch_utils import is_process_group #pylint: disable=import-error
+from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 
-def set_logging(level, main_inp_func, opt):
+@Singleton
+class OptArgs():
+    """
+    Class for setting the augmentation to true or false globally
+    """
+    def __init__(self):
+        """
+        Initializes the class
+        :param val: value (bool)
+        """
+        self.args = None
+    def get_arg_from_key(self, key):
+        """
+        Setting the value
+        :param item: kewword in dict (dict)
+        """
+        return self.args[key]
+
+    def __call__(self, args):
+        """
+        Setting the value
+        :param args: args (dict)
+        """
+        self.args = args
+
+def set_logging(level, main_inp_func):
     """
     Setting up the logger
 
@@ -37,11 +66,36 @@ def set_logging(level, main_inp_func, opt):
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in vars(opt).items())
+    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
     if level == logging.WARN:
         LOGGER.warning(log_str)
+        LOGGER.warning("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
+        LOGGER.warning("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
     else:
         LOGGER.info(log_str)
+        LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
+        LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
+
+
+
+
+
+
+
+def merge_two_dicts(dict1, dict2):
+    """
+    merges two dictionary
+    :param dict1: Dictionary 1 (dict)
+    :param dict2: Dictionary 2 (dict)
+    :return dict
+    """
+    res_dict = dict1.copy()   # start with keys and values of dict1
+    res_dict.update(dict2)    # modifies res_dict with keys and values of dict2
+    return res_dict
 
 def init_dict(inp_dict: dict, val):
     """
@@ -53,6 +107,12 @@ def init_dict(inp_dict: dict, val):
     :return dict
     """
     return dict((k, deepcopy(val)) for k in inp_dict)
+
+
+
+
+
+
 
 def check_online():
     """
@@ -91,21 +151,6 @@ def check_python(minimum="3.8.0"):
 
     check_version(platform.python_version(), minimum, name="Python ")
 
-def try_except(func):
-    """
-    try-except function. Usage: @try_except decorator
-
-    :param func:  Function which should be decorated (function)
-    """
-
-    def handler(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except RuntimeError as err:
-            LOGGER.error(err)
-
-    return handler
-
 @try_except
 def check_requirements(requirements="requirements.txt", exclude=(), install=True):
     """
@@ -139,6 +184,12 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
                     LOGGER.error("requirements:  %s", err)
             else:
                 LOGGER.error("requirements: %s not found and is required by this Package. Please install it manually and rerun your command.", req)
+
+
+
+
+
+
 
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """

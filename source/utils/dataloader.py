@@ -10,34 +10,66 @@ import os
 import csv
 from copy import deepcopy
 from itertools import repeat
+from functools import lru_cache
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
 import torch
+from torch.utils.data import Dataset, DataLoader, Subset
 import torchvision.transforms as T
-from torch.utils.data import Dataset
+from sklearn.model_selection import train_test_split
 
-from .config import LOGGER
+from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
 from .cutter import Cutter
-from .pytorch_utils import is_process_group, torch_distributed_zero_first #pylint: disable=import-error
+from .database_utils import Database
+from .pytorch_utils import is_process_group, is_master_process, torch_distributed_zero_first #pylint: disable=import-error
 from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
-from .database_utils import Database #pylint: disable=import-error
-from .general import init_dict, try_except #pylint: disable=import-error
-
-THREADPOOL_NUM_THREADS = min(8, os.cpu_count())  # number of multiprocessing threads
+from .general import init_dict #pylint: disable=import-error
+from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 #TODO Decide which pic is for what as array
 path_list = deepcopy(house_brackmann_template)
-path_list["symmetry"] = [0, 0, 0, 0]
-path_list["eye"] =      [0, 0, 0]
-path_list["mouth"] =    [0, 0]
-path_list["forehead"] = [0]
+path_list["symmetry"] = [0]
+path_list["eye"] =      [5, 6]
+path_list["mouth"] =    [2, 3, 4, 7, 8]
+path_list["forehead"] = [1]
 
-settings = {
-    "cache": False,
-    "nosave": False,
-    "imgsz": 640
-}
+@Singleton
+class BatchSettings():
+    """
+    Class for setting the augmentation to true or false globally
+    """
+    def __init__(self):
+        """
+        Initializes the class
+        :param augmentation: (bool)
+        :param func: (str)
+        """
+        self.augmentation = False
+        self.func = None
+
+    def train(self):
+        """
+        Set the augmentation to False
+        """
+        self.augmentation = True
+
+    def eval(self):
+        """
+        Set the augmentation to True
+        """
+        self.augmentation = False
+    def get_augmentation(self):
+        """
+        Return the augmentation value
+
+        :returns augmentation (bool)
+        """
+        return self.augmentation
+
+    def __call__(self):
+        assert False, f"Select one of the functions from this class: {dir(self)}"
 
 def get_list_patients(source_path: str):
     """
@@ -62,23 +94,6 @@ def get_list_patients(source_path: str):
     list_patients.sort()
     return list_patients
 
-def transform_totensor_and_normalize(img):
-    """
-    Transform images to Tensor and do Augmentation
-
-    :param img: Image input (Image)
-    :return Transformed Image (Tensor)
-    """
-    valid_transforms = T.Compose([
-        T.ToTensor(),
-        T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-    ])
-    return valid_transforms(img)
-
-
-
-
-
 class LoadImages(Dataset):
     """
     Loading Images from the Folders
@@ -91,7 +106,7 @@ class LoadImages(Dataset):
                      /data/muscle_transplant/0002
                      /data/muscle_transplant/0003
     """
-    def __init__(self, path, device="cpu", prefix_for_log=""):
+    def __init__(self, path, imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=""):
         """
         Initializes the LoadImages class
 
@@ -105,10 +120,15 @@ class LoadImages(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
+        self.nosave = nosave
+        self.imgsz = ((640, 640), #symmetry
+                      (640, 640), #eye
+                      (640, 640), #mouth
+                      (640, 640)) #forehead
 
         self.database = None
         self.database_file = "pythonsqlite.db"
-        self.table = "dataloader_table" #TODO Split train and val??
+        self.table = "dataloader_table"
         #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
         self.list_patients=get_list_patients(self.path)
         self.length = len(self.list_patients)
@@ -121,14 +141,13 @@ class LoadImages(Dataset):
         self.cutter_class.set(device, self.prefix_for_log)
 
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-        if settings["cache"]:
+        if cache:
             self.database = Database.instance() #pylint: disable=no-member
-            self.database.set(self.database_file, self.prefix_for_log)
+            self.database.set(self.database_file, self.prefix_for_log, self.nosave)
             if self.database.create_db_connection() is not None:
                 self.database.create_db_table(f""" CREATE TABLE IF NOT EXISTS {self.table} (
                                                 id integer PRIMARY KEY,
-                                                struct_img dict,
-                                                struct_img_inv dict
+                                                struct_img dict
                                               ); """)
 
                 if not self.database.db_table_entries_exists(self.table):
@@ -137,16 +156,15 @@ class LoadImages(Dataset):
                     results = ThreadPool(THREADPOOL_NUM_THREADS).imap(self.get_structs, range(self.length))
                     pbar = tqdm(enumerate(results), total=self.length, desc=f'{self.prefix_for_log}Caching images')
                     for idx, item in pbar:
-                        self.database.insert_db(self.table, (idx, item[0], item[1]), "(?, ?, ?)")
+                        self.database.insert_db(self.table, (idx, item), "(?, ?)")
                     pbar.close()
                     LOGGER.info("%sDone Writing to Database.", self.prefix_for_log)
                 else:
                     LOGGER.info("%sUsing Already Cached File.", self.prefix_for_log)
             else:
-                settings["cache"]=False
                 LOGGER.info("%sError! cannot create the database connection. Using Native Image Access!", self.prefix_for_log)
         else:
-            LOGGER.info("%sFound %s Images. Using Native Image Access!", self.prefix_for_log, self.length)
+            LOGGER.info("%sUsing Native Image Access!", self.prefix_for_log)
         #-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
     @try_except
     def __del__(self):
@@ -154,13 +172,45 @@ class LoadImages(Dataset):
         Destructor: remove database
         """
         if self.database:
-            conn = self.database.get_conn()
-            if conn is not None:
-                conn.close()
-        if os.path.exists(self.database_file) and settings["nosave"]:
-            os.remove(self.database_file)
-            LOGGER.info("%s Deleted Database File (Cache)!", self.prefix_for_log)
+            self.database.delete()
 
+    def transform_resize_and_to_tensor(self, img, idx):
+        """
+        Resize images and Transform images to Tensor
+
+        :param img: Image input (Image)
+        :return Transformed Image as Tensor (Tensor)
+        """
+        valid_transforms = T.Compose([
+            T.Resize(self.imgsz[idx]),
+            T.ToTensor()
+        ])
+        return valid_transforms(img)
+
+    #TODO Augmentation
+    def augmentation(self, img_tensor):
+        """
+        do Augmentation
+
+        :param img: Tensor (Tensor)
+        :return Transformed Tensor (Tensor)
+
+        Info:
+        https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
+        """
+        LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BatchSettings.instance().get_augmentation()) #pylint: disable=no-member
+        if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
+            valid_transforms = T.Compose([
+                T.ToPILImage(),
+                T.RandomHorizontalFlip(p=0.5),
+                T.ToTensor(),
+                T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+                ])
+        else:
+            valid_transforms = T.Compose([T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
+        return valid_transforms(img_tensor)
+
+    @lru_cache(LRU_MAX_SIZE)
     def get_structs(self, idx):
         """
         Get structures from index
@@ -169,20 +219,36 @@ class LoadImages(Dataset):
         :return  struct_img, struct_img_inv  (struct, struct_inv)
         """
         path = self.list_patients[idx]
-        pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        assert pics, 'Image Not Available at Path ' + path
 
-        struct_func_list = self.cutter_class.cut_wrapper()
-        struct_img = init_dict(house_brackmann_template, [])
-        struct_img_inv = init_dict(house_brackmann_template, [])
-        for func in struct_img:
-            pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-            for item in path_list[func]:
-                struct_img[func].append(     transform_totensor_and_normalize(struct_func_list[func](path=os.path.join(path, pics[item]), inv=False))  )
-                struct_img_inv[func].append( transform_totensor_and_normalize(struct_func_list[func](path=os.path.join(path, pics[item]), inv=True))  )
 
-        return struct_img, struct_img_inv
+        #pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        #assert matching_folders, 'Image Not Available at Path ' + path
 
+        func_list = self.cutter_class.cut_wrapper()
+
+        image_input= {
+            "1_rest":                 self.transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), 0  ),
+            "2_lift_eyebrow":         self.transform_resize_and_to_tensor(func_list["forehead"](path, "02"), 3  ),
+            "3_smile_closed":         self.transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), 2  ),
+            "4_smile_open":           self.transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), 2  ),
+            "5_Duckface":             self.transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), 2  ),
+            "6_eye_closed_easy":      self.transform_resize_and_to_tensor(     func_list["eye"](path, "06"), 1  ),
+            "7_eye_closed_forced":    self.transform_resize_and_to_tensor     (func_list["eye"](path, "07"), 1  ),
+            "8_blow_nose":            self.transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), 2  ),
+            "9_depression_lower_lip": self.transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), 2  ),
+        }
+
+        struct_img = deepcopy(house_brackmann_template)
+        struct_img["symmetry"]  = [  image_input["1_rest"]   ]
+        struct_img["eye"]       = [  image_input["6_eye_closed_easy"], image_input["7_eye_closed_forced"]   ]
+        struct_img["mouth"]     = [  image_input["3_smile_closed"], image_input["4_smile_open"], image_input["5_Duckface"],
+                                     image_input["8_blow_nose"], image_input["9_depression_lower_lip"]   ]
+        struct_img["forehead"]  = [  image_input["2_lift_eyebrow"]   ]
+
+        return struct_img
+
+    #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
+    #augmentation needs to calculated every epoch
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -193,11 +259,15 @@ class LoadImages(Dataset):
         path = self.list_patients[idx]
 
         if self.database:
-            struct_img, struct_img_inv = self.database.get_db_one(self.table, idx)
+            struct_img = self.database.get_db_one(self.table, idx)[1]
         else:
-            struct_img, struct_img_inv = self.get_structs(idx)
+            struct_img = self.get_structs(idx)
 
-        return path, struct_img, struct_img_inv
+        for i in struct_img:
+            for number, j in enumerate(struct_img[i]):
+                struct_img[i][number] = self.augmentation(j)
+
+        return path, struct_img
 
     def __len__(self):
         """
@@ -210,7 +280,7 @@ class CreateDataset(Dataset):
     """
     Loading Labels and Images and build it together
     """
-    def __init__(self, path='',device="cpu", prefix_for_log=''):
+    def __init__(self, path='', imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=''):
         """
         Initializes the CreateDataset class
 
@@ -222,12 +292,14 @@ class CreateDataset(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-
-        self.images = LoadImages(path=self.path, device=device, prefix_for_log=prefix_for_log)
+        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
 
         self.labels = []
         listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        #Errorfix Jupyterlab: listdir.pop(0)
+        #Errorfix Jupyterlab: listdir.pop(-1)
+
         for s_dir in listdir:
             csv_path = os.path.join(self.path, s_dir) + '.csv'
             #load CSV
@@ -241,6 +313,8 @@ class CreateDataset(Dataset):
 
         assert self.len_images == self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
 
+    #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
+    #augmentation needs to calculated every epoch
     def __getitem__(self, idx):
         """
         Get item operator for retrive one item from the given set
@@ -251,20 +325,21 @@ class CreateDataset(Dataset):
 
         #TODO return only right pair of Images on Label (checking if same Patient)
 
-        #TODO Extract Data and lookup
-        grade_table = house_brackmann_grading[self.labels[idx][1]]
+        tmp = ["I", "II", "III", "IV", "V", "VI"]
+        tmp2 = tmp[int(self.labels[idx][1]) -1]
+
+        grade_table = house_brackmann_grading[tmp2]
+        #grade_table = house_brackmann_grading[self.labels[idx][1]]
 
         struct_label = init_dict(house_brackmann_template, [])
         for func in struct_label:
             hb_single = house_brackmann_lookup[func]["enum"]
-            hb_single_all_tensors = torch.eye(len(hb_single))
-            struct_label[func].extend(repeat(   hb_single_all_tensors[hb_single[grade_table[func]]]  , len(path_list[func])  ))
+            struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(path_list[func])  ))
 
 
+        path, struct_img = self.images[idx]
 
-        path, struct_img, struct_img_inv = self.images[idx]
-
-        return path, struct_img, struct_img_inv, struct_label
+        return path, struct_img, struct_label
 
     def __len__(self):
         """
@@ -273,7 +348,7 @@ class CreateDataset(Dataset):
         return self.len_images
 
 
-def create_dataloader_only_images(path, imgsz, params, prefix_for_log=""):
+def create_dataloader_only_images(path, imgsz, device, batch_size, prefix_for_log=""):
     """
     creates and returns the DataLoader
     checks the batch size
@@ -281,21 +356,18 @@ def create_dataloader_only_images(path, imgsz, params, prefix_for_log=""):
     :param path: path to the dataset (str/Path)
     :param imgsz: crop images to the given size (int)
     :param device: cuda device (cpu or cuda:0)
+    :param batch_size: Batch Size (int)
     :param prefix_for_log: logger output prefix (str)
 
     :returns dataloader
     """
-    device, batch_size = params
-    settings["imgsz"] = imgsz
-
-    dataset = LoadImages(path=path, device=device, prefix_for_log=prefix_for_log)
+    dataset = LoadImages(path=path, imgsz=imgsz, device=device, cache=False, nosave=False, prefix_for_log=prefix_for_log)
     assert dataset, "No data in dataset given!"
 
-    batch_size = min(batch_size, len(dataset))
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return DataLoader(dataset, batch_size=min(batch_size, len(dataset)), shuffle=False)
 
 
-def create_dataloader(path, imgsz, params, rank=-1, prefix_for_log=""):
+def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=None, train_split=None):
     """
     creates and returns the DataLoader
     checks the batch size
@@ -305,18 +377,33 @@ def create_dataloader(path, imgsz, params, rank=-1, prefix_for_log=""):
     :param device: cuda device (cpu or cuda:0)
     :param cache: True or False (bool)
     :param nosave: True or Fale (bool)
-    :param rank: Rank of the Cluster/Tread (int)
-    :param prefix_for_log: logger output prefix (str)
+    :param batch_size: Batch Size (int)
+    :param val_split: Factor for splitting (float, int, None)
+    :param train_split: Factor for splitting (float, int, None)
 
     :returns dataloader
     """
-    device, settings["cache"], settings["nosave"], batch_size = params
-    settings["imgsz"] = imgsz
+    prefix_for_log="Setup Train & Validation Data: "
 
-    with torch_distributed_zero_first(rank):
-        dataset = CreateDataset(path=path, device=device, prefix_for_log=prefix_for_log)
-    batch_size = min(batch_size, len(dataset))
+    with torch_distributed_zero_first():
+        dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
 
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset) if is_process_group(rank) else None
-    loader = torch.utils.data.DataLoader
-    return loader(dataset, batch_size=batch_size, sampler=sampler, shuffle=True)
+    val_loader = train_loader = None
+
+    if val_split or train_split:
+        train_idx, val_idx = train_test_split(list(range(len(dataset))), test_size=val_split, train_size=train_split)
+
+        train_dataset = Subset(dataset, train_idx)
+        val_dataset = Subset(dataset, val_idx)
+        LOGGER.debug("%strain-indices=%s, val-indices=%s",prefix_for_log, train_dataset.indices, val_dataset.indices)
+    else:
+        train_dataset = val_dataset = dataset
+
+    LOGGER.info("%sLength of >> Training=%s >> Validation=%s", prefix_for_log, len(train_dataset), len(val_dataset))
+
+    sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(LOCAL_RANK) else None
+    train_loader = DataLoader(train_dataset, batch_size=min(batch_size, len(train_dataset)), sampler=sampler, shuffle=True)
+
+    if is_master_process(RANK): #Only Process 0
+        val_loader = DataLoader(val_dataset, batch_size=min(batch_size, len(val_dataset)), sampler=None, shuffle=False)
+    return train_loader, val_loader

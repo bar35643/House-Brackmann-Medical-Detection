@@ -12,7 +12,7 @@ import logging
 
 import torch
 
-from utils.general import check_python, check_requirements, set_logging
+from utils.general import check_python, check_requirements, set_logging, OptArgs
 from utils.pytorch_utils import select_device
 
 LOGGER = logging.getLogger(__name__)
@@ -122,7 +122,8 @@ def parse_opt():
 
 
 if __name__ == "__main__":
-    opt_args = parse_opt()
-    set_logging(logging.ERROR, "unittest: starting...", opt_args)
+    opt_args = vars(parse_opt())
+    OptArgs.instance()(opt_args)
+    set_logging(logging.ERROR, "unittest: starting...")
     check_requirements()
     unittest.main()

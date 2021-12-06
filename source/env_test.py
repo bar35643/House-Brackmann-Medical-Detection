@@ -16,14 +16,18 @@ import timeit
 
 from utils.config import ROOT, ROOT_RELATIVE, LOCAL_RANK, RANK, WORLD_SIZE, LOGGER
 
-from utils.general import set_logging
+from utils.general import set_logging, OptArgs, check_requirements
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
-from utils.dataloader import CreateDataset, LoadImages, LoadLabels, LoadImagesAsStruct
+from utils.dataloader import CreateDataset, LoadImages
 from utils.templates import allowed_fn
+from train import run
 
 
 if __name__ == "__main__":
-    set_logging(logging.INFO, "env_test: ", Namespace())
+    opt_args = vars(Namespace())
+    OptArgs.instance()(opt_args)
+    check_requirements()
+    set_logging(logging.INFO, "env_test: ")
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
     print("ROOT: ", ROOT)
     print("ROOT_RELATIVE: ", ROOT_RELATIVE)
@@ -48,30 +52,18 @@ if __name__ == "__main__":
     print(is_process_group(LOCAL_RANK))
     print(is_master_process(LOCAL_RANK))
 
-    print("\n\ntesting LoadImages (All Categories, Single Category, Single Patient) \n")
-    tst = LoadImagesAsStruct(path='../test_data', imgsz=640, prefix_for_log='')
+    print("\n\ntesting LoadImages (All Categories, Single Category, Single Patient)")
+    tst = LoadImages(path='../test_data', prefix_for_log='')
     print("length: ", len(tst))
-    tst = LoadImagesAsStruct(path='../test_data/Muskeltransplantation', imgsz=640, prefix_for_log='')
+    tst = LoadImages(path='../test_data/Muskeltransplantation', prefix_for_log='')
     print("length: ", len(tst))
-    tst = LoadImagesAsStruct(path='../test_data/Muskeltransplantation/0001', imgsz=640, prefix_for_log='')
+    tst = LoadImages(path='../test_data/Muskeltransplantation/0001', prefix_for_log='')
     print("length: ", len(tst))
 
-
-
-    for i in allowed_fn:
-        print("\n\ntesting LoadLabels \n")
-        tst = LoadLabels(path='../test_data/Faziale_Reanimation', func=i)
-        print("length: ", len(tst))
-
-        print("\n\ntesting CreateDataset\n")
-        tst = CreateDataset(path='../test_data', func=i, imgsz=640, device="cpu", cache=True, prefix_for_log='')
-        print("length: ", len(tst))
-        print(tst.__getitem__(0)[0])
-        print(timeit.timeit(lambda: tst.__getitem__(0), number=10))
-        tst = CreateDataset(path='../test_data', func=i, imgsz=640, device="cpu", cache=False, prefix_for_log='')
-        print("length: ", len(tst))
-        print(tst.__getitem__(0)[0])
-        print(timeit.timeit(lambda: tst.__getitem__(0), number=10))
-
-    #print(tst[0])
+    print("\n\nTestin Caching and Lru Cache\n")
+    """
+    for x in range(1, 300):
+        print(f"cached {x}x (lru_cache):"    , timeit.timeit(lambda: run(source="../test_data",cache=True,nosave=False,batch_size=4,device="cpu"), number=x))
+        print(f"not cached {x}x (lru_cache):", timeit.timeit(lambda: run(source="../test_data",cache=False,nosave=False,batch_size=4,device="cpu"), number=x))
+    """
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")

@@ -6,9 +6,10 @@ TODO
 #import os
 import argparse
 import logging
+import os
 import time
 import timeit
-import numpy as np
+from pathlib import Path
 
 import torch
 
@@ -19,8 +20,8 @@ import torch
 # fn()
 # elapsed = time.time() - start_time
 from utils.config import LOGGER
-from utils.general import check_requirements, set_logging, init_dict
-from utils.pytorch_utils import select_device
+from utils.general import check_requirements, set_logging, init_dict, OptArgs
+from utils.pytorch_utils import select_device, load_model
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
 
@@ -28,7 +29,7 @@ PREFIX = "detect: "
 LOGGING_STATE = logging.INFO #logging.DEBUG
 
 @torch.no_grad()
-def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         imgsz=640,
         batch_size=16,
@@ -55,41 +56,31 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
     device = select_device(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-    params = (device, batch_size)
-    dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, params=params, prefix_for_log=PREFIX)
+    dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
     #Calculating
     result_list = []
     for batch, item_struct in enumerate(dataloader):
-        i_name, img_struct, img_inv_struct = item_struct
-        #TODO enable assert Path(weights).exists(), "File does not exists"
-        assert weights.endswith('.pt'), "File has wrong ending"
-        #TODO checkpoint = torch.load(weights)
+        i_name, img_struct = item_struct
 
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model=house_brackmann_lookup[selected_function]["model"]
-            #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
+            model = load_model(weights, selected_function)
             if half:
                 model.half()  # to FP16
-            for idx, item_list in enumerate(zip(img_struct[selected_function], img_inv_struct[selected_function])):
-                img, img_inv = item_list
-                img = (img.half() if half else img.float()) # uint8 to fp16/32
-                img = img[None] if len(img.shape) == 3 else img
+            for idx, img in enumerate(img_struct[selected_function]):
 
-                img_inv = (img_inv.half() if half else img_inv.float()) # uint8 to fp16/32
-                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
+                img = (img.half() if half else img.float()) # uint8 to fp16/32
 
                 #TODO mean of both prediction and lookup
                 pred = model(img.to(device))
                 #print(pred.shape)
-                pred_true = []
-                for j in torch.tensor_split(pred, len(i_name)):
-                    pred_true.append(np.argmax(j.detach().numpy()))
+                # pred_true = []
+                # for j in torch.tensor_split(pred, len(i_name)):
+                #     pred_true.append(np.argmax(j.detach().numpy()))
 
                 results[selected_function].append({"batch": str(batch),
                                                    "idx": str(idx),
-                                                   "name": str(i_name),
-                                                   "pred": pred_true})
+                                                   "pred": pred.shape})
 
                     #predicted.append(np.argmax(pred.detach().numpy()))
                     #
@@ -133,8 +124,8 @@ def parse_opt():
     Check internet connectivity
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", nargs="+", type=str, default="models/model.pt",
-                        help="model path(s)")
+    parser.add_argument("--weights", type=str, default="models",
+                        help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
@@ -150,8 +141,11 @@ def parse_opt():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    opt_args = parse_opt()
-    set_logging(LOGGING_STATE, PREFIX,opt_args)
+    opt_args = vars(parse_opt())
+    OptArgs.instance()(opt_args)
+
+    set_logging(LOGGING_STATE, PREFIX)
     check_requirements()
-    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+
+    time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Detection. Finished in %s s", time)

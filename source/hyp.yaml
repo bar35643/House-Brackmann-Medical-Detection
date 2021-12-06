@@ -1,0 +1,19 @@
+optimizer:
+    SGD:
+      dampening: 0
+      lr: 0.01
+      momentum: 0.9
+      nesterov: true
+      weight_decay: 0
+    #ASGD:
+     # lr: 0.001
+
+scheduler:
+    - CosineAnnealingLR:
+        T_max: 20
+        eta_min: 0.0001
+        verbose: false
+    - ExponentialLR:
+        gamma: 0.909
+        last_epoch: -1
+        verbose: false

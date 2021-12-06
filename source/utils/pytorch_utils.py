@@ -3,16 +3,22 @@
 TODO
 """
 
+import os
 import math
 from contextlib import contextmanager
+from pathlib import Path
+import yaml
 
 import torch
-from torch.optim import Adam, SGD
+from torch import optim
+from torch.optim import lr_scheduler
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
+from .templates import house_brackmann_lookup #pylint: disable=import-error
+from .specs import validate_yaml_config #pylint: disable=import-error
 from .config import LOGGER,LOCAL_RANK, RANK
 
 #Ideas from https://github.com/ultralytics/yolov5
@@ -82,6 +88,29 @@ def select_data_parallel_mode(model, cuda: bool):
 
     return model
 
+def load_model(pth_to_weights, func):
+    """
+    Selecting Cuda/Cpu devices
+
+    :param pth_to_weights:  Path to weights (str)
+    :param func: function name (str)
+    :returns: model
+    """
+
+    pth = os.path.join(Path(pth_to_weights), func + ".pt")
+    if pth.endswith('.pt') and Path(pth).exists():
+        LOGGER.debug("Using Pretrained model at Path %s", pth)
+
+        model = house_brackmann_lookup[func]["model"]
+        ckpt = torch.load(pth)  # load checkpoint
+        model.load_state_dict(ckpt["model"], strict=False)  # load
+        model.float()
+        #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
+    else:
+        LOGGER.debug("", pth)
+        model = house_brackmann_lookup[func]["model"]
+    return model
+
 def select_device(device="", batch_size=None):
     """
     Selecting Cuda/Cpu devices
@@ -98,7 +127,7 @@ def select_device(device="", batch_size=None):
     """
 
     # device = "cpu" or "0" or "0,1,2,3"
-    torch_str = f"torch {torch.__version__} "  # string
+    torch_str = f"Torch Version: torch {torch.__version__} Selected Devices: "  # string
     device = str(device).strip().lower().replace("cuda:", "").replace(" ", "")  # to string, "cuda:0" to "0" and "CPU" to "cpu"
     cpu = (device == "cpu") # set cpu to True/False
     cuda = not cpu and torch.cuda.is_available()
@@ -133,80 +162,118 @@ def select_device(device="", batch_size=None):
     return device
 
 @contextmanager
-def torch_distributed_zero_first(local_rank: int):
+def torch_distributed_zero_first():
     """
     Decorator to make all processes in distributed training wait for each local_master to do something.
 
 
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py#L32
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
-    if local_rank not in [-1, 0]:
-        dist.barrier(device_ids=[local_rank])
+
+    if not is_master_process(LOCAL_RANK):
+        dist.barrier(device_ids=[LOCAL_RANK])
     yield
-    if local_rank == 0:
+    if LOCAL_RANK == 0:
         dist.barrier(device_ids=[0])
 
-
-
-
-#TODO  scheduler and optimizer to function
-class OptimizerClass:
+def is_parallel(model):
     """
-    TODO
-    Check internet connectivity
+    Returns True if model is of type DP or DDP
+
+    :param model:  Model (Model)
+    :returns: True or false (bool)
+
+    Source:
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
+    return type(model) in (DataParallel, DistributedDataParallel)
 
-    def __init__(self, neural_net):
-        """
-        TODO
-        Check internet connectivity
-        """
-        self.neural_net = neural_net
 
-        self.optimizer_list = {
-        "SGD": SGD(self.neural_net.parameters(), lr=0.001, momentum=0.9, nesterov=True),
-        "ADAM": Adam(self.neural_net.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
-        #Adadelta(neural_net.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0),
-        #Adagrad(neural_net.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0),
-        #SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
-        #Adamax(neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
-        #ASGD(neural_net.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
-        #LBFGS(neural_net.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-05, tolerance_change=1e-09, history_size=100, line_search_fn=None),
-        #RMSprop(neural_net.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
-        #Rprop(neural_net.parameters(), lr=0.01, etas=(0.5, 1.2), step_sizes=(1e-06, 50))
-        }
+def de_parallel(model):
+    """
+    De-parallelize a model: returns single-GPU model if model is of type DP or DDP
 
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.optimizer_list:
-            ret_val =  self.optimizer_list[argument]
+    :param model:  Model (Model)
+    :returns: De-parallelized model (Model)
+
+    Info:
+    https://pytorch.org/tutorials/beginner/saving_loading_models.html
+
+    Source:
+    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
+    """
+    return model.module if is_parallel(model) else model
+
+
+
+
+optimizer_list = {
+"Adadelta":   optim.Adadelta,
+"Adagrad":    optim.Adagrad,
+"Adam":       optim.Adam,
+"AdamW":      optim.AdamW,
+"SparseAdam": optim.SparseAdam,
+"Adamax":     optim.Adamax,
+"ASGD":       optim.ASGD,
+"LBFGS":      optim.LBFGS,
+"NAdam":      optim.NAdam,
+"RAdam":      optim.RAdam,
+"RMSprop":    optim.RMSprop,
+"Rprop":      optim.Rprop,
+"SGD":        optim.SGD,
+}
+
+scheduler_list = {
+"LambdaLR": lr_scheduler.LambdaLR,
+"MultiplicativeLR": lr_scheduler.MultiplicativeLR,
+"StepLR": lr_scheduler.StepLR,
+"MultiStepLR": lr_scheduler.MultiStepLR,
+"ConstantLR": lr_scheduler.ConstantLR,
+"LinearLR": lr_scheduler.LinearLR,
+"ExponentialLR": lr_scheduler.ExponentialLR,
+"CosineAnnealingLR": lr_scheduler.CosineAnnealingLR,
+#"ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau,
+"CyclicLR": lr_scheduler.CyclicLR,
+"OneCycleLR": lr_scheduler.OneCycleLR,
+"CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts,
+}
+
+def select_optimizer_and_scheduler(hyp_pth, neural_net, epoch, sequential=False):
+    """
+    Database functions to convert np.array to entry
+    :param hyp_pth: Path to File (str)
+    :param neural_net: model (model)
+    :param epoch: Epochs (int)
+    :param sequential: True/False (bool)
+    :return: scheduler, optimizer
+    """
+    pth = Path(hyp_pth)
+    assert hyp_pth.endswith('.yaml') and pth.exists(), f"Error Path {hyp_pth} has the wron ending or do not exist"
+
+    with open(pth, 'r', encoding="UTF-8") as yaml_file:
+        yml = yaml.safe_load(yaml_file)
+        error, tru_fal = validate_yaml_config(yml)
+        assert tru_fal, f"{pth} Error in YAML-Configuration:\n".join(error)
+
+        item, param = list(yml['optimizer'].keys())[0], list(yml['optimizer'].values())[0]
+        optimizer = optimizer_list[item](neural_net.parameters(), **param)
+
+
+        scheduler_aray = []
+        for i in yml['scheduler']:
+            item, param = list(i.keys())[0], list(i.values())[0]
+            scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
+
+
+        if len(scheduler_aray) == 1:
+            return scheduler_aray[0], optimizer
+
+
+        if sequential:
+            length = len(scheduler_aray)
+            milestone_size = epoch/length
+            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=scheduler_aray, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
         else:
-            assert False, "given Optimizer is not in the list!"
-        return ret_val
+            scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
 
-class SchedulerClass:
-    """
-    TODO
-    Check internet connectivity
-    """
-    def __init__(self, optimizer):
-        self.optimizer = optimizer
-
-        self.scheduler_list = {
-        }
-
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.scheduler_list:
-            ret_val =  self.scheduler_list[argument]
-        else:
-            assert False, "given Scheduler is not in the list!"
-        return ret_val
+        return scheduler, optimizer
