@@ -9,6 +9,7 @@ import logging
 import os
 import timeit
 import datetime
+import gc as garbage_collector
 from pathlib import Path
 
 import yaml
@@ -173,6 +174,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
             #Scheduler
             _scheduler.step()
+            garbage_collector.collect()
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)

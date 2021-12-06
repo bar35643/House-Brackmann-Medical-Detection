@@ -249,12 +249,12 @@ class Plotting():
 
         #Reset conf_matrix_epoch
         for i in self.conf_matrix_epoch:
-            self.conf_matrix_epoch[i] = deepcopy(self.conf_matrix_template)
+            self.conf_matrix_epoch[i][func].fill(0)
 
         #Reset all AverageMeter
         for i in self.averagemeter:
             for j in self.averagemeter[i]:
-                self.averagemeter[i][j] = AverageMeter()
+                self.averagemeter[i][j].reset()
 
         return val_dict
 
