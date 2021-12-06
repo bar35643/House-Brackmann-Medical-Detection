@@ -41,7 +41,7 @@
       - [x] Forehead Cutting
    3. [x] Structure of the images and labels (use template see in settings.py)
    4. [x] LoadImages Class for only loading Images
-   5. [ ] Augmentation for Images
+   5. [x] Augmentation for Images
    6. [x] Flipping/Invert Image as Augmentation
 - [x] Training function for epochs
 - [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)

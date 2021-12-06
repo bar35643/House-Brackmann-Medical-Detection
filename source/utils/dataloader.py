@@ -122,9 +122,9 @@ class LoadImages(Dataset):
         self.prefix_for_log = prefix_for_log
         self.nosave = nosave
         self.imgsz = ((640, 640), #symmetry
-                      (640, 640), #eye
-                      (640, 640), #mouth
-                      (640, 640)) #forehead
+                      (420, 500), #eye
+                      (640, 420), #mouth
+                      (640, 300)) #forehead
 
         self.database = None
         self.database_file = "pythonsqlite.db"
@@ -202,6 +202,9 @@ class LoadImages(Dataset):
         if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
             valid_transforms = T.Compose([
                 T.ToPILImage(),
+                T.RandomRotation(degrees=5),
+                T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+                T.GaussianBlur(kernel_size=(15, 15), sigma=(0.5, 3)),
                 T.RandomHorizontalFlip(p=0.5),
                 T.ToTensor(),
                 T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))

@@ -10,10 +10,10 @@ optimizer:
 
 scheduler:
     - CosineAnnealingLR:
-        T_max: 20
-        eta_min: 0.0001
+        T_max: 50
+        eta_min: 0.00001
         verbose: false
     - ExponentialLR:
-        gamma: 0.909
+        gamma: 0.96
         last_epoch: -1
         verbose: false
