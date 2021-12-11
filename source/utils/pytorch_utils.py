@@ -7,7 +7,6 @@ import os
 import math
 from contextlib import contextmanager
 from pathlib import Path
-import yaml
 
 import torch
 from torch import optim
@@ -18,7 +17,6 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
 from .templates import house_brackmann_lookup #pylint: disable=import-error
-from .specs import validate_yaml_config #pylint: disable=import-error
 from .config import LOGGER,LOCAL_RANK, RANK
 
 #Ideas from https://github.com/ultralytics/yolov5
@@ -107,7 +105,7 @@ def load_model(pth_to_weights, func):
         model.float()
         #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
     else:
-        LOGGER.debug("", pth)
+        LOGGER.debug("Using General Model")
         model = house_brackmann_lookup[func]["model"]
     return model
 
@@ -238,42 +236,32 @@ scheduler_list = {
 "CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts,
 }
 
-def select_optimizer_and_scheduler(hyp_pth, neural_net, epoch, sequential=False):
+def select_optimizer_and_scheduler(yml_hyp, neural_net, epoch):
     """
     Database functions to convert np.array to entry
-    :param hyp_pth: Path to File (str)
+    :param yml_hyp: Loaded YAML Config (dict)
     :param neural_net: model (model)
     :param epoch: Epochs (int)
-    :param sequential: True/False (bool)
     :return: scheduler, optimizer
     """
-    pth = Path(hyp_pth)
-    assert hyp_pth.endswith('.yaml') and pth.exists(), f"Error Path {hyp_pth} has the wron ending or do not exist"
-
-    with open(pth, 'r', encoding="UTF-8") as yaml_file:
-        yml = yaml.safe_load(yaml_file)
-        error, tru_fal = validate_yaml_config(yml)
-        assert tru_fal, f"{pth} Error in YAML-Configuration:\n".join(error)
-
-        item, param = list(yml['optimizer'].keys())[0], list(yml['optimizer'].values())[0]
-        optimizer = optimizer_list[item](neural_net.parameters(), **param)
+    item, param = list(yml_hyp['optimizer'].keys())[0], list(yml_hyp['optimizer'].values())[0]
+    optimizer = optimizer_list[item](neural_net.parameters(), **param)
 
 
-        scheduler_aray = []
-        for i in yml['scheduler']:
-            item, param = list(i.keys())[0], list(i.values())[0]
-            scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
+    scheduler_aray = []
+    for i in yml_hyp['scheduler']:
+        item, param = list(i.keys())[0], list(i.values())[0]
+        scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
 
 
-        if len(scheduler_aray) == 1:
-            return scheduler_aray[0], optimizer
+    if len(scheduler_aray) == 1:
+        return scheduler_aray[0], optimizer
 
+    if yml_hyp['sequential_scheduler']:
+        length = len(scheduler_aray)
+        milestone_size = epoch/length
+        scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=scheduler_aray, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
+    else:
+        scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
 
-        if sequential:
-            length = len(scheduler_aray)
-            milestone_size = epoch/length
-            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=scheduler_aray, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
-        else:
-            scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
-
-        return scheduler, optimizer
+    return scheduler, optimizer

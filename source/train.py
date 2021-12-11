@@ -21,12 +21,13 @@ import torch.distributed as dist
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
+from utils.config import RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
 from utils.dataloader import create_dataloader, BatchSettings
 from utils.templates import house_brackmann_lookup
 from utils.plotting import Plotting
+from utils.specs import validate_yaml_config
 
 PREFIX = "train: "
 LOGGING_STATE = logging.INFO
@@ -39,7 +40,7 @@ LOGGING_STATE = logging.INFO
 
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
-        hyp="./hyp.yaml",
+        hyp="./models/hyp.yaml",
         imgsz=640,
         cache=False,
         batch_size=16,
@@ -65,9 +66,19 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
+    pth = Path(hyp)
+    assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
+    with open(pth, 'r', encoding="UTF-8") as yaml_file:
+        yml_hyp = yaml.safe_load(yaml_file)
+        error, tru_fal = validate_yaml_config(yml_hyp)
+        assert tru_fal, f"Error in YAML-Configuration (Path = {pth}): \n" + "\n".join(error)
+
+
+
     with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
         yaml.safe_dump(OptArgs.instance().args, file, sort_keys=False) #pylint: disable=no-member
-
+    with open(save_dir / 'hyp.yaml', 'w', encoding="UTF-8") as file:
+        yaml.safe_dump(yml_hyp, file, sort_keys=False) #pylint: disable=no-member
 
     # Device init
     device = select_device(device, batch_size=batch_size)
@@ -75,8 +86,12 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
     # Setting up the Images
     train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
-                                                 nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
+                                                 batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
+
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
+
+    BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
+
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in house_brackmann_lookup:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
@@ -89,7 +104,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         #Optimizer & Scheduler
-        _scheduler, _optimizer = select_optimizer_and_scheduler(hyp, model, epochs)
+        _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
 
         scaler = amp.GradScaler(enabled=cuda)
 
@@ -219,7 +234,7 @@ def parse_opt():
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
-    parser.add_argument("--hyp", "--hyperparameter", type=str, default="./hyp.yaml",
+    parser.add_argument("--hyp", "--hyperparameter", type=str, default="./models/hyp.yaml",
                         help="path to hyperparamer file")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
                         help="inference size h,w")

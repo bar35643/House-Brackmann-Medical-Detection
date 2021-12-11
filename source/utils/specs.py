@@ -140,8 +140,13 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
-
-
+hyperparameter = { 'RandomHorizontalFlip': number(),
+                   'RandomRotation_Degree': number(),
+                   'Normalize':{
+                        'mean': [number()],
+                        'std' : [number()],
+                   },
+}
 
 
 
@@ -155,8 +160,10 @@ def validate_yaml_config(inp):
     """
     yaml_spec = {
         required("optimizer"): combined(adadelta, adagrad, adam, adamw, sparseadam, adamax, asgd, lbfgs, nadam, radam, rmsprop, rprop, sgd),
+        required("sequential_scheduler"): bool(),
         required("scheduler"): [combined(steplr, multisteplr, constantlr, linearlr, exponentiallr,
                                          cosineannealinglr, reducelronplateau, cycliclr, cosineannealingwarmrestarts)],
+        required("hyp"):hyperparameter,
     }
 
     try:

@@ -8,6 +8,7 @@ optimizer:
     #ASGD:
      # lr: 0.001
 
+sequential_scheduler: False
 scheduler:
     - CosineAnnealingLR:
         T_max: 50
@@ -17,3 +18,10 @@ scheduler:
         gamma: 0.96
         last_epoch: -1
         verbose: false
+
+hyp:
+  RandomHorizontalFlip: 0.5
+  RandomRotation_Degree: 3
+  Normalize:
+    mean: [0.5, 0.5, 0.5]
+    std:  [0.5, 0.5, 0.5]

@@ -51,12 +51,10 @@ class Database():
         :param db_file: File name (str)
         :param prefix_for_log: logger output prefix (str)
         :param conn: connection cursor
-        :param nosave: If True save (bool)
         """
         self.prefix_for_log = ""
-        self.db_file = 'pythonsqlite.db'
+        self.db_file = 'cache.db'
         self.conn = None
-        self.nosave = False
 
     @try_except
     def delete(self):
@@ -66,20 +64,18 @@ class Database():
         if self.conn is not None:
             self.conn.close()
             LOGGER.info("%sClosed Connection to Database", self.prefix_for_log)
-        if os.path.exists(self.db_file) and self.nosave:
+        if os.path.exists(self.db_file):
             os.remove(self.db_file)
             LOGGER.info("%sDeleted Database File (Cache)!", self.prefix_for_log)
 
-    def set(self, db_file:str, prefix_for_log:str, nosave:bool):
+    def set(self, db_file:str, prefix_for_log:str):
         """
         set Class items
         :param db_file: database file name (str)
         :param prefix_for_log: logger output prefix (str)
-        :param nosave: If True save (bool)
         """
         self.prefix_for_log = prefix_for_log
         self.db_file=db_file
-        self.nosave=nosave
 
     def get_conn(self):
         """

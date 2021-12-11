@@ -28,12 +28,6 @@ from .general import init_dict #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
-#TODO Decide which pic is for what as array
-path_list = deepcopy(house_brackmann_template)
-path_list["symmetry"] = [0]
-path_list["eye"] =      [5, 6]
-path_list["mouth"] =    [2, 3, 4, 7, 8]
-path_list["forehead"] = [1]
 
 @Singleton
 class BatchSettings():
@@ -47,7 +41,15 @@ class BatchSettings():
         :param func: (str)
         """
         self.augmentation = False
-        self.func = None
+        self.hyp = None
+
+    def set_hyp(self, yml_hyp):
+        """
+        Setting the Hyperparameter
+        :param yml_hyp: Hyperparameter Dictionary (dict)
+        """
+        self.hyp = yml_hyp["hyp"]
+        #print(self.hyp["Normalize"])
 
     def train(self):
         """
@@ -106,7 +108,7 @@ class LoadImages(Dataset):
                      /data/muscle_transplant/0002
                      /data/muscle_transplant/0003
     """
-    def __init__(self, path, imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=""):
+    def __init__(self, path, imgsz=640, device="cpu", cache=False, prefix_for_log=""):
         """
         Initializes the LoadImages class
 
@@ -120,14 +122,13 @@ class LoadImages(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-        self.nosave = nosave
         self.imgsz = ((640, 640), #symmetry
                       (420, 500), #eye
                       (640, 420), #mouth
                       (640, 300)) #forehead
 
         self.database = None
-        self.database_file = "pythonsqlite.db"
+        self.database_file = "cache.db"
         self.table = "dataloader_table"
         #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
         self.list_patients=get_list_patients(self.path)
@@ -143,7 +144,7 @@ class LoadImages(Dataset):
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         if cache:
             self.database = Database.instance() #pylint: disable=no-member
-            self.database.set(self.database_file, self.prefix_for_log, self.nosave)
+            self.database.set(self.database_file, self.prefix_for_log)
             if self.database.create_db_connection() is not None:
                 self.database.create_db_table(f""" CREATE TABLE IF NOT EXISTS {self.table} (
                                                 id integer PRIMARY KEY,
@@ -202,15 +203,18 @@ class LoadImages(Dataset):
         if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
             valid_transforms = T.Compose([
                 T.ToPILImage(),
-                T.RandomRotation(degrees=5),
-                T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-                T.GaussianBlur(kernel_size=(15, 15), sigma=(0.5, 3)),
-                T.RandomHorizontalFlip(p=0.5),
+                T.RandomRotation(degrees=  BatchSettings.instance().hyp["RandomRotation_Degree"]   ), #pylint: disable=no-member
+                #T.ColorJitter(brightness=0.1, contrast=0, saturation=0.1, hue=0),
+                #T.GaussianBlur(kernel_size=(15, 15), sigma=(0.5, 3)),
+                T.RandomHorizontalFlip(p=  BatchSettings.instance().hyp["RandomHorizontalFlip"] ), #pylint: disable=no-member
                 T.ToTensor(),
-                T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+                T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
+                            std=   BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
                 ])
         else:
-            valid_transforms = T.Compose([T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
+            valid_transforms = T.Compose([
+            T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
+                        std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
         return valid_transforms(img_tensor)
 
     @lru_cache(LRU_MAX_SIZE)
@@ -283,7 +287,7 @@ class CreateDataset(Dataset):
     """
     Loading Labels and Images and build it together
     """
-    def __init__(self, path='', imgsz=640, device="cpu", cache=False, nosave=False, prefix_for_log=''):
+    def __init__(self, path='', imgsz=640, device="cpu", cache=False, prefix_for_log=''):
         """
         Initializes the CreateDataset class
 
@@ -295,7 +299,7 @@ class CreateDataset(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
+        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, cache=cache, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
 
         self.labels = []
@@ -334,13 +338,15 @@ class CreateDataset(Dataset):
         grade_table = house_brackmann_grading[tmp2]
         #grade_table = house_brackmann_grading[self.labels[idx][1]]
 
+        path, struct_img = self.images[idx]
+
+
         struct_label = init_dict(house_brackmann_template, [])
         for func in struct_label:
             hb_single = house_brackmann_lookup[func]["enum"]
-            struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(path_list[func])  ))
+            struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(struct_img[func])  ))
 
 
-        path, struct_img = self.images[idx]
 
         return path, struct_img, struct_label
 
@@ -364,13 +370,13 @@ def create_dataloader_only_images(path, imgsz, device, batch_size, prefix_for_lo
 
     :returns dataloader
     """
-    dataset = LoadImages(path=path, imgsz=imgsz, device=device, cache=False, nosave=False, prefix_for_log=prefix_for_log)
+    dataset = LoadImages(path=path, imgsz=imgsz, device=device, cache=False, prefix_for_log=prefix_for_log)
     assert dataset, "No data in dataset given!"
 
     return DataLoader(dataset, batch_size=min(batch_size, len(dataset)), shuffle=False)
 
 
-def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=None, train_split=None):
+def create_dataloader(path, imgsz, device, cache, batch_size, val_split=None, train_split=None):
     """
     creates and returns the DataLoader
     checks the batch size
@@ -379,7 +385,6 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=
     :param imgsz: crop images to the given size (int)
     :param device: cuda device (cpu or cuda:0)
     :param cache: True or False (bool)
-    :param nosave: True or Fale (bool)
     :param batch_size: Batch Size (int)
     :param val_split: Factor for splitting (float, int, None)
     :param train_split: Factor for splitting (float, int, None)
@@ -389,7 +394,7 @@ def create_dataloader(path, imgsz, device, cache, nosave, batch_size, val_split=
     prefix_for_log="Setup Train & Validation Data: "
 
     with torch_distributed_zero_first():
-        dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, nosave=nosave, prefix_for_log=prefix_for_log)
+        dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, prefix_for_log=prefix_for_log)
 
     val_loader = train_loader = None
 
