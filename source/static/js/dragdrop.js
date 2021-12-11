@@ -61,7 +61,7 @@ $(function() {
     }
 
     $.ajax({
-      url: '/upload/new/',
+      url: '/api/upload/',
       type: 'post',
       data: formData,
       contentType: false,
