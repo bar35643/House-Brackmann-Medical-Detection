@@ -24,3 +24,59 @@ Dieses Dokument ist als Hilfe gedacht, damit Sie schnell mit dem Tool \LaTeX~zur
 damit Sie die wichtigsten Elemente einer sehr guten Abschlussarbeit zum Nachlesen haben und damit Sie meine \textbf{notenrelevanten Vorgaben} in schriftlicher Form vorliegen haben.
 Mit diesem Template sollen nicht alle Abschlussarbeiten völlig gleich aussehen, insbesondere nicht sprachlich.
 Entwickeln Sie Ihren eigenen Stil, seien Sie kreativ und bleiben Sie sich treu. Innerhalb dieser Vorlage gibt es jede Menge Spielraum.
+
+
+
+
+
+
+
+
+
+
+
+% \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+%                     semithick]
+%   \tikzstyle{every state}=[fill=white,draw=black,text=black]
+%
+%   \node[initial,state] (A)                    {$q_a$};
+%   \node[state]         (B) [above right of=A] {$q_b$};
+%   \node[state]         (D) [below right of=A] {$q_d$};
+%   \node[state]         (C) [below right of=B] {$q_c$};
+%   \node[state]         (E) [below of=D]       {$q_e$};
+%
+%   \path (A) edge              node {0,1,L} (B)
+%             edge              node {1,1,R} (C)
+%         (B) edge [loop above] node {1,1,L} (B)
+%             edge              node {0,1,L} (C)
+%         (C) edge              node {0,1,L} (D)
+%             edge [bend left]  node {1,0,R} (E)
+%         (D) edge [loop below] node {1,1,R} (D)
+%             edge              node {0,1,R} (A)
+%         (E) edge [bend left]  node {1,0,R} (A);
+% \end{tikzpicture}
+
+\definecolor{mycolor}{RGB}{50,180,255}
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+  \tikzstyle{every state}=[fill=mycolor,draw=black,text=black]
+
+  \node[initial,state] (A)                    {$I$};
+  \node[state]         (B) [right of=A]       {$II$};
+  \node[state]         (C) [below of=B]       {$III$};
+  \node[state]         (D) [below of=A]       {$IV$};
+  \node[state]         (E) [below of=C]       {$V$};
+  \node[state]         (F) [below of=D]       {$VI$};
+
+  \path (A) edge              node {mouth=1} (B)
+            edge [loop above] node {mouth=0} (A)
+            edge              node [text width=2.3cm,midway,left]{mouth=2 or forehead=2}   (D)
+        (B) edge              node {forehead=1} (C)
+            edge [loop above] node {forehead=0} (A)
+        (C) edge              node {eye=1} (D)
+            edge [loop right] node {eye=0} (C)
+        (D) edge              node [right]{symmetry=1} (E)
+            edge [loop left]  node {symmetry=0} (D)
+            edge              node [text width=2.3cm,midway,left]{symmetry=2 or mouth=3} (F);
+\end{tikzpicture}

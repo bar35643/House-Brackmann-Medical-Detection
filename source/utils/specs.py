@@ -171,7 +171,6 @@ def validate_yaml_config(inp):
         validate(yaml_spec, inp)
         if len(inp["optimizer"]) != 1:
             raise ValidationError("", [f'key optimizer has more than one element {list(inp["optimizer"].keys())}. Only one is allowed!'])
+        return [], True
     except ValidationError as ex:
         return ex.errors, ex.informal_only
-    else:
-        return [], True

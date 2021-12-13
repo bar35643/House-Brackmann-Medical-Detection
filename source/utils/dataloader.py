@@ -212,9 +212,14 @@ class LoadImages(Dataset):
                             std=   BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
                 ])
         else:
-            valid_transforms = T.Compose([
-            T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
-                        std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
+            if BatchSettings.instance().hyp != None: #pylint: disable=no-member
+                valid_transforms = T.Compose([
+                T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
+                            std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
+            else:
+                valid_transforms = T.Compose([
+                T.Normalize(mean=  [0.5, 0.5, 0.5],
+                            std=   [0.5, 0.5, 0.5])])
         return valid_transforms(img_tensor)
 
     @lru_cache(LRU_MAX_SIZE)

@@ -17,7 +17,6 @@ from sklearn.metrics import accuracy_score
 
 import torch
 from torch.nn import CrossEntropyLoss
-import torch.distributed as dist
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
@@ -189,7 +188,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
             #Scheduler
             _scheduler.step()
-            garbage_collector.collect()
+            collected = garbage_collector.collect()
+            LOGGER.debug('Collected Garbage: %s', collected)
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)

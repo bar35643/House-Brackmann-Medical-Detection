@@ -271,7 +271,7 @@ class Plotting():
         """
 
         #Update Confusion Matrix
-        tmp = confusion_matrix(label, pred.argmax(dim=1))
+        tmp = confusion_matrix(label, pred.argmax(dim=1), labels=list(house_brackmann_lookup[func]["enum"].values())  )
         self.conf_matrix[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
         self.conf_matrix_epoch[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
 

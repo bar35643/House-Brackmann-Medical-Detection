@@ -24,14 +24,14 @@
 #### TODO-LIST
 
 ###### Training
-- [ ] OptimizerClass/SchedulerClass to functions
+- [x] OptimizerClass/SchedulerClass to functions
    1. [x] Adding Scheduler to list
    2. [x] Make it available via argparse
    3. [x] Expand list
    4. [x] Chain Schedulers / Chain Schedulers sequential
    5. [x] How to set the Parameter (Concept for setting these is needed)
    6. [x] via File
-   7. [ ] sequential option via file
+   7. [x] sequential option via file
 - [x] Dataloader
    1. [x] Adding Dataloader Class
    2. [x] Gather Data from the images
