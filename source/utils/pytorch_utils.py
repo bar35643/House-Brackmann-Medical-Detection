@@ -1,6 +1,25 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
 
 import os
@@ -19,7 +38,6 @@ from torch.nn import DataParallel
 from .templates import house_brackmann_lookup #pylint: disable=import-error
 from .config import LOGGER,LOCAL_RANK, RANK
 
-#Ideas from https://github.com/ultralytics/yolov5
 
 
 
@@ -68,6 +86,14 @@ def select_data_parallel_mode(model, cuda: bool):
     :param model:  model selected for changind the mode (Model)
     :param cuda:  cuda aailable (bool)
     :returns: model (Model)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     #DP mode
@@ -119,6 +145,14 @@ def select_device(device="", batch_size=None):
     https://discuss.pytorch.org/t/cuda-visible-device-is-of-no-use/10018
     https://discuss.pytorch.org/t/difference-between-torch-device-cuda-and-torch-device-cuda-0/46306/18
     https://pytorch.org/docs/1.9.0/generated/torch.cuda.set_device.html
+
+    Source/Idea:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     # device = "cpu" or "0" or "0,1,2,3"
@@ -161,8 +195,12 @@ def torch_distributed_zero_first():
     """
     Decorator to make all processes in distributed training wait for each local_master to do something.
 
-
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     if not is_master_process(LOCAL_RANK):
@@ -170,18 +208,6 @@ def torch_distributed_zero_first():
     yield
     if LOCAL_RANK == 0:
         dist.barrier(device_ids=[0])
-
-def is_parallel(model):
-    """
-    Returns True if model is of type DP or DDP
-
-    :param model:  Model (Model)
-    :returns: True or false (bool)
-
-    Source:
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
-    """
-    return type(model) in (DataParallel, DistributedDataParallel)
 
 
 def de_parallel(model):
@@ -194,10 +220,8 @@ def de_parallel(model):
     Info:
     https://pytorch.org/tutorials/beginner/saving_loading_models.html
 
-    Source:
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
-    return model.module if is_parallel(model) else model
+    return model.module if type(model) in (DataParallel, DistributedDataParallel) else model
 
 
 
