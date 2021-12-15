@@ -65,8 +65,6 @@ def select_data_parallel_mode(model, cuda: bool):
     https://pytorch.org/docs/stable/distributed.html
     https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html
 
-    :param rank:  Rank of the global Process Group (int)
-    :param rank:  Rank of the local Process Group (int)
     :param model:  model selected for changind the mode (Model)
     :param cuda:  cuda aailable (bool)
     :returns: model (Model)
@@ -103,7 +101,6 @@ def load_model(pth_to_weights, func):
         ckpt = torch.load(pth)  # load checkpoint
         model.load_state_dict(ckpt["model"], strict=False)  # load
         model.float()
-        #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
     else:
         LOGGER.debug("Using General Model")
         model = house_brackmann_lookup[func]["model"]
@@ -260,7 +257,11 @@ def select_optimizer_and_scheduler(yml_hyp, neural_net, epoch):
     if yml_hyp['sequential_scheduler']:
         length = len(scheduler_aray)
         milestone_size = epoch/length
-        scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=scheduler_aray, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
+        scheduler = lr_scheduler.SequentialLR(optimizer,
+                                              schedulers=scheduler_aray,
+                                              milestones=[math.floor(milestone_size*i) for i in range(1, length)],
+                                              last_epoch=- 1,
+                                              verbose=False)
     else:
         scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
 

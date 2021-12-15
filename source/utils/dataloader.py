@@ -212,7 +212,7 @@ class LoadImages(Dataset):
                             std=   BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
                 ])
         else:
-            if BatchSettings.instance().hyp != None: #pylint: disable=no-member
+            if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
                 valid_transforms = T.Compose([
                 T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
                             std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member

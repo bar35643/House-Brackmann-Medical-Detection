@@ -16,6 +16,7 @@ import yaml
 from sklearn.metrics import accuracy_score
 
 import torch
+import torch.distributed as dist
 from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
@@ -59,7 +60,6 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
     # Directories
-    #TODO
     save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
     model_save_dir = save_dir /"models"
@@ -90,12 +90,12 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
     BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
-
+    LOGGER.info("\n")
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in house_brackmann_lookup:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
 
-        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...\n", selected_function, batch_size, save_dir, epochs)
+        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", selected_function, batch_size, save_dir, epochs)
 
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
@@ -115,7 +115,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 train_loader.sampler.set_epoch(epoch)
 
             #------------------------------BATCH------------------------------#
-            LOGGER.info("train Epoch=%s", epoch)
+            LOGGER.info("Start train Epoch=%s", epoch)
             for i_name, img_struct,label_struct in train_loader:
                 _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -128,10 +128,13 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                     #with amp.autocast(enabled=cuda):
                     pred = model(img)  # forward
-                    loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                    loss = criterion(pred, label.to(device))
                     accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                    print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                    LOGGER.info("pred: %s", pred.max(1)[1])
+                    LOGGER.info("real: %s", label)
+                    LOGGER.info("loss: %s", loss.item())
+                    LOGGER.info("accurancy: %s", accurancy)
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()
@@ -139,15 +142,14 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     scaler.update()
 
                     plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
-            LOGGER.info("\n")
+            LOGGER.info("End train Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
 
             BatchSettings.instance().eval() #pylint: disable=no-member
             model.eval()
             if is_master_process(RANK): #Master Process 0 or -1
-                #TODO validation
             #------------------------------BATCH------------------------------#
-                LOGGER.info("val Epoch=%s", epoch)
+                LOGGER.info("Start val Epoch=%s", epoch)
                 for i_name, img_struct,label_struct in val_loader:
                     _optimizer.zero_grad()
                     for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -160,13 +162,16 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                         #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                         #with amp.autocast(enabled=cuda):
                         pred = model(img)  # forward
-                        loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                        loss = criterion(pred, label.to(device))
                         accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                        print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                        LOGGER.info("pred: %s", pred.max(1)[1])
+                        LOGGER.info("real: %s", label)
+                        LOGGER.info("loss: %s", loss.item())
+                        LOGGER.info("accurancy: %s", accurancy)
 
                         plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
-                LOGGER.info("\n")
+                LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
                 val_dict = plotter.update_epoch(selected_function)
 
@@ -189,7 +194,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             #Scheduler
             _scheduler.step()
             collected = garbage_collector.collect()
-            LOGGER.debug('Collected Garbage: %s', collected)
+            LOGGER.info('Collected Garbage: %s', collected)
+            LOGGER.info('\n')
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)

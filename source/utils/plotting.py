@@ -34,7 +34,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
-        self.vallist = []
+        self.vallist = np.array([])
 
     def reset(self):
         """
@@ -115,8 +115,8 @@ class Plotting():
     def statistics_criteria_calculation(self, dataset, conf_matrix):
         """
         Calculate Statistics
-        :param dict1: Dictionary 1 (dict)
-        :param dict2: Dictionary 2 (dict)
+        :param dataset: "train" or "val" (str)
+        :param conf_matrix: Confusion Matrix (NxN float)
         :return dict
 
         Problems:
@@ -193,25 +193,16 @@ class Plotting():
         acc       = np.where(np.isposinf(acc)     , 1, acc)
         f1_score  = np.where(np.isposinf(f1_score), 1, f1_score)
 
-        print("\n")
-        print(dataset)
-        print(conf_matrix)
+        LOGGER.info("%s Confusion Matrix: \n%s", dataset, conf_matrix)
+        LOGGER.info("FP: %s --- FN: %s --- TP: %s --- Tp: %s", false_positive, false_negative, true_positive, true_negative   )
+        LOGGER.info("Loss: %s -- %s"       , self.averagemeter[dataset]["loss"].vallist, self.averagemeter[dataset]["loss"].vallist.mean())
+        LOGGER.info("Sensitivity: %s -- %s", tpr, tpr.mean()             )
+        LOGGER.info("Specificity: %s -- %s", tnr, tnr.mean()             )
+        LOGGER.info("PPV: %s -- %s"        , ppv, ppv.mean()             )
+        LOGGER.info("NPV: %s -- %s"        , npv, npv.mean()             )
+        LOGGER.info("F1 Score: %s -- %s"   , f1_score, f1_score.mean()   )
+        LOGGER.info("Accurancy: %s -- %s\n", acc, acc.mean()             )
 
-        print("\n")
-        print("FP: ",               false_positive)
-        print("FN: ",               false_negative)
-        print("TP: ",               true_positive)
-        print("TN: ",               true_negative)
-
-
-        print("\n Loss: ",               self.averagemeter[dataset]["loss"].vallist, self.averagemeter[dataset]["loss"].vallist.mean(),
-              "\n Sensitivity: ",               tpr, tpr.mean(),
-              "\n Specificity: ",               tnr, tnr.mean(),
-              "\n positive predictive value: ", ppv, ppv.mean(),
-              "\n Negative predictive value: ", npv, npv.mean(),
-              "\n F1 Score: ",                  f1_score, f1_score.mean(),
-              "\n Accurancy: ",                 acc, acc.mean())
-        print("\n")
 
         ret_dict = { dataset+"_loss": self.averagemeter[dataset]["loss"].avg,
                      dataset+"_tpr": tpr.mean(),
@@ -272,8 +263,9 @@ class Plotting():
 
         #Update Confusion Matrix
         tmp = confusion_matrix(label, pred.argmax(dim=1), labels=list(house_brackmann_lookup[func]["enum"].values())  )
-        self.conf_matrix[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
-        self.conf_matrix_epoch[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
+
+        self.conf_matrix[dataset][func] += tmp
+        self.conf_matrix_epoch[dataset][func] += tmp
 
 
         #Update AverageMeter
