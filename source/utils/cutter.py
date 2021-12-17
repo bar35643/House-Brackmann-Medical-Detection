@@ -76,11 +76,11 @@ def load_images_format(path, img_name):
     assert image, f"Error While loading Image at Path {matching_img_path}"
 
     if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
-        return Image.open(image[0])
+        return Image.open(image[0]).convert('RGB')
 
     if image[0].split('.')[-1].lower() in ['heic']:
         temp = pyheif.read_heif(image[0])
-        return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data)
+        return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
 
     return None
 

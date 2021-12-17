@@ -254,7 +254,7 @@ class Plotting():
         filename = os.path.join(self.path, func + ".csv")
         file_exists = os.path.isfile(filename)
         with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
             if not file_exists:
                 writer.writeheader()
             writer.writerow(to_be_saved_dict)
