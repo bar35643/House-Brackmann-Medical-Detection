@@ -44,7 +44,6 @@
    5. [x] Augmentation for Images
    6. [x] Flipping/Invert Image as Augmentation
 - [x] Training function for epochs
-- [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
 - [x] Dataloader Sampler for DP and DDP
@@ -53,7 +52,7 @@
 - [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
 - [ ] Input single Picture
 - [ ] Prediction interpreter
-- [ ] Decision Tree for the Grading [Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
+- [ ] Decision Tree for the Grading  or Automata[Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
 - [ ] output result list
 
 ###### Other
@@ -73,7 +72,7 @@
    1. [ ] Linting Code and write all #pylint: disable to a list
    2. [ ] Write Unittest code for all relevant Functions
 - [ ] Adding & Checking Docstring's in all files and functions
-   1. [ ] Header Docstring addes (Author, file name, License)
+   1. [ ] Header Docstring (Author, file name, License)
    2. [ ] Function Docstring
 - [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
 - [ ] API Access via docker-compose/Dockerfile and FastAPI
@@ -98,6 +97,7 @@ pip install -r source/requirements.txt
  --> Will be added soon! (How to start and use the Code)
 
  ~~~shell
+ du -h
 watch -n0.5 nvidia-smi
 htop
 

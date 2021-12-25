@@ -147,7 +147,6 @@ class LoadImages(Dataset):
                       (640, 300)) #forehead
 
         self.database = None
-        self.database_file = "cache.db"
         self.table = "dataloader_table"
         #-#-#-#-#-#-#-#-#-Generating List of Patients for Processing-#-#-#-#-#-#-#-#-#-#-#
         self.list_patients=get_list_patients(self.path)
@@ -163,7 +162,7 @@ class LoadImages(Dataset):
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         if cache:
             self.database = Database.instance() #pylint: disable=no-member
-            self.database.set(self.database_file, self.prefix_for_log)
+            self.database.set("cache.db", self.prefix_for_log)
             if self.database.create_db_connection() is not None:
                 self.database.create_db_table(f""" CREATE TABLE IF NOT EXISTS {self.table} (
                                                 id integer PRIMARY KEY,

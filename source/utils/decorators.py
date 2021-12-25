@@ -28,7 +28,8 @@ from .config import LOGGER
 
 def try_except(func):
     """
-    try-except function. Usage: @try_except decorator
+    try-except function. Usage: @try_except decorator.
+    Decorated Function returns function Falue or terminates and Print error
 
     :param func:  Function which should be decorated (function)
     """
@@ -43,7 +44,8 @@ def try_except(func):
 
 def try_except_none(func):
     """
-    try-except_none function. Usage: @try_except_none decorator
+    try-except_none function. Usage: @try_except_none decorator.
+    Decorated Function returns function Falue or None
 
     :param func:  Function which should be decorated (function)
     :returns value of func or None
@@ -60,7 +62,8 @@ def try_except_none(func):
 
 def thread_safe(func):
     """
-    thread_safe function. Usage: @thread_safe decorator
+    thread_safe function. Usage: @thread_safe decorator.
+    Decorated Function can be executed Thread Safe
 
     :param func:  Function which should be decorated (function)
     :returns value of func

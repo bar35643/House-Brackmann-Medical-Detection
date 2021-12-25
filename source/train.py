@@ -40,16 +40,15 @@ from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import RANK, WORLD_SIZE, LOGGER
+from utils.config import RANK, WORLD_SIZE, LOGGER, LOGGING_STATE
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
 from utils.dataloader import create_dataloader, BatchSettings
 from utils.templates import house_brackmann_lookup
 from utils.plotting import Plotting
-from utils.specs import validate_yaml_config
+from utils.specs import validate_file
 
 PREFIX = "train: "
-LOGGING_STATE = logging.INFO
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
 #https://pytorch.org/docs/stable/amp.html
 #https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
@@ -78,21 +77,16 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
-    # Directories
+    # Directories for Saving Results
     save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
-    pth = Path(hyp)
-    assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
-    with open(pth, 'r', encoding="UTF-8") as yaml_file:
-        yml_hyp = yaml.safe_load(yaml_file)
-        error, tru_fal = validate_yaml_config(yml_hyp)
-        assert tru_fal, f"Error in YAML-Configuration (Path = {pth}): \n" + "\n".join(error)
+    yml_hyp = validate_file(hyp)
 
 
-
+    # Save Hyperparameters/Augmentation, Scheduler and Optimizer
     with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
         yaml.safe_dump(OptArgs.instance().args, file, sort_keys=False) #pylint: disable=no-member
     with open(save_dir / 'hyp.yaml', 'w', encoding="UTF-8") as file:
@@ -102,10 +96,10 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     device = select_device(device, batch_size=batch_size)
     cuda = device.type != "cpu"
 
-    # Setting up the Images
+    # Setting up the Dataloader
     train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
                                                  batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
-
+    # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
     BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
@@ -119,10 +113,10 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
 
-        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
-        #Optimizer & Scheduler
+        #Optimizer & Scheduler & Loss function
         _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
+        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         scaler = amp.GradScaler(enabled=cuda)
 

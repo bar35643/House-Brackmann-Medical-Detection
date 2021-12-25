@@ -38,14 +38,13 @@ import torch
 # start_time = time.time()
 # fn()
 # elapsed = time.time() - start_time
-from utils.config import LOGGER
+from utils.config import LOGGER, LOGGING_STATE
 from utils.general import check_requirements, set_logging, init_dict, OptArgs
 from utils.pytorch_utils import select_device, load_model
 from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
 
 PREFIX = "detect: "
-LOGGING_STATE = logging.INFO #logging.DEBUG
 
 @torch.no_grad()
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals

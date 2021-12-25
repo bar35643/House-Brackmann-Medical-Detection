@@ -39,6 +39,7 @@ RANK = int(os.getenv("RANK", "-1"))
 WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
 
 LOGGER = logging.getLogger(__name__)
+LOGGING_STATE = logging.INFO
 
 LRU_MAX_SIZE=100
 THREADPOOL_NUM_THREADS = min(8, os.cpu_count())  # number of multiprocessing threads

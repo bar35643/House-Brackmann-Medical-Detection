@@ -99,7 +99,7 @@ def select_data_parallel_mode(model, cuda: bool):
     #DP mode
     #Setting DataParrallel if Process Group not available but available devices more than 1
     if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1:
-        LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
+        LOGGER.warning("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
                     use ---> python -m torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options>")
         model = DataParallel(model)
 
@@ -131,6 +131,8 @@ def load_model(pth_to_weights, func):
         LOGGER.debug("Using General Model")
         model = house_brackmann_lookup[func]["model"]
     return model
+
+
 
 def select_device(device="", batch_size=None):
     """

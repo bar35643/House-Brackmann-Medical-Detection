@@ -197,3 +197,13 @@ def validate_yaml_config(inp):
         return [], True
     except ValidationError as ex:
         return ex.errors, ex.informal_only
+
+
+def validate_file(hyp:str):
+    pth = Path(hyp)
+    assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
+    with open(pth, 'r', encoding="UTF-8") as yaml_file:
+        yml_hyp = yaml.safe_load(yaml_file)
+        error, tru_fal = validate_yaml_config(yml_hyp)
+        assert tru_fal, f"Error in YAML-Configuration (Path = {pth}): \n" + "\n".join(error)
+    return yml_hyp
