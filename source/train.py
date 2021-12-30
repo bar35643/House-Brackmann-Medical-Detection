@@ -40,7 +40,7 @@ from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import RANK, WORLD_SIZE, LOGGER, LOGGING_STATE
+from utils.config import RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
 from utils.dataloader import create_dataloader, BatchSettings
@@ -58,8 +58,7 @@ PREFIX = "train: "
 
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
-        hyp="./models/hyp.yaml",
-        imgsz=640,
+        config="./models/hyp.yaml",
         cache=False,
         batch_size=16,
         val_split=None,
@@ -83,10 +82,10 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
-    yml_hyp = validate_file(hyp)
+    yml_hyp = validate_file(config)
 
 
-    # Save Hyperparameters/Augmentation, Scheduler and Optimizer
+    # Save Args and Config (Hyperparameters/Augmentation, Scheduler and Optimizer)
     with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
         yaml.safe_dump(OptArgs.instance().args, file, sort_keys=False) #pylint: disable=no-member
     with open(save_dir / 'hyp.yaml', 'w', encoding="UTF-8") as file:
@@ -97,7 +96,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     cuda = device.type != "cpu"
 
     # Setting up the Dataloader
-    train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
+    train_loader, val_loader = create_dataloader(path=source, device=device, cache=cache,
                                                  batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
     # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
@@ -253,10 +252,8 @@ def parse_opt():
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
-    parser.add_argument("--hyp", "--hyperparameter", type=str, default="./models/hyp.yaml",
+    parser.add_argument("--config", "--cfg", type=str, default="./models/hyp.yaml",
                         help="path to hyperparamer file")
-    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
-                        help="inference size h,w")
     parser.add_argument("--cache", action="store_true",
                         help="Caching Images to a SQLite File (can get really big)")
     parser.add_argument("--batch-size", type=int, default=16,
@@ -293,9 +290,8 @@ if __name__ == "__main__":
     opt_args = vars(parse_opt())
     OptArgs.instance()(opt_args)
 
-    set_logging(LOGGING_STATE, PREFIX)
-
     if is_master_process(RANK):  #Master Process 0 or -1
+        set_logging(PREFIX)
         check_requirements()
     time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)

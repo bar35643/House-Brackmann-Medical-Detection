@@ -22,13 +22,10 @@
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
 
-#import os
 import argparse
 import logging
-import os
 import time
 import timeit
-from pathlib import Path
 
 import torch
 
@@ -38,10 +35,10 @@ import torch
 # start_time = time.time()
 # fn()
 # elapsed = time.time() - start_time
-from utils.config import LOGGER, LOGGING_STATE
+from utils.config import LOGGER
 from utils.general import check_requirements, set_logging, init_dict, OptArgs
 from utils.pytorch_utils import select_device, load_model
-from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
+from utils.templates import allowed_fn, house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
 
 PREFIX = "detect: "
@@ -49,7 +46,6 @@ PREFIX = "detect: "
 @torch.no_grad()
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
-        imgsz=640,
         batch_size=16,
         device="cpu",
         half=False,
@@ -74,7 +70,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     device = select_device(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-    dataloader= create_dataloader_only_images(path=source, imgsz=imgsz, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
+    dataloader= create_dataloader_only_images(path=source, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
     #Calculating
     result_list = []
     for batch, item_struct in enumerate(dataloader):
@@ -146,8 +142,6 @@ def parse_opt():
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
-    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
-                        help="inference size h,w")
     parser.add_argument("--batch-size", type=int, default=1,
                         help="total batch size for all GPUs")
     parser.add_argument("--device", default="cpu",
@@ -162,7 +156,7 @@ if __name__ == "__main__":
     opt_args = vars(parse_opt())
     OptArgs.instance()(opt_args)
 
-    set_logging(LOGGING_STATE, PREFIX)
+    set_logging(PREFIX)
     check_requirements()
 
     time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda

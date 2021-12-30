@@ -127,13 +127,12 @@ class LoadImages(Dataset):
                      /data/muscle_transplant/0002
                      /data/muscle_transplant/0003
     """
-    def __init__(self, path, imgsz=640, device="cpu", cache=False, prefix_for_log=""):
+    def __init__(self, path, device="cpu", cache=False, prefix_for_log=""):
         """
         Initializes the LoadImages class
 
 
         :param path: one of List above (str/Path)
-        :param imgsz: crop images to the given size (int)
         :param device: cuda device (cpu or cuda:0)
         :param cache: Cache Enable(bool)
         :param prefix_for_log: logger output prefix (str)
@@ -141,10 +140,6 @@ class LoadImages(Dataset):
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-        self.imgsz = ((640, 640), #symmetry
-                      (420, 500), #eye
-                      (640, 420), #mouth
-                      (640, 300)) #forehead
 
         self.database = None
         self.table = "dataloader_table"
@@ -200,10 +195,19 @@ class LoadImages(Dataset):
         :param img: Image input (Image)
         :return Transformed Image as Tensor (Tensor)
         """
-        valid_transforms = T.Compose([
-            T.Resize(self.imgsz[idx]),
-            T.ToTensor()
-        ])
+        if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
+            valid_transforms = T.Compose([  T.Resize(BatchSettings.instance().hyp["imgsz"][idx]), #pylint: disable=no-member
+                               T.ToTensor()  ])
+        else:
+            imgsz = { #Failsave
+                "symmetry": [640, 640],
+                "eye": [420, 500],
+                "mouth": [640, 420],
+                "forehead": [640, 300],
+            }
+            valid_transforms = T.Compose([  T.Resize(imgsz[idx]),
+                               T.ToTensor()  ])
+
         return valid_transforms(img)
 
     #TODO Augmentation
@@ -229,13 +233,12 @@ class LoadImages(Dataset):
                 T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
                             std=   BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
                 ])
-        else:
-            if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
-                valid_transforms = T.Compose([
+        elif BatchSettings.instance().hyp is not None: #pylint: disable=no-member
+            valid_transforms = T.Compose([
                 T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
                             std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
-            else:
-                valid_transforms = T.Compose([
+        else:
+            valid_transforms = T.Compose([
                 T.Normalize(mean=  [0.5, 0.5, 0.5],
                             std=   [0.5, 0.5, 0.5])])
         return valid_transforms(img_tensor)
@@ -257,15 +260,15 @@ class LoadImages(Dataset):
         func_list = self.cutter_class.cut_wrapper()
 
         image_input= {
-            "1_rest":                 self.transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), 0  ),
-            "2_lift_eyebrow":         self.transform_resize_and_to_tensor(func_list["forehead"](path, "02"), 3  ),
-            "3_smile_closed":         self.transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), 2  ),
-            "4_smile_open":           self.transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), 2  ),
-            "5_Duckface":             self.transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), 2  ),
-            "6_eye_closed_easy":      self.transform_resize_and_to_tensor(     func_list["eye"](path, "06"), 1  ),
-            "7_eye_closed_forced":    self.transform_resize_and_to_tensor     (func_list["eye"](path, "07"), 1  ),
-            "8_blow_nose":            self.transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), 2  ),
-            "9_depression_lower_lip": self.transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), 2  ),
+            "1_rest":                 self.transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), "symmetry"  ),
+            "2_lift_eyebrow":         self.transform_resize_and_to_tensor(func_list["forehead"](path, "02"), "forehead"  ),
+            "3_smile_closed":         self.transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), "mouth"  ),
+            "4_smile_open":           self.transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), "mouth"  ),
+            "5_Duckface":             self.transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), "mouth"  ),
+            "6_eye_closed_easy":      self.transform_resize_and_to_tensor(     func_list["eye"](path, "06"), "eye"  ),
+            "7_eye_closed_forced":    self.transform_resize_and_to_tensor     (func_list["eye"](path, "07"), "eye"  ),
+            "8_blow_nose":            self.transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), "mouth"  ),
+            "9_depression_lower_lip": self.transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), "mouth"  ),
         }
 
         struct_img = deepcopy(house_brackmann_template)
@@ -310,19 +313,18 @@ class CreateDataset(Dataset):
     """
     Loading Labels and Images and build it together
     """
-    def __init__(self, path='', imgsz=640, device="cpu", cache=False, prefix_for_log=''):
+    def __init__(self, path='', device="cpu", cache=False, prefix_for_log=''):
         """
         Initializes the CreateDataset class
 
         :param path: path to the dataset (str/Path)
-        :param imgsz: crop images to the given size (int)
         :param device: cuda device (cpu or cuda:0)
         :param prefix_for_log: logger output prefix (str)
         """
         super().__init__()
         self.path = path
         self.prefix_for_log = prefix_for_log
-        self.images = LoadImages(path=self.path, imgsz=imgsz, device=device, cache=cache, prefix_for_log=prefix_for_log)
+        self.images = LoadImages(path=self.path, device=device, cache=cache, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
 
         self.labels = []
@@ -380,32 +382,30 @@ class CreateDataset(Dataset):
         return self.len_images
 
 
-def create_dataloader_only_images(path, imgsz, device, batch_size, prefix_for_log=""):
+def create_dataloader_only_images(path, device, batch_size, prefix_for_log=""):
     """
     creates and returns the DataLoader
     checks the batch size
 
     :param path: path to the dataset (str/Path)
-    :param imgsz: crop images to the given size (int)
     :param device: cuda device (cpu or cuda:0)
     :param batch_size: Batch Size (int)
     :param prefix_for_log: logger output prefix (str)
 
     :returns dataloader
     """
-    dataset = LoadImages(path=path, imgsz=imgsz, device=device, cache=False, prefix_for_log=prefix_for_log)
+    dataset = LoadImages(path=path, device=device, cache=False, prefix_for_log=prefix_for_log)
     assert dataset, "No data in dataset given!"
 
     return DataLoader(dataset, batch_size=min(batch_size, len(dataset)), shuffle=False)
 
 
-def create_dataloader(path, imgsz, device, cache, batch_size, val_split=None, train_split=None):
+def create_dataloader(path, device, cache, batch_size, val_split=None, train_split=None):
     """
     creates and returns the DataLoader
     checks the batch size
 
     :param path: path to the dataset (str/Path)
-    :param imgsz: crop images to the given size (int)
     :param device: cuda device (cpu or cuda:0)
     :param cache: True or False (bool)
     :param batch_size: Batch Size (int)
@@ -417,7 +417,7 @@ def create_dataloader(path, imgsz, device, cache, batch_size, val_split=None, tr
     prefix_for_log="Setup Train & Validation Data: "
 
     with torch_distributed_zero_first():
-        dataset = CreateDataset(path=path, imgsz=imgsz, device=device, cache=cache, prefix_for_log=prefix_for_log)
+        dataset = CreateDataset(path=path, device=device, cache=cache, prefix_for_log=prefix_for_log)
 
     val_loader = train_loader = None
 

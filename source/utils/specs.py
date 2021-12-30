@@ -22,8 +22,8 @@
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
 
-
-
+from pathlib import Path
+import yaml
 
 from mapproxy.util.ext.dictspec.validator import validate, ValidationError
 from mapproxy.util.ext.dictspec.spec import one_of, number, required, combined
@@ -163,7 +163,12 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
-hyperparameter = { 'RandomHorizontalFlip': number(),
+hyperparameter = {'imgsz':{
+                        required('symmetry'): [number()],
+                        required('eye') : [number()],
+                        required('mouth') : [number()],
+                        required('forehead') : [number()],},
+                   'RandomHorizontalFlip': number(),
                    'RandomRotation_Degree': number(),
                    'Normalize':{
                         'mean': [number()],

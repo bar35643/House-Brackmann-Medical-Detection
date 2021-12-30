@@ -36,7 +36,7 @@ import pkg_resources as pkg
 
 import torch
 
-from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
@@ -67,11 +67,11 @@ class OptArgs():
         """
         self.args = args
 
-def set_logging(level, main_inp_func):
+def set_logging(prefix):
     """
     Setting up the logger
 
-    :param level: one of (logging.DEBUG, logging.INFO)
+    :param prefix: Prefix of the function (str)
     """
     if is_process_group(RANK):
         format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"  #pylint: disable=redefined-builtin
@@ -79,26 +79,19 @@ def set_logging(level, main_inp_func):
         format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
     logging.basicConfig(
-        level=level,
+        level=LOGGING_STATE,
         format=format,
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
-    if level == logging.WARN:
-        LOGGER.warning(log_str)
-        LOGGER.warning("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
-                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
-        LOGGER.warning("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
-                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
-    else:
-        LOGGER.info(log_str)
-        LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
-                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
-        LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
-                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
+    log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
+    LOGGER.info(log_str)
+    LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       prefix, LOCAL_RANK, RANK, WORLD_SIZE)
+    LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       prefix, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
 
 
 

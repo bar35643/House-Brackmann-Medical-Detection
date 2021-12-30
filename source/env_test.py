@@ -46,7 +46,7 @@ if __name__ == "__main__":
     opt_args = vars(Namespace())
     OptArgs.instance()(opt_args)
     check_requirements()
-    set_logging(logging.INFO, "env_test: ")
+    set_logging("env_test: ")
     print("-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-")
     print("ROOT: ", ROOT)
     print("ROOT_RELATIVE: ", ROOT_RELATIVE)

@@ -1,7 +1,7 @@
 ##
 ## Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
 ##
-## This file is part of house-brackmann-medical-processing 
+## This file is part of house-brackmann-medical-processing
 ## Author: Raphael Baumann
 ##
 ## License:
@@ -43,6 +43,11 @@ scheduler:
         verbose: false
 
 hyp:
+  imgsz:
+    symmetry: [640, 639]
+    eye: [420, 500]
+    mouth: [640, 420]
+    forehead: [640, 300]
   RandomHorizontalFlip: 0.5
   RandomRotation_Degree: 3
   Normalize:
