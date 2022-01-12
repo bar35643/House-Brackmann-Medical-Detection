@@ -66,7 +66,7 @@ def create_workspace():
 
 
 @app.get("/", response_class=HTMLResponse)
-def get_upload(request: Request):
+def get_http(request: Request):
     return templates.TemplateResponse('base.html', context={'request': request})
 
 
@@ -75,7 +75,7 @@ def get_upload(request: Request):
 
 
 @app.post("/api/upload/")
-async def post_upload(files: List[UploadFile] = File(...)):
+async def run_detect(files: List[UploadFile] = File(...)):
     with scheduler_lock:
         workspace = create_workspace()
 
