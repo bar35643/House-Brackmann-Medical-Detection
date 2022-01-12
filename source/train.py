@@ -43,7 +43,7 @@ from utils.argparse_utils import restricted_val_split, SmartFormatter
 from utils.config import RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
-from utils.dataloader import create_dataloader, BatchSettings
+from utils.dataloader import CreateDataloader, BatchSettings
 from utils.templates import house_brackmann_lookup
 from utils.plotting import Plotting
 from utils.specs import validate_file
@@ -96,8 +96,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     cuda = device.type != "cpu"
 
     # Setting up the Dataloader
-    train_loader, val_loader = create_dataloader(path=source, device=device, cache=cache,
-                                                 batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
+    dataloader = CreateDataloader(path=source, device=device, cache=cache,
+                                  batch_size=batch_size // WORLD_SIZE,
+                                  val_split=val_split, train_split=train_split)
     # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
@@ -115,6 +116,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         #Optimizer & Scheduler & Loss function
         _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
+
+        train_loader, val_loader = dataloader.get_dataloader_func(selected_function)
+
         criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         scaler = amp.GradScaler(enabled=cuda)
