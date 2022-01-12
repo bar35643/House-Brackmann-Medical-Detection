@@ -31,6 +31,7 @@ from copy import deepcopy
 from itertools import repeat
 from functools import lru_cache
 from multiprocessing.pool import ThreadPool
+from collections import Counter
 from tqdm import tqdm
 
 import torch
@@ -319,6 +320,7 @@ class CreateDataset(Dataset):
 
         :param path: path to the dataset (str/Path)
         :param device: cuda device (cpu or cuda:0)
+        :param cache: Cache Enable(bool)
         :param prefix_for_log: logger output prefix (str)
         """
         super().__init__()
@@ -327,10 +329,12 @@ class CreateDataset(Dataset):
         self.images = LoadImages(path=self.path, device=device, cache=cache, prefix_for_log=prefix_for_log)
         self.len_images = len(self.images)
 
+        #-#-#-#-#-#-#-#-#-#-#-#-##Gather Labels from the csv Files-#-#--#-#-#-#-#-#-#-#-#
         self.labels = []
         listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
-        #Errorfix Jupyterlab: listdir.pop(0)
-        #Errorfix Jupyterlab: listdir.pop(-1)
+        #listdir.pop(-1) #Errorfix Activate when using jupyterlab!
+
+        LOGGER.info("%sCSV Files: %s", self.prefix_for_log, listdir)
 
         for s_dir in listdir:
             csv_path = os.path.join(self.path, s_dir) + '.csv'
@@ -344,6 +348,26 @@ class CreateDataset(Dataset):
         self.len_labels = len(self.labels)
 
         assert self.len_images == self.len_labels, f"Length of the Images ({self.len_images}) do not match to length of Labels({self.len_labels}) ."
+        #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
+
+        #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#Counter for Statistics-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        label_list = [item[1] for item in self.labels]
+        struct_tmp = init_dict(house_brackmann_template, [])
+        count = Counter(label_list)
+
+        LOGGER.info("%sCounter of Grade: %s", self.prefix_for_log, count)
+        for i in count:
+            for func in struct_tmp:
+                struct_tmp[func].extend(repeat(   house_brackmann_grading[  list(house_brackmann_grading)[int(i) -1]  ][func]  , count[i]  ))
+
+        for j in struct_tmp:
+            sub_count = Counter(struct_tmp[j])
+            label_count = [0] * len(house_brackmann_lookup[j]["enum"])
+            for i in sub_count:
+                label_count[house_brackmann_lookup[j]["enum"][i]] = sub_count[i]
+
+            LOGGER.info("%s Module %s | Distribution of Labels: %s", self.prefix_for_log, j, label_count)
+        #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#-#-#-#-#-#-#--#-#-#-#-#-#-#
 
     #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
     #augmentation needs to calculated every epoch
@@ -357,10 +381,9 @@ class CreateDataset(Dataset):
 
         #TODO return only right pair of Images on Label (checking if same Patient)
 
-        tmp = ["I", "II", "III", "IV", "V", "VI"]
-        tmp2 = tmp[int(self.labels[idx][1]) -1]
+        tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
 
-        grade_table = house_brackmann_grading[tmp2]
+        grade_table = house_brackmann_grading[tmp]
         #grade_table = house_brackmann_grading[self.labels[idx][1]]
 
         path, struct_img = self.images[idx]
