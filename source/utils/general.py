@@ -1,8 +1,28 @@
+"""
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
+"""
+
 #⚠️ 🚀
-#TODO Docstring
-"""
-TODO
-"""
 
 import logging
 import glob
@@ -16,7 +36,7 @@ import pkg_resources as pkg
 
 import torch
 
-from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
@@ -47,11 +67,11 @@ class OptArgs():
         """
         self.args = args
 
-def set_logging(level, main_inp_func):
+def set_logging(prefix):
     """
     Setting up the logger
 
-    :param level: one of (logging.DEBUG, logging.INFO)
+    :param prefix: Prefix of the function (str)
     """
     if is_process_group(RANK):
         format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"  #pylint: disable=redefined-builtin
@@ -59,26 +79,19 @@ def set_logging(level, main_inp_func):
         format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
     logging.basicConfig(
-        level=level,
+        level=LOGGING_STATE,
         format=format,
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
-    if level == logging.WARN:
-        LOGGER.warning(log_str)
-        LOGGER.warning("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
-                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
-        LOGGER.warning("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
-                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
-    else:
-        LOGGER.info(log_str)
-        LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
-                       main_inp_func, LOCAL_RANK, RANK, WORLD_SIZE)
-        LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
-                       main_inp_func, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
+    log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
+    LOGGER.info(log_str)
+    LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       prefix, LOCAL_RANK, RANK, WORLD_SIZE)
+    LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       prefix, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
 
 
 
@@ -136,7 +149,12 @@ def check_version(current="0.0.0", minimum="0.0.0", name="version "):
     :param minimum: Minimum version of the Package required (String)
     :param name: name of the Package (String)
 
-    #TODO pinned delete
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     current, minimum = (pkg.parse_version(x) for x in (current, minimum))
@@ -147,6 +165,13 @@ def check_python(minimum="3.8.0"):
     Check versions of Python
 
     :param minimum: Minimum version of the Package required (String)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     check_version(platform.python_version(), minimum, name="Python ")
@@ -159,6 +184,14 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
     :param requirements:  List of all Requirements needed (parse *.txt file or list of packages)
     :param exclude: List of all Requirements which will be excuded from the checking (list of packages)
     :param install: True for attempting auto update or False for manual use (True or False)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     check_python()  # check python version
@@ -195,6 +228,13 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
     TODO
      Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     path = Path(path)  # os-agnostic

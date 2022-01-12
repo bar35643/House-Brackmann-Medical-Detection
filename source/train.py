@@ -1,6 +1,25 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
 
 
@@ -9,26 +28,27 @@ import logging
 import os
 import timeit
 import datetime
+import gc as garbage_collector
 from pathlib import Path
 
 import yaml
 from sklearn.metrics import accuracy_score
 
 import torch
-from torch.nn import CrossEntropyLoss
 import torch.distributed as dist
+from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import ROOT, ROOT_RELATIVE, RANK, WORLD_SIZE, LOGGER
+from utils.config import RANK, WORLD_SIZE, LOGGER
 from utils.general import check_requirements, increment_path, set_logging, OptArgs
 from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
 from utils.dataloader import create_dataloader, BatchSettings
 from utils.templates import house_brackmann_lookup
 from utils.plotting import Plotting
+from utils.specs import validate_file
 
 PREFIX = "train: "
-LOGGING_STATE = logging.INFO
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
 #https://pytorch.org/docs/stable/amp.html
 #https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
@@ -38,8 +58,7 @@ LOGGING_STATE = logging.INFO
 
 def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
-        hyp="./hyp.yaml",
-        imgsz=640,
+        config="./models/hyp.yaml",
         cache=False,
         batch_size=16,
         val_split=None,
@@ -57,38 +76,46 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
-    # Directories
-    #TODO
+    # Directories for Saving Results
     save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
+    yml_hyp = validate_file(config)
+
+
+    # Save Args and Config (Hyperparameters/Augmentation, Scheduler and Optimizer)
     with open(save_dir / 'opt.yaml', 'w', encoding="UTF-8") as file:
         yaml.safe_dump(OptArgs.instance().args, file, sort_keys=False) #pylint: disable=no-member
-
+    with open(save_dir / 'hyp.yaml', 'w', encoding="UTF-8") as file:
+        yaml.safe_dump(yml_hyp, file, sort_keys=False) #pylint: disable=no-member
 
     # Device init
     device = select_device(device, batch_size=batch_size)
     cuda = device.type != "cpu"
 
-    # Setting up the Images
-    train_loader, val_loader = create_dataloader(path=source, imgsz=imgsz, device=device, cache=cache,
-                                                 nosave=nosave, batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
+    # Setting up the Dataloader
+    train_loader, val_loader = create_dataloader(path=source, device=device, cache=cache,
+                                                 batch_size=batch_size // WORLD_SIZE, val_split=val_split, train_split=train_split)
+    # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
+
+    BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
+    LOGGER.info("\n")
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in house_brackmann_lookup:
         last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
 
-        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...\n", selected_function, batch_size, save_dir, epochs)
+        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", selected_function, batch_size, save_dir, epochs)
 
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
 
-        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
-        #Optimizer & Scheduler
-        _scheduler, _optimizer = select_optimizer_and_scheduler(hyp, model, epochs)
+        #Optimizer & Scheduler & Loss function
+        _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
+        criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         scaler = amp.GradScaler(enabled=cuda)
 
@@ -100,7 +127,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 train_loader.sampler.set_epoch(epoch)
 
             #------------------------------BATCH------------------------------#
-            LOGGER.info("train Epoch=%s", epoch)
+            LOGGER.info("Start train Epoch=%s", epoch)
             for i_name, img_struct,label_struct in train_loader:
                 _optimizer.zero_grad()
                 for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -113,10 +140,13 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                     #with amp.autocast(enabled=cuda):
                     pred = model(img)  # forward
-                    loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                    loss = criterion(pred, label.to(device))
                     accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                    print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                    LOGGER.info("pred: %s", pred.max(1)[1])
+                    LOGGER.info("real: %s", label)
+                    LOGGER.info("loss: %s", loss.item())
+                    LOGGER.info("accurancy: %s", accurancy)
 
                     #Backward & Optimize
                     scaler.scale(loss).backward() #loss.backward()
@@ -124,15 +154,14 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     scaler.update()
 
                     plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
-            LOGGER.info("\n")
+            LOGGER.info("End train Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
 
             BatchSettings.instance().eval() #pylint: disable=no-member
             model.eval()
             if is_master_process(RANK): #Master Process 0 or -1
-                #TODO validation
             #------------------------------BATCH------------------------------#
-                LOGGER.info("val Epoch=%s", epoch)
+                LOGGER.info("Start val Epoch=%s", epoch)
                 for i_name, img_struct,label_struct in val_loader:
                     _optimizer.zero_grad()
                     for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
@@ -145,13 +174,16 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                         #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                         #with amp.autocast(enabled=cuda):
                         pred = model(img)  # forward
-                        loss = criterion(pred, label.to(device))  # loss scaled by batch_size
+                        loss = criterion(pred, label.to(device))
                         accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                        print("pred: ", pred.max(1)[1], "real: ", label, "loss: ", loss.item(), "accurancy: ", accurancy)
+                        LOGGER.info("pred: %s", pred.max(1)[1])
+                        LOGGER.info("real: %s", label)
+                        LOGGER.info("loss: %s", loss.item())
+                        LOGGER.info("accurancy: %s", accurancy)
 
                         plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
-                LOGGER.info("\n")
+                LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
                 val_dict = plotter.update_epoch(selected_function)
 
@@ -173,6 +205,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
             #Scheduler
             _scheduler.step()
+            collected = garbage_collector.collect()
+            LOGGER.info('Collected Garbage: %s', collected)
+            LOGGER.info('\n')
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)
@@ -217,10 +252,8 @@ def parse_opt():
                         help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
-    parser.add_argument("--hyp", "--hyperparameter", type=str, default="./hyp.yaml",
+    parser.add_argument("--config", "--cfg", type=str, default="./models/hyp.yaml",
                         help="path to hyperparamer file")
-    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
-                        help="inference size h,w")
     parser.add_argument("--cache", action="store_true",
                         help="Caching Images to a SQLite File (can get really big)")
     parser.add_argument("--batch-size", type=int, default=16,
@@ -257,9 +290,8 @@ if __name__ == "__main__":
     opt_args = vars(parse_opt())
     OptArgs.instance()(opt_args)
 
-    set_logging(LOGGING_STATE, PREFIX)
-
     if is_master_process(RANK):  #Master Process 0 or -1
+        set_logging(PREFIX)
         check_requirements()
     time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Training. Finished in %s s", time)

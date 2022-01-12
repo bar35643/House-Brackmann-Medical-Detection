@@ -1,6 +1,29 @@
+"""
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
+"""
 
-
-
+from pathlib import Path
+import yaml
 
 from mapproxy.util.ext.dictspec.validator import validate, ValidationError
 from mapproxy.util.ext.dictspec.spec import one_of, number, required, combined
@@ -140,8 +163,18 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
-
-
+hyperparameter = {'imgsz':{
+                        required('symmetry'): [number()],
+                        required('eye') : [number()],
+                        required('mouth') : [number()],
+                        required('forehead') : [number()],},
+                   'RandomHorizontalFlip': number(),
+                   'RandomRotation_Degree': number(),
+                   'Normalize':{
+                        'mean': [number()],
+                        'std' : [number()],
+                   },
+}
 
 
 
@@ -155,8 +188,10 @@ def validate_yaml_config(inp):
     """
     yaml_spec = {
         required("optimizer"): combined(adadelta, adagrad, adam, adamw, sparseadam, adamax, asgd, lbfgs, nadam, radam, rmsprop, rprop, sgd),
+        required("sequential_scheduler"): bool(),
         required("scheduler"): [combined(steplr, multisteplr, constantlr, linearlr, exponentiallr,
                                          cosineannealinglr, reducelronplateau, cycliclr, cosineannealingwarmrestarts)],
+        required("hyp"):hyperparameter,
     }
 
     try:
@@ -164,7 +199,16 @@ def validate_yaml_config(inp):
         validate(yaml_spec, inp)
         if len(inp["optimizer"]) != 1:
             raise ValidationError("", [f'key optimizer has more than one element {list(inp["optimizer"].keys())}. Only one is allowed!'])
+        return [], True
     except ValidationError as ex:
         return ex.errors, ex.informal_only
-    else:
-        return [], True
+
+
+def validate_file(hyp:str):
+    pth = Path(hyp)
+    assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
+    with open(pth, 'r', encoding="UTF-8") as yaml_file:
+        yml_hyp = yaml.safe_load(yaml_file)
+        error, tru_fal = validate_yaml_config(yml_hyp)
+        assert tru_fal, f"Error in YAML-Configuration (Path = {pth}): \n" + "\n".join(error)
+    return yml_hyp

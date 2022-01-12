@@ -1,3 +1,26 @@
+"""
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
+"""
 
 import os
 from copy import deepcopy
@@ -34,7 +57,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
-        self.vallist = []
+        self.vallist = np.array([])
 
     def reset(self):
         """
@@ -115,8 +138,8 @@ class Plotting():
     def statistics_criteria_calculation(self, dataset, conf_matrix):
         """
         Calculate Statistics
-        :param dict1: Dictionary 1 (dict)
-        :param dict2: Dictionary 2 (dict)
+        :param dataset: "train" or "val" (str)
+        :param conf_matrix: Confusion Matrix (NxN float)
         :return dict
 
         Problems:
@@ -193,25 +216,16 @@ class Plotting():
         acc       = np.where(np.isposinf(acc)     , 1, acc)
         f1_score  = np.where(np.isposinf(f1_score), 1, f1_score)
 
-        print("\n")
-        print(dataset)
-        print(conf_matrix)
+        LOGGER.info("%s Confusion Matrix: \n%s", dataset, conf_matrix)
+        LOGGER.info("FP: %s --- FN: %s --- TP: %s --- Tp: %s", false_positive, false_negative, true_positive, true_negative   )
+        LOGGER.info("Loss: %s -- %s"       , self.averagemeter[dataset]["loss"].vallist, self.averagemeter[dataset]["loss"].vallist.mean())
+        LOGGER.info("Sensitivity: %s -- %s", tpr, tpr.mean()             )
+        LOGGER.info("Specificity: %s -- %s", tnr, tnr.mean()             )
+        LOGGER.info("PPV: %s -- %s"        , ppv, ppv.mean()             )
+        LOGGER.info("NPV: %s -- %s"        , npv, npv.mean()             )
+        LOGGER.info("F1 Score: %s -- %s"   , f1_score, f1_score.mean()   )
+        LOGGER.info("Accurancy: %s -- %s\n", acc, acc.mean()             )
 
-        print("\n")
-        print("FP: ",               false_positive)
-        print("FN: ",               false_negative)
-        print("TP: ",               true_positive)
-        print("TN: ",               true_negative)
-
-
-        print("\n Loss: ",               self.averagemeter[dataset]["loss"].vallist, self.averagemeter[dataset]["loss"].vallist.mean(),
-              "\n Sensitivity: ",               tpr, tpr.mean(),
-              "\n Specificity: ",               tnr, tnr.mean(),
-              "\n positive predictive value: ", ppv, ppv.mean(),
-              "\n Negative predictive value: ", npv, npv.mean(),
-              "\n F1 Score: ",                  f1_score, f1_score.mean(),
-              "\n Accurancy: ",                 acc, acc.mean())
-        print("\n")
 
         ret_dict = { dataset+"_loss": self.averagemeter[dataset]["loss"].avg,
                      dataset+"_tpr": tpr.mean(),
@@ -240,7 +254,7 @@ class Plotting():
         filename = os.path.join(self.path, func + ".csv")
         file_exists = os.path.isfile(filename)
         with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
             if not file_exists:
                 writer.writeheader()
             writer.writerow(to_be_saved_dict)
@@ -249,12 +263,12 @@ class Plotting():
 
         #Reset conf_matrix_epoch
         for i in self.conf_matrix_epoch:
-            self.conf_matrix_epoch[i] = deepcopy(self.conf_matrix_template)
+            self.conf_matrix_epoch[i][func].fill(0)
 
         #Reset all AverageMeter
         for i in self.averagemeter:
             for j in self.averagemeter[i]:
-                self.averagemeter[i][j] = AverageMeter()
+                self.averagemeter[i][j].reset()
 
         return val_dict
 
@@ -271,9 +285,10 @@ class Plotting():
         """
 
         #Update Confusion Matrix
-        tmp = confusion_matrix(label, pred.argmax(dim=1))
-        self.conf_matrix[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
-        self.conf_matrix_epoch[dataset][func][:tmp.shape[0],:tmp.shape[1]] += tmp
+        tmp = confusion_matrix(label, pred.argmax(dim=1), labels=list(house_brackmann_lookup[func]["enum"].values())  )
+
+        self.conf_matrix[dataset][func] += tmp
+        self.conf_matrix_epoch[dataset][func] += tmp
 
 
         #Update AverageMeter

@@ -1,13 +1,31 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
 
 import os
 import math
 from contextlib import contextmanager
 from pathlib import Path
-import yaml
 
 import torch
 from torch import optim
@@ -18,10 +36,8 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
 from .templates import house_brackmann_lookup #pylint: disable=import-error
-from .specs import validate_yaml_config #pylint: disable=import-error
 from .config import LOGGER,LOCAL_RANK, RANK
 
-#Ideas from https://github.com/ultralytics/yolov5
 
 
 
@@ -67,17 +83,23 @@ def select_data_parallel_mode(model, cuda: bool):
     https://pytorch.org/docs/stable/distributed.html
     https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html
 
-    :param rank:  Rank of the global Process Group (int)
-    :param rank:  Rank of the local Process Group (int)
     :param model:  model selected for changind the mode (Model)
     :param cuda:  cuda aailable (bool)
     :returns: model (Model)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     #DP mode
     #Setting DataParrallel if Process Group not available but available devices more than 1
     if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1:
-        LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
+        LOGGER.warning("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
                     use ---> python -m torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options>")
         model = DataParallel(model)
 
@@ -105,11 +127,12 @@ def load_model(pth_to_weights, func):
         ckpt = torch.load(pth)  # load checkpoint
         model.load_state_dict(ckpt["model"], strict=False)  # load
         model.float()
-        #LOGGER.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # TODo report
     else:
-        LOGGER.debug("", pth)
+        LOGGER.debug("Using General Model")
         model = house_brackmann_lookup[func]["model"]
     return model
+
+
 
 def select_device(device="", batch_size=None):
     """
@@ -124,6 +147,14 @@ def select_device(device="", batch_size=None):
     https://discuss.pytorch.org/t/cuda-visible-device-is-of-no-use/10018
     https://discuss.pytorch.org/t/difference-between-torch-device-cuda-and-torch-device-cuda-0/46306/18
     https://pytorch.org/docs/1.9.0/generated/torch.cuda.set_device.html
+
+    Source/Idea:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     # device = "cpu" or "0" or "0,1,2,3"
@@ -166,8 +197,12 @@ def torch_distributed_zero_first():
     """
     Decorator to make all processes in distributed training wait for each local_master to do something.
 
-
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     if not is_master_process(LOCAL_RANK):
@@ -175,18 +210,6 @@ def torch_distributed_zero_first():
     yield
     if LOCAL_RANK == 0:
         dist.barrier(device_ids=[0])
-
-def is_parallel(model):
-    """
-    Returns True if model is of type DP or DDP
-
-    :param model:  Model (Model)
-    :returns: True or false (bool)
-
-    Source:
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
-    """
-    return type(model) in (DataParallel, DistributedDataParallel)
 
 
 def de_parallel(model):
@@ -199,10 +222,8 @@ def de_parallel(model):
     Info:
     https://pytorch.org/tutorials/beginner/saving_loading_models.html
 
-    Source:
-    https://github.com/ultralytics/yolov5/blob/b8f979bafab6db020d86779b4b40619cd4d77d57/utils/torch_utils.py
     """
-    return model.module if is_parallel(model) else model
+    return model.module if type(model) in (DataParallel, DistributedDataParallel) else model
 
 
 
@@ -238,42 +259,36 @@ scheduler_list = {
 "CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts,
 }
 
-def select_optimizer_and_scheduler(hyp_pth, neural_net, epoch, sequential=False):
+def select_optimizer_and_scheduler(yml_hyp, neural_net, epoch):
     """
     Database functions to convert np.array to entry
-    :param hyp_pth: Path to File (str)
+    :param yml_hyp: Loaded YAML Config (dict)
     :param neural_net: model (model)
     :param epoch: Epochs (int)
-    :param sequential: True/False (bool)
     :return: scheduler, optimizer
     """
-    pth = Path(hyp_pth)
-    assert hyp_pth.endswith('.yaml') and pth.exists(), f"Error Path {hyp_pth} has the wron ending or do not exist"
-
-    with open(pth, 'r', encoding="UTF-8") as yaml_file:
-        yml = yaml.safe_load(yaml_file)
-        error, tru_fal = validate_yaml_config(yml)
-        assert tru_fal, f"{pth} Error in YAML-Configuration:\n".join(error)
-
-        item, param = list(yml['optimizer'].keys())[0], list(yml['optimizer'].values())[0]
-        optimizer = optimizer_list[item](neural_net.parameters(), **param)
+    item, param = list(yml_hyp['optimizer'].keys())[0], list(yml_hyp['optimizer'].values())[0]
+    optimizer = optimizer_list[item](neural_net.parameters(), **param)
 
 
-        scheduler_aray = []
-        for i in yml['scheduler']:
-            item, param = list(i.keys())[0], list(i.values())[0]
-            scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
+    scheduler_aray = []
+    for i in yml_hyp['scheduler']:
+        item, param = list(i.keys())[0], list(i.values())[0]
+        scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
 
 
-        if len(scheduler_aray) == 1:
-            return scheduler_aray[0], optimizer
+    if len(scheduler_aray) == 1:
+        return scheduler_aray[0], optimizer
 
+    if yml_hyp['sequential_scheduler']:
+        length = len(scheduler_aray)
+        milestone_size = epoch/length
+        scheduler = lr_scheduler.SequentialLR(optimizer,
+                                              schedulers=scheduler_aray,
+                                              milestones=[math.floor(milestone_size*i) for i in range(1, length)],
+                                              last_epoch=- 1,
+                                              verbose=False)
+    else:
+        scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
 
-        if sequential:
-            length = len(scheduler_aray)
-            milestone_size = epoch/length
-            scheduler = lr_scheduler.SequentialLR(optimizer, schedulers=scheduler_aray, milestones=[math.floor(milestone_size*i) for i in range(1, length)], last_epoch=- 1, verbose=False)
-        else:
-            scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
-
-        return scheduler, optimizer
+    return scheduler, optimizer

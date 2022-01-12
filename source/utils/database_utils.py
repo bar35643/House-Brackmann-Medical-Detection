@@ -1,6 +1,25 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
 
 import os
@@ -51,12 +70,10 @@ class Database():
         :param db_file: File name (str)
         :param prefix_for_log: logger output prefix (str)
         :param conn: connection cursor
-        :param nosave: If True save (bool)
         """
         self.prefix_for_log = ""
-        self.db_file = 'pythonsqlite.db'
+        self.db_file = 'cache.db'
         self.conn = None
-        self.nosave = False
 
     @try_except
     def delete(self):
@@ -66,20 +83,18 @@ class Database():
         if self.conn is not None:
             self.conn.close()
             LOGGER.info("%sClosed Connection to Database", self.prefix_for_log)
-        if os.path.exists(self.db_file) and self.nosave:
+        if os.path.exists(self.db_file):
             os.remove(self.db_file)
             LOGGER.info("%sDeleted Database File (Cache)!", self.prefix_for_log)
 
-    def set(self, db_file:str, prefix_for_log:str, nosave:bool):
+    def set(self, db_file:str, prefix_for_log:str):
         """
         set Class items
         :param db_file: database file name (str)
         :param prefix_for_log: logger output prefix (str)
-        :param nosave: If True save (bool)
         """
         self.prefix_for_log = prefix_for_log
         self.db_file=db_file
-        self.nosave=nosave
 
     def get_conn(self):
         """
