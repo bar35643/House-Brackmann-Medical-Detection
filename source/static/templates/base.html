@@ -30,6 +30,14 @@
     <div id="content">
       <div class="col-12">
         <div class="colorpalette">
+          <div class="bottomright">
+          <select name="language-picker-select" id="language-picker-select", onchange="lang_change(this);">
+              <option lang="de" value="de">Deutsch</option>
+              <option lang="en" value="en">English</option>
+              <!-- other language options -->
+          </select>
+          </div>
+
           <h1 id="explanation_header"></h1>
           <h6 id="explanation_text"></h6>
           <form name="Form" action="">
@@ -52,7 +60,7 @@
 
 
       <div class="col-12">
-        <div class="colorpalette">
+        <div class="colorpalette" id="result_output">
           <h2 id="result_window"></h2>
           <div id="result" class="colorpalette">
             <h6 id="output"></h6>

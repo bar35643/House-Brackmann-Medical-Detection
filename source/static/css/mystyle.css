@@ -3,7 +3,7 @@ body {
     min-height: 100vh;
     position: relative;
     margin: 0;
-    padding-bottom: 100px; 
+    padding-bottom: 100px;
     box-sizing: border-box;
 }
 
@@ -17,22 +17,10 @@ body {
     right: 0;
 }
 
+.bottomright { position: absolute; right: 5px; text-align: right; }
+
 .wrapper{
     max-width: 960px;
-}
-
-footer {
-    position: absolute;
-    bottom: 0;
-    height: 100px;
-    padding-top:50px;
-}
-
-.responsive{
-    max-width: 100%;
-    height: auto;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 /* upload home */
@@ -86,7 +74,7 @@ footer {
 	font-weight: 700;
     background-color: #cacbcc;
     color: #515353;
-    padding: 8px 16px; 
+    padding: 8px 16px;
     display: block;
     margin: 3px auto 0;
     cursor: pointer;

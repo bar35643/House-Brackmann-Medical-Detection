@@ -25,7 +25,6 @@ from utils.general import check_requirements, set_logging, OptArgs
 
 
 PREFIX = "app: "
-LOGGING_STATE = logging.INFO #logging.DEBUG
 
 templates = Jinja2Templates(directory="static/templates")
 app = FastAPI()
@@ -81,7 +80,7 @@ async def run_detect(files: List[UploadFile] = File(...)):
 
 
         for file in files:
-            print(file.filename)
+            #print(file.filename)
             file_name = Path(file.filename)
             space = Path(os.path.join(str(workspace), str(file.filename)))
             space.parent.mkdir(exist_ok=True, parents=True)  # make dir
@@ -91,30 +90,22 @@ async def run_detect(files: List[UploadFile] = File(...)):
                 contents = await file.read()
                 myfile.write(contents)
 
-        #Do Operation
         print(workspace)
 
+        #Do Operation
+        try:
+            ret_val = detect.run(weights="models",
+                                 source=workspace,
+                                 batch_size=4,
+                                 device="cpu",
+                                 half=False,
+                                 function_selector="all")
+        except Exception as err:
+           ret_val = {"errorcode": str(err)}
 
-        #try:
-        detect.run(weights="models",
-                    source=workspace,
-                    imgsz=640,
-                    batch_size=4,
-                    device="cpu",
-                    half=False,
-                    function_selector="all")
-        #except:
-        #    ret_val = None
-
-
-        data = {
-            "name": "name",
-            "result": "TODO list Result",
-        }
-        await asyncio.sleep(20)
         delete_folder_content(workspace)
         os.rmdir(workspace)
-    return data
+    return ret_val
 
 
 
@@ -146,7 +137,7 @@ if __name__ == "__main__":
     opt_args = vars(parse_opt())
     OptArgs.instance()(opt_args)
 
-    set_logging(LOGGING_STATE, PREFIX)
+    set_logging(PREFIX)
 
     uvicorn.run("app:app",
                 host=OptArgs.instance().get_arg_from_key("ip"),
