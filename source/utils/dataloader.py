@@ -33,6 +33,7 @@ from functools import lru_cache
 from multiprocessing.pool import ThreadPool
 from collections import Counter
 from tqdm import tqdm
+import time
 
 import pandas as pd
 
@@ -199,19 +200,30 @@ class LoadImages(Dataset):
         :param img: Image input (Image)
         :return Transformed Image as Tensor (Tensor)
         """
+
+        imgsz = {"symmetry": [640, 640],
+                 "eye": [420, 500],
+                 "mouth": [640, 420],
+                 "forehead": [640, 300],
+                 }
+
+
         if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
+            if not img:
+                x = deepcopy(BatchSettings.instance().hyp["imgsz"][idx])
+                x.insert(0,3)
+                return torch.zeros(x)
+
             valid_transforms = T.Compose([  T.Resize(BatchSettings.instance().hyp["imgsz"][idx]), #pylint: disable=no-member
                                T.ToTensor()  ])
         else:
-            imgsz = { #Failsave
-                "symmetry": [640, 640],
-                "eye": [420, 500],
-                "mouth": [640, 420],
-                "forehead": [640, 300],
-            }
+            if not img:
+                x = deepcopy(imgsz[idx])
+                x.insert(0,3)
+                return torch.zeros(x)
+
             valid_transforms = T.Compose([  T.Resize(imgsz[idx]),
                                T.ToTensor()  ])
-
         return valid_transforms(img)
 
     #TODO Augmentation
@@ -225,6 +237,7 @@ class LoadImages(Dataset):
         Info:
         https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
         """
+
         LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BatchSettings.instance().get_augmentation()) #pylint: disable=no-member
         if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
             valid_transforms = T.Compose([
@@ -262,25 +275,19 @@ class LoadImages(Dataset):
         #assert matching_folders, 'Image Not Available at Path ' + path
 
         func_list = self.cutter_class.cut_wrapper()
-
-        image_input= {
-            "1_rest":                 self.transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), "symmetry"  ),
-            "2_lift_eyebrow":         self.transform_resize_and_to_tensor(func_list["forehead"](path, "02"), "forehead"  ),
-            "3_smile_closed":         self.transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), "mouth"  ),
-            "4_smile_open":           self.transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), "mouth"  ),
-            "5_Duckface":             self.transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), "mouth"  ),
-            "6_eye_closed_easy":      self.transform_resize_and_to_tensor(     func_list["eye"](path, "06"), "eye"  ),
-            "7_eye_closed_forced":    self.transform_resize_and_to_tensor     (func_list["eye"](path, "07"), "eye"  ),
-            "8_blow_nose":            self.transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), "mouth"  ),
-            "9_depression_lower_lip": self.transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), "mouth"  ),
-        }
-
         struct_img = deepcopy(house_brackmann_template)
-        struct_img["symmetry"]  = [  image_input["1_rest"]   ]
-        struct_img["eye"]       = [  image_input["6_eye_closed_easy"], image_input["7_eye_closed_forced"]   ]
-        struct_img["mouth"]     = [  image_input["3_smile_closed"], image_input["4_smile_open"], image_input["5_Duckface"],
-                                     image_input["8_blow_nose"], image_input["9_depression_lower_lip"]   ]
-        struct_img["forehead"]  = [  image_input["2_lift_eyebrow"]   ]
+
+        for i in struct_img:
+            struct_img[i] = [self.transform_resize_and_to_tensor(func_list[i](path, "01"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "02"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "03"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "04"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "05"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "06"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "07"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "08"), i  ),
+                             self.transform_resize_and_to_tensor(func_list[i](path, "09"), i  )]
+            #print(i, "-----------","9x", struct_img[i][0].shape)
 
         return struct_img
 
@@ -300,11 +307,11 @@ class LoadImages(Dataset):
         else:
             struct_img = self.get_structs(idx)
 
+        struct_img_aug = deepcopy(house_brackmann_template)
         for i in struct_img:
-            for number, j in enumerate(struct_img[i]):
-                struct_img[i][number] = self.augmentation(j)
+            struct_img_aug[i] = torch.cat(  [self.augmentation(j) for j in struct_img[i]]  )
 
-        return path, struct_img
+        return path, struct_img_aug
 
     def __len__(self):
         """
@@ -393,10 +400,11 @@ class CreateDataset(Dataset):
 
         LOGGER.info("Dataloader: index=%s, img-path=%s, label-id=%s, Grade: %s", idx, path, self.labels[idx][0], tmp)
 
-        struct_label = init_dict(house_brackmann_template, [])
+        struct_label = deepcopy(house_brackmann_template)
         for func in struct_label:
             hb_single = house_brackmann_lookup[func]["enum"]
-            struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(struct_img[func])  ))
+            #struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(struct_img[func])  ))
+            struct_label[func] = hb_single[grade_table[func]]
 
         return path, struct_img, struct_label
 

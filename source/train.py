@@ -112,6 +112,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
+        print(model)
 
 
         #Optimizer & Scheduler & Loss function
@@ -132,12 +133,48 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
             #------------------------------BATCH------------------------------#
             LOGGER.info("Start train Epoch=%s", epoch)
-            for i_name, img_struct,label_struct in train_loader:
-                _optimizer.zero_grad()
-                for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
-                    img, label = item_list
-                    print(epoch, idx, selected_function, i_name, img.shape, label.shape)
+            for idx, item in enumerate(train_loader):
+                i_name, img_struct,label_struct = item
+                img   = img_struct[selected_function]
+                label = label_struct[selected_function]
 
+                _optimizer.zero_grad()
+                print(epoch, idx, selected_function, i_name, img.shape, label.shape)
+                img = img.to(device, non_blocking=True).float() # uint8 to float32
+
+                #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
+                #with amp.autocast(enabled=cuda):
+                pred = model(img)  # forward
+                loss = criterion(pred, label.to(device))
+                accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+
+                LOGGER.info("pred: %s", pred.max(1)[1])
+                LOGGER.info("real: %s", label)
+                LOGGER.info("loss: %s", loss.item())
+                LOGGER.info("accurancy: %s", accurancy)
+
+                #Backward & Optimize
+                scaler.scale(loss).backward() #loss.backward()
+                scaler.step(_optimizer)  #optimizer.step
+                scaler.update()
+
+                plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
+            LOGGER.info("End train Epoch=%s", epoch)
+            #----------------------------END BATCH----------------------------#
+
+            BatchSettings.instance().eval() #pylint: disable=no-member
+            model.eval()
+            if is_master_process(RANK): #Master Process 0 or -1
+            #------------------------------BATCH------------------------------#
+                LOGGER.info("Start val Epoch=%s", epoch)
+                for idx, item in enumerate(val_loader):
+                    i_name, img_struct,label_struct = item
+                    img   = img_struct[selected_function]
+                    label = label_struct[selected_function]
+
+                    _optimizer.zero_grad()
+                    print(epoch, idx, selected_function, i_name, img.shape, label.shape)
                     img = img.to(device, non_blocking=True).float() # uint8 to float32
 
                     #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
@@ -152,41 +189,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     LOGGER.info("loss: %s", loss.item())
                     LOGGER.info("accurancy: %s", accurancy)
 
-                    #Backward & Optimize
-                    scaler.scale(loss).backward() #loss.backward()
-                    scaler.step(_optimizer)  #optimizer.step
-                    scaler.update()
-
-                    plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
-            LOGGER.info("End train Epoch=%s", epoch)
-            #----------------------------END BATCH----------------------------#
-
-            BatchSettings.instance().eval() #pylint: disable=no-member
-            model.eval()
-            if is_master_process(RANK): #Master Process 0 or -1
-            #------------------------------BATCH------------------------------#
-                LOGGER.info("Start val Epoch=%s", epoch)
-                for i_name, img_struct,label_struct in val_loader:
-                    _optimizer.zero_grad()
-                    for idx, item_list in enumerate(zip(img_struct[selected_function], label_struct[selected_function])):
-                        img, label = item_list
-                        print(epoch, idx, selected_function, i_name, img.shape, label.shape)
-
-                        img = img.to(device, non_blocking=True).float() # uint8 to float32
-
-                        #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
-                        #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
-                        #with amp.autocast(enabled=cuda):
-                        pred = model(img)  # forward
-                        loss = criterion(pred, label.to(device))
-                        accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
-
-                        LOGGER.info("pred: %s", pred.max(1)[1])
-                        LOGGER.info("real: %s", label)
-                        LOGGER.info("loss: %s", loss.item())
-                        LOGGER.info("accurancy: %s", accurancy)
-
-                        plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
+                    plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
                 LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
                 val_dict = plotter.update_epoch(selected_function)

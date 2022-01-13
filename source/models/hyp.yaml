@@ -44,7 +44,7 @@ scheduler:
 
 hyp:
   imgsz:
-    symmetry: [640, 639]
+    symmetry: [640, 640]
     eye: [420, 500]
     mouth: [640, 420]
     forehead: [640, 300]

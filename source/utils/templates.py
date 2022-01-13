@@ -29,13 +29,28 @@ from torchvision.models import resnet18
 allowed_fn = ["symmetry", "eye", "mouth", "forehead"]
 
 model_2_label = resnet18(pretrained=True)
+model_2_label.conv1 = nn.Conv2d(27, model_2_label.conv1.out_channels,
+                            kernel_size=model_2_label.conv1.kernel_size,
+                            stride=model_2_label.conv1.stride,
+                            padding=model_2_label.conv1.padding,
+                            bias=model_2_label.conv1.bias)
 model_2_label.fc = nn.Linear(model_2_label.fc.in_features, 2)
 
 model_3_label = resnet18(pretrained=True)
+model_3_label.conv1 = nn.Conv2d(27, model_3_label.conv1.out_channels,
+                            kernel_size=model_3_label.conv1.kernel_size,
+                            stride=model_3_label.conv1.stride,
+                            padding=model_3_label.conv1.padding,
+                            bias=model_3_label.conv1.bias)
 model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3)
 
 model_4_label = resnet18(pretrained=True)
-model_4_label.fc = nn.Linear(model_3_label.fc.in_features, 4)
+model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
+                            kernel_size=model_4_label.conv1.kernel_size,
+                            stride=model_4_label.conv1.stride,
+                            padding=model_4_label.conv1.padding,
+                            bias=model_4_label.conv1.bias)
+model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4)
 
 house_brackmann_lookup = {
     "symmetry": {

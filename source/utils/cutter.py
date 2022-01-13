@@ -23,6 +23,7 @@
 """
 import sys
 import os
+import re
 from copy import deepcopy
 import numpy as np
 from PIL import Image, ImageOps
@@ -59,21 +60,14 @@ def load_images_format(path, img_name):
         matching_img_path += [os.path.join(i, s) for s in os.listdir(i)]
 
     matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not ("IMG" in x)]
-    matching_img_path_name   = [x for x in matching_img_path_format if img_name in x.split('/')[-1]]
-    matching_img_path_name.sort()
+    image   = [x for x in matching_img_path_format if img_name in re.split(r'\\|/',x)[-1]]
+    image.sort()
 
-    # print("------")
-    # for j in matching_img_path_format:
-    #     print(pic                        , "   ########   ",
-    #           (pic in j.split('/')[-1]) , "   ########   ",
-    #           j.split('/')[-1]         , "   ########   ",
-    #           j.split('.')[-1].lower() , "   ########   ",
-    #           j  )
-    #
-    # print("------")
 
-    image = matching_img_path_name if matching_img_path_name else matching_img_path_format
-    assert image, f"Error While loading Image at Path {matching_img_path}"
+    #print(img_name, path, matching_folders, image, )
+
+    if not image:
+        return None
 
     if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
         return Image.open(image[0]).convert('RGB')
@@ -81,8 +75,6 @@ def load_images_format(path, img_name):
     if image[0].split('.')[-1].lower() in ['heic']:
         temp = pyheif.read_heif(image[0])
         return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
-
-    return None
 
 @Singleton
 class Cutter():
@@ -182,6 +174,9 @@ class Cutter():
 
         img = load_images_format(path, img_name)
 
+        if not img:
+            return None, None
+
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
         dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
         #print(img.size, "to", new_size, "factor", dyn_factor)
@@ -234,6 +229,8 @@ class Cutter():
         # plt.imshow(img)
         # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
+        if not img:
+            return None
         return img
 
     def cut_eye(self, path, img_name):
@@ -244,6 +241,10 @@ class Cutter():
         :returns  cropped image
         """
         landmarks, img = self.load_image(path, img_name)
+        if not img:
+            return None
+
+
         eye = landmarks[slice(36, 42)]
         fac = (landmarks[:,0].min())/4
 
@@ -286,6 +287,10 @@ class Cutter():
         :returns  cropped image
         """
         landmarks, img = self.load_image(path, img_name)
+        if not img:
+            return None
+
+
         landmarks = landmarks[slice(48, 68)]
         fac = (landmarks[:,0].min())/4
 
@@ -308,6 +313,10 @@ class Cutter():
         :returns  cropped image
         """
         landmarks, img = self.load_image(path, img_name)
+        if not img:
+            return None
+
+
         landmarks = landmarks[slice(17, 27)]
         fac = (landmarks[:,0].min())/16
 

@@ -26,6 +26,7 @@ import argparse
 import logging
 import time
 import timeit
+from copy import deepcopy
 
 import numpy as np
 
@@ -83,28 +84,26 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
             model = load_model(weights, selected_function)
+
             if half:
                 model.half()  # to FP16
-            for idx, img in enumerate(img_struct[selected_function]):
 
-                img = (img.half() if half else img.float()) # uint8 to fp16/32
+            img = img_struct[selected_function]
+            img = (img.half() if half else img.float()) # uint8 to fp16/32
 
-                pred = model(img.to(device))
-                results[selected_function].append(pred.max(1)[1].cpu().numpy())
+            pred = model(img.to(device))
+            results[selected_function] = (pred.max(1)[1].cpu().numpy())
+
+        print(batch, i_name, results)
 
         if function_selector[0] == "all":
             for idx, name in enumerate(i_name):
-                a = init_dict(house_brackmann_template, [])
+                tmp = deepcopy(house_brackmann_template)
                 for func in results:
-                    tmp = []
-                    for item in results[func]:
-                        #print(idx, func, item[idx])
-                        tmp.append(item[idx])
-                    a[func] = round(np.array(tmp).mean())
-
-                a["grade"] = hb_automata(a["symmetry"], a["eye"], a["mouth"], a["forehead"])
-                #print(name, a, "\n")
-                result_list[name] = a
+                    tmp[func] = results[func][idx]
+                tmp["grade"] = hb_automata(tmp["symmetry"], tmp["eye"], tmp["mouth"], tmp["forehead"])
+                result_list[name] = tmp
+                del tmp
 
     print("\n\n\n")
     print(result_list)
