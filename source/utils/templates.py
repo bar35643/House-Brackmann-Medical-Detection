@@ -26,8 +26,6 @@ from torchvision.models import resnet18
 
 
 #https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
-allowed_fn = ["symmetry", "eye", "mouth", "forehead"]
-
 model_2_label = resnet18(pretrained=True)
 model_2_label.conv1 = nn.Conv2d(27, model_2_label.conv1.out_channels,
                             kernel_size=model_2_label.conv1.kernel_size,
@@ -89,18 +87,6 @@ house_brackmann_template = {
     "eye": None,
     "mouth": None,
     "forehead": None,
-}
-
-image_input_template = {
-    "1_rest": None,
-    "2_lift_eyebrow": None,
-    "3_smile_closed": None,
-    "4_smile_open": None,
-    "5_Duckface": None,
-    "6_eye_closed_easy": None,
-    "7_eye_closed_forced": None,
-    "8_blow_nose": None,
-    "9_depression_lower_lip": None,
 }
 
 house_brackmann_grading = {

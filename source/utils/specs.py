@@ -163,16 +163,33 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
-hyperparameter = {'imgsz':{
+hyperparameter = {required('imgsz'):{
                         required('symmetry'): [number()],
                         required('eye') : [number()],
                         required('mouth') : [number()],
                         required('forehead') : [number()],},
-                   'RandomHorizontalFlip': number(),
-                   'RandomRotation_Degree': number(),
-                   'Normalize':{
-                        'mean': [number()],
-                        'std' : [number()],
+                   required('RandomHorizontalFlip'): number(),
+                   required('Normalize'):{
+                        required('mean'): [number()],
+                        required('std') : [number()],
+                   },
+                   required('ColorJitter'):{
+                        required('brightness'): float(),
+                        required('contrast')  : float(),
+                        required('saturation'): float(),
+                        required('hue')       : float(),
+                   },
+                   required('RandomAffine'):{
+                        required('degrees')  : number(),
+                        required('translate'): [number()],
+                   },
+                   required('GaussianBlur'):{
+                        required('kernel_size'): [number()],
+                        required('sigma')      : [number()],
+                   },
+                   required('RandomAdjustSharpness'):{
+                        required('probability'):float(),
+                        required('val')        : number(),
                    },
 }
 
@@ -205,6 +222,12 @@ def validate_yaml_config(inp):
 
 
 def validate_file(hyp:str):
+    """
+    This function validates the input to a spec
+
+    :param hyp: path to File (str)
+    :return loaded YAML config as Dictionary (Dict)
+    """
     pth = Path(hyp)
     assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
     with open(pth, 'r', encoding="UTF-8") as yaml_file:

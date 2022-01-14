@@ -21,10 +21,7 @@
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
-
-
 import argparse
-import logging
 import os
 import timeit
 import datetime
@@ -38,6 +35,8 @@ import torch
 import torch.distributed as dist
 from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
+
+from torchinfo import summary
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter
 from utils.config import RANK, WORLD_SIZE, LOGGER
@@ -70,19 +69,33 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         name="run",
         epochs=100):
     """
-    TODO
-    Check internet connectivity
+    Training Routines for the Hosue-Brackmannn Score
+
+    :param weights: path to Models (str)
+    :param source: Data Source Directory (str)
+    :param config: path to config File (str)
+    :param cache: Enables external Cache (bool)
+    :param batch_size: max size of the Batch (int)
+    :param val_split: factor for splitting Dataset (int, float, None)
+    :param train_split: factor for splitting Dataset (int, float, None)
+    :param device: CPU or 0 or 0,1 (int)
+    :param nosave: Disable saving (bool)
+    :param project: Project main directory (str)
+    :param name: Project name (str)
+    :param epocs: Nomber of epochs (int)
     """
 
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
-    # Directories for Saving Results
+    # Directories for Saving the Results
     save_dir = increment_path(Path(project) / name, exist_ok=False)  # increment run
     save_dir.mkdir(parents=True, exist_ok=True)  # make dir
     model_save_dir = save_dir /"models"
     model_save_dir.mkdir(parents=True, exist_ok=True)  # make dir
 
+    #Validates config file
     yml_hyp = validate_file(config)
+    BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
 
 
     # Save Args and Config (Hyperparameters/Augmentation, Scheduler and Optimizer)
@@ -91,7 +104,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     with open(save_dir / 'hyp.yaml', 'w', encoding="UTF-8") as file:
         yaml.safe_dump(yml_hyp, file, sort_keys=False) #pylint: disable=no-member
 
-    # Device init
+    # Device Init
     device = select_device(device, batch_size=batch_size)
     cuda = device.type != "cpu"
 
@@ -102,24 +115,28 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
-    BatchSettings.instance().set_hyp(yml_hyp) #pylint: disable=no-member
     LOGGER.info("\n")
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     for selected_function in house_brackmann_lookup:
-        last, best = os.path.join(model_save_dir, selected_function+"_last.pt"), os.path.join(model_save_dir, selected_function+"_best.pt")
+        LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", PREFIX, selected_function, batch_size, save_dir, epochs)
 
-        LOGGER.info("Training %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", selected_function, batch_size, save_dir, epochs)
+        #Saving folder for the Models
+        last = os.path.join(model_save_dir, selected_function+"_last.pt")
+        best = os.path.join(model_save_dir, selected_function+"_best.pt")
 
+        #Loading the Model and selecting mode
         model = load_model(weights, selected_function)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
-        print(model)
 
+        input_size = (batch_size // WORLD_SIZE, 27) + tuple(BatchSettings.instance().hyp["imgsz"][selected_function]) #pylint: disable=no-member
+        LOGGER.info("%sModel Infos --> Batch input_size=%s", PREFIX, input_size)
+        LOGGER.info("%sModel Infos --> Layer View and Estimated Size\n %s\n", PREFIX, summary(model, input_size=input_size, verbose=0))
+
+        #Get Dataloader specific from teh functeion because of Imbalance
+        train_loader, val_loader = dataloader.get_dataloader_func(selected_function)
 
         #Optimizer & Scheduler & Loss function
         _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
-
-        train_loader, val_loader = dataloader.get_dataloader_func(selected_function)
-
         criterion = CrossEntropyLoss() #https://pytorch.org/docs/stable/nn.html
 
         scaler = amp.GradScaler(enabled=cuda)
@@ -138,21 +155,23 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 img   = img_struct[selected_function]
                 label = label_struct[selected_function]
 
+                LOGGER.debug("train -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
+                              epoch, idx, selected_function, i_name, img.shape, label.shape)
+
                 _optimizer.zero_grad()
-                print(epoch, idx, selected_function, i_name, img.shape, label.shape)
                 img = img.to(device, non_blocking=True).float() # uint8 to float32
 
                 #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                #https://pytorch.org/docs/stable/amp.html
                 #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
                 #with amp.autocast(enabled=cuda):
                 pred = model(img)  # forward
                 loss = criterion(pred, label.to(device))
                 accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                LOGGER.info("pred: %s", pred.max(1)[1])
-                LOGGER.info("real: %s", label)
-                LOGGER.info("loss: %s", loss.item())
-                LOGGER.info("accurancy: %s", accurancy)
+                LOGGER.info("pred=%s", pred.max(1)[1])
+                LOGGER.info("real=%s", label)
+                LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
 
                 #Backward & Optimize
                 scaler.scale(loss).backward() #loss.backward()
@@ -168,28 +187,33 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             if is_master_process(RANK): #Master Process 0 or -1
             #------------------------------BATCH------------------------------#
                 LOGGER.info("Start val Epoch=%s", epoch)
-                for idx, item in enumerate(val_loader):
-                    i_name, img_struct,label_struct = item
-                    img   = img_struct[selected_function]
-                    label = label_struct[selected_function]
 
-                    _optimizer.zero_grad()
-                    print(epoch, idx, selected_function, i_name, img.shape, label.shape)
-                    img = img.to(device, non_blocking=True).float() # uint8 to float32
+                #https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
+                with torch.no_grad():
+                    for idx, item in enumerate(val_loader):
+                        i_name, img_struct,label_struct = item
+                        img   = img_struct[selected_function]
+                        label = label_struct[selected_function]
 
-                    #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
-                    #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
-                    #with amp.autocast(enabled=cuda):
-                    pred = model(img)  # forward
-                    loss = criterion(pred, label.to(device))
-                    accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+                        LOGGER.debug("val -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
+                                      epoch, idx, selected_function, i_name, img.shape, label.shape)
 
-                    LOGGER.info("pred: %s", pred.max(1)[1])
-                    LOGGER.info("real: %s", label)
-                    LOGGER.info("loss: %s", loss.item())
-                    LOGGER.info("accurancy: %s", accurancy)
+                        _optimizer.zero_grad()
+                        img = img.to(device, non_blocking=True).float() # uint8 to float32
 
-                    plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
+                        #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                        #https://pytorch.org/docs/stable/amp.html
+                        #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
+                        #with amp.autocast(enabled=cuda):
+                        pred = model(img)
+                        loss = criterion(pred, label.to(device))
+                        accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+
+                        LOGGER.info("pred=%s", pred.max(1)[1])
+                        LOGGER.info("real=%s", label)
+                        LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
+
+                        plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
                 LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
                 val_dict = plotter.update_epoch(selected_function)

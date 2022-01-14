@@ -44,16 +44,16 @@
    5. [x] Augmentation for Images
    6. [x] Flipping/Invert Image as Augmentation
 - [x] Training function for epochs
-- [ ] Validation of training (see Plotting)
+- [x] Validation of training (see Plotting)
 - [x] DataParralell and DistributedDataParrallel for faster traning
 - [x] Dataloader Sampler for DP and DDP
 
 ###### Detection
 - [x] Input for the System (Single Patient, list of Patients, list of Patients by Category)
-- [ ] Input single Picture
-- [ ] Prediction interpreter
-- [ ] Decision Tree for the Grading  or Automata[Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
-- [ ] output result list
+- [ ] Input single Picture ??
+- [x] Prediction interpreter
+- [x] Decision Tree for the Grading  or Automata[Example Tree](https://www.datacamp.com/community/tutorials/decision-tree-classification-python)
+- [x] output result list
 
 ###### Other
 - [x] Train/Validation Split
@@ -123,7 +123,7 @@ python detect.py --batch-size 16 --source ../../images/Fazialisparese --device 0
 Info: [Pylint features](https://docs.pylint.org/en/1.6.0/features.html)
 
 ~~~shell
-pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=170 --max-attributes=10 --max-args=10
+pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=180 --max-attributes=10 --max-args=10
 ~~~
 <!---
 adding Reason

@@ -35,13 +35,13 @@ from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
-if sys.platform == 'win32':
+if sys.platform == 'win32': #pyheif does not work on Windows. So dummy is import
     import errorimports as pyheif #pylint: disable=import-error
 if sys.platform == 'linux':
     import pyheif #pylint: disable=import-error
 
 
-def load_images_format(path, img_name):
+def load_image(path, img_name):
     """
     Loading images in correct Format
 
@@ -59,7 +59,7 @@ def load_images_format(path, img_name):
     for i in matching_folders:
         matching_img_path += [os.path.join(i, s) for s in os.listdir(i)]
 
-    matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not ("IMG" in x)]
+    matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not "IMG" in x]
     image   = [x for x in matching_img_path_format if img_name in re.split(r'\\|/',x)[-1]]
     image.sort()
 
@@ -76,16 +76,15 @@ def load_images_format(path, img_name):
         temp = pyheif.read_heif(image[0])
         return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
 
+    return None #Faisave
+
 @Singleton
 class Cutter():
     """
-    Check installed dependencies meet requirements
+    Cutter Class
 
-    :param requirements:  List of all Requirements needed (parse *.txt file or list of packages)
-    :param exclude: List of all Requirements which will be excuded from the checking (list of packages)
-    :param install: True for attempting auto update or False for manual use (True or False)
+    Handles the cutting for the images into the different types
     """
-    #TODO Redo all functions (input=img_symmetry)
     def __init__(self):
         """
         Initializes Cutter Class and Face Alignment module
@@ -162,20 +161,13 @@ class Cutter():
 
         return det, img_input
 
-    def load_image(self, path, img_name):
+    def crop_image(self, img):
         """
         Loading Images
 
-        :param path: Path to image (str)
+        :param img: Image (Image)
         :returns  landmarks and cropped image (array, Image)
         """
-
-
-
-        img = load_images_format(path, img_name)
-
-        if not img:
-            return None, None
 
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
         dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
@@ -225,12 +217,13 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        _, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
+        if not img:
+            return None
+        _, img = self.crop_image(img)
         # plt.imshow(img)
         # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
-        if not img:
-            return None
         return img
 
     def cut_eye(self, path, img_name):
@@ -240,9 +233,10 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
         if not img:
             return None
+        landmarks, img = self.crop_image(img)
 
 
         eye = landmarks[slice(36, 42)]
@@ -277,7 +271,7 @@ class Cutter():
         # plt.imshow(dst)
         # plt.show()
 
-        return img_slice_right
+        return dst
 
     def cut_mouth(self, path, img_name):
         """
@@ -286,9 +280,10 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
         if not img:
             return None
+        landmarks, img = self.crop_image(img)
 
 
         landmarks = landmarks[slice(48, 68)]
@@ -312,9 +307,10 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
         if not img:
             return None
+        landmarks, img = self.crop_image(img)
 
 
         landmarks = landmarks[slice(17, 27)]

@@ -49,7 +49,20 @@ hyp:
     mouth: [640, 420]
     forehead: [640, 300]
   RandomHorizontalFlip: 0.5
-  RandomRotation_Degree: 3
   Normalize:
     mean: [0.5, 0.5, 0.5]
     std:  [0.5, 0.5, 0.5]
+  ColorJitter:
+    brightness: 0.1
+    contrast: 0.1
+    saturation: 0.1
+    hue: 0.05
+  RandomAffine:
+    degrees: 3
+    translate: [0.01, 0.01]
+  GaussianBlur:
+    kernel_size: [7, 7]
+    sigma: [0.1, 2.0]
+  RandomAdjustSharpness:
+    probability: 0.1
+    val: 3

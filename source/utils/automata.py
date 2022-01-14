@@ -22,40 +22,96 @@
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
 
+from config import LOGGER #pylint: disable=import-error
+
 
 # define the function blocks
-def one(s, e, m, f):
-    if m == 3:
+def one(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State One:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
+    if mouth == 3:
         return 6, True
-    if s >= 1:
+    if symmetry >= 1:
         return 5, True
-    if e == 1:
+    if eye == 1:
         return 4, True
-    if f >= 1:
+    if forehead >= 1:
         return 3, True
-    if m >= 1:
+    if mouth >= 1:
         return 2, True
     return 1, False
 
-def two(s, e, m, f):
-    if m == 2:
+def two(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State Two:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
+    if mouth == 2:
         return 4, True
     return 2, False
 
-def three(s, e, m, f):
-    if f == 2 or m == 2:
+def three(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State Three:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
+    if forehead == 2 or mouth == 2:
         return 4, True
     return 3, False
 
-def four(s, e, m, f):
+def four(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State Four:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
     return 4, False
 
-def five(s, e, m, f):
-    if s == 2:
+def five(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State Five:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
+    if symmetry == 2:
         return 6, True
     return 5, False
 
-def six(s, e, m, f):
+def six(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
+    """
+    State Six:
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+    :returns  True if something changes else False and number for next state
+    """
     return 6, False
 
 # map the inputs to the function blocks
@@ -69,10 +125,24 @@ options = {1 : one,
 
 
 def hb_automata(symmetry, eye, mouth, forehead):
+    """
+    Automata
+
+    Runs trough automata until nothing changes
+
+    :param symmetry:  label from symmetry as Value (int)
+    :param eye:  label from eye as Value (int)
+    :param mouth:  label from mouth as Value (int)
+    :param forehead:  label from forehead as Value (int)
+
+    :returns  State (int)
+    """
+    LOGGER.debug("Automata: inital values - symm=%s, eye=%s, mouth=%s, forehead=%s", symmetry, eye, mouth, forehead)
     changed = True
     state = 1 #Starting Node
 
     while changed:
+        LOGGER.debug("Automata: Iterate step - state=%s, changed=%s", state, changed)
         state, changed = options[state](symmetry, eye, mouth, forehead)
 
     return state

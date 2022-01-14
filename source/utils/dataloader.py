@@ -33,7 +33,6 @@ from functools import lru_cache
 from multiprocessing.pool import ThreadPool
 from collections import Counter
 from tqdm import tqdm
-import time
 
 import pandas as pd
 
@@ -51,7 +50,6 @@ from .templates import house_brackmann_template, house_brackmann_lookup, house_b
 from .general import init_dict #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
-
 
 @Singleton
 class BatchSettings():
@@ -73,7 +71,6 @@ class BatchSettings():
         :param yml_hyp: Hyperparameter Dictionary (dict)
         """
         self.hyp = yml_hyp["hyp"]
-        #print(self.hyp["Normalize"])
 
     def train(self):
         """
@@ -97,6 +94,40 @@ class BatchSettings():
     def __call__(self):
         assert False, f"Select one of the functions from this class: {dir(self)}"
 
+
+def transform_resize_and_to_tensor(img, idx):
+    """
+    Resize images and Transform images to Tensor
+
+    :param img: Image input (Image)
+    :return Transformed Image as Tensor (Tensor)
+    """
+
+    imgsz = {"symmetry": [640, 640],
+             "eye": [420, 500],
+             "mouth": [640, 420],
+             "forehead": [640, 300],
+             }
+
+
+    if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
+        if not img:
+            tmp = deepcopy(BatchSettings.instance().hyp["imgsz"][idx]) #pylint: disable=no-member
+            tmp.insert(0,3)
+            return torch.zeros(tmp)
+
+        valid_transforms = T.Compose([  T.Resize(BatchSettings.instance().hyp["imgsz"][idx]), #pylint: disable=no-member
+                           T.ToTensor()  ])
+    else:
+        if not img:
+            tmp = deepcopy(imgsz[idx])
+            tmp.insert(0,3)
+            return torch.zeros(tmp)
+
+        valid_transforms = T.Compose([  T.Resize(imgsz[idx]),
+                           T.ToTensor()  ])
+    return valid_transforms(img)
+
 def get_list_patients(source_path: str):
     """
     Generating a list from the Patients
@@ -115,7 +146,7 @@ def get_list_patients(source_path: str):
     if not list_patients: #if everything is empty asumme that this is only a single Patient
         list_patients = [source_path]
 
-    #TODO add Other Timestamst after Preop T000 for example T001,T002, T003 ...
+    #TODO add Other Timestamps after Preop T000 for example T001,T002, T003 ...
     assert list_patients, "Failture no single Patient, Subcategory or all Categories with Patients included given!"
     list_patients.sort()
     return list_patients
@@ -193,40 +224,6 @@ class LoadImages(Dataset):
         if self.database:
             self.database.delete()
 
-    def transform_resize_and_to_tensor(self, img, idx):
-        """
-        Resize images and Transform images to Tensor
-
-        :param img: Image input (Image)
-        :return Transformed Image as Tensor (Tensor)
-        """
-
-        imgsz = {"symmetry": [640, 640],
-                 "eye": [420, 500],
-                 "mouth": [640, 420],
-                 "forehead": [640, 300],
-                 }
-
-
-        if BatchSettings.instance().hyp is not None: #pylint: disable=no-member
-            if not img:
-                x = deepcopy(BatchSettings.instance().hyp["imgsz"][idx])
-                x.insert(0,3)
-                return torch.zeros(x)
-
-            valid_transforms = T.Compose([  T.Resize(BatchSettings.instance().hyp["imgsz"][idx]), #pylint: disable=no-member
-                               T.ToTensor()  ])
-        else:
-            if not img:
-                x = deepcopy(imgsz[idx])
-                x.insert(0,3)
-                return torch.zeros(x)
-
-            valid_transforms = T.Compose([  T.Resize(imgsz[idx]),
-                               T.ToTensor()  ])
-        return valid_transforms(img)
-
-    #TODO Augmentation
     def augmentation(self, img_tensor):
         """
         do Augmentation
@@ -237,27 +234,36 @@ class LoadImages(Dataset):
         Info:
         https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py
         """
-
-        LOGGER.debug("%sAugmentation is %s", self.prefix_for_log, BatchSettings.instance().get_augmentation()) #pylint: disable=no-member
-        if BatchSettings.instance().get_augmentation(): #pylint: disable=no-member
+        if BatchSettings.instance().get_augmentation() and BatchSettings.instance().hyp is not None: #pylint: disable=no-member
             valid_transforms = T.Compose([
                 T.ToPILImage(),
-                T.RandomRotation(degrees=  BatchSettings.instance().hyp["RandomRotation_Degree"]   ), #pylint: disable=no-member
-                #T.ColorJitter(brightness=0.1, contrast=0, saturation=0.1, hue=0),
-                #T.GaussianBlur(kernel_size=(15, 15), sigma=(0.5, 3)),
-                T.RandomHorizontalFlip(p=  BatchSettings.instance().hyp["RandomHorizontalFlip"] ), #pylint: disable=no-member
+                T.ColorJitter(brightness=BatchSettings.instance().hyp["ColorJitter"]["brightness"], #pylint: disable=no-member
+                              contrast=  BatchSettings.instance().hyp["ColorJitter"]["contrast"], #pylint: disable=no-member
+                              saturation=BatchSettings.instance().hyp["ColorJitter"]["saturation"], #pylint: disable=no-member
+                              hue=       BatchSettings.instance().hyp["ColorJitter"]["hue"]), #pylint: disable=no-member
+                T.GaussianBlur(kernel_size=BatchSettings.instance().hyp["GaussianBlur"]["kernel_size"], #pylint: disable=no-member
+                               sigma=      BatchSettings.instance().hyp["GaussianBlur"]["sigma"]), #pylint: disable=no-member
+                T.RandomAffine(degrees=  BatchSettings.instance().hyp["RandomAffine"]["degrees"], #pylint: disable=no-member
+                               translate=BatchSettings.instance().hyp["RandomAffine"]["translate"]), #pylint: disable=no-member
+                T.RandomAdjustSharpness(sharpness_factor=  BatchSettings.instance().hyp["RandomAdjustSharpness"]["val"], #pylint: disable=no-member
+                                        p=                 BatchSettings.instance().hyp["RandomAdjustSharpness"]["probability"]), #pylint: disable=no-member
+                T.RandomAdjustSharpness(sharpness_factor= -BatchSettings.instance().hyp["RandomAdjustSharpness"]["val"], #pylint: disable=no-member
+                                        p=                 BatchSettings.instance().hyp["RandomAdjustSharpness"]["probability"]), #pylint: disable=no-member
+                T.RandomHorizontalFlip(p=BatchSettings.instance().hyp["RandomHorizontalFlip"] ), #pylint: disable=no-member
                 T.ToTensor(),
-                T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
-                            std=   BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
+                T.Normalize(mean=BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
+                            std= BatchSettings.instance().hyp["Normalize"]["std"]) #pylint: disable=no-member
                 ])
         elif BatchSettings.instance().hyp is not None: #pylint: disable=no-member
             valid_transforms = T.Compose([
-                T.Normalize(mean=  BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
-                            std=   BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
-        else:
+                T.Normalize(mean=BatchSettings.instance().hyp["Normalize"]["mean"], #pylint: disable=no-member
+                            std= BatchSettings.instance().hyp["Normalize"]["std"])]) #pylint: disable=no-member
+        else: #Failsave
             valid_transforms = T.Compose([
-                T.Normalize(mean=  [0.5, 0.5, 0.5],
-                            std=   [0.5, 0.5, 0.5])])
+                T.Normalize(mean=[0.5, 0.5, 0.5],
+                            std= [0.5, 0.5, 0.5])])
+
+        LOGGER.debug("%sAugmentation is %s and set to:\n %s", self.prefix_for_log, BatchSettings.instance().get_augmentation(), valid_transforms) #pylint: disable=no-member
         return valid_transforms(img_tensor)
 
     @lru_cache(LRU_MAX_SIZE)
@@ -269,26 +275,19 @@ class LoadImages(Dataset):
         :return  struct_img, struct_img_inv  (struct, struct_inv)
         """
         path = self.list_patients[idx]
-
-
-        #pics = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        #assert matching_folders, 'Image Not Available at Path ' + path
-
         func_list = self.cutter_class.cut_wrapper()
         struct_img = deepcopy(house_brackmann_template)
 
         for i in struct_img:
-            struct_img[i] = [self.transform_resize_and_to_tensor(func_list[i](path, "01"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "02"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "03"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "04"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "05"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "06"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "07"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "08"), i  ),
-                             self.transform_resize_and_to_tensor(func_list[i](path, "09"), i  )]
-            #print(i, "-----------","9x", struct_img[i][0].shape)
-
+            struct_img[i] = [transform_resize_and_to_tensor(func_list[i](path, "01"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "02"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "03"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "04"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "05"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "06"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "07"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "08"), i  ),
+                             transform_resize_and_to_tensor(func_list[i](path, "09"), i  )]
         return struct_img
 
     #least recently used caching via @lru_cache(LRU_MAX_SIZE) restricted!
@@ -302,10 +301,7 @@ class LoadImages(Dataset):
         """
         path = self.list_patients[idx]
 
-        if self.database:
-            struct_img = self.database.get_db_one(self.table, idx)[1]
-        else:
-            struct_img = self.get_structs(idx)
+        struct_img = self.database.get_db_one(self.table, idx)[1] if self.database else self.get_structs(idx)
 
         struct_img_aug = deepcopy(house_brackmann_template)
         for i in struct_img:
@@ -389,28 +385,29 @@ class CreateDataset(Dataset):
         :return  struct_img, struct_label  (struct, struct)
         """
 
-        #TODO return only right pair of Images on Label (checking if same Patient)
-
-        tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
-
-        grade_table = house_brackmann_grading[tmp]
-        #grade_table = house_brackmann_grading[self.labels[idx][1]]
-
         path, struct_img = self.images[idx]
-
-        LOGGER.info("Dataloader: index=%s, img-path=%s, label-id=%s, Grade: %s", idx, path, self.labels[idx][0], tmp)
 
         struct_label = deepcopy(house_brackmann_template)
         for func in struct_label:
-            hb_single = house_brackmann_lookup[func]["enum"]
-            #struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(struct_img[func])  ))
-            struct_label[func] = hb_single[grade_table[func]]
+            struct_label[func] = self.get_label_func(idx, func)
+
+        tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
+        LOGGER.info("Dataloader: index=%s, img-path=%s, label-id=%s, Grade: %s", idx, path, self.labels[idx][0], tmp)
 
         return path, struct_img, struct_label
 
+    @lru_cache(LRU_MAX_SIZE)
     def get_label_func(self, idx, func):
-        tmp2 = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
-        grade_table = house_brackmann_grading[tmp2]
+        """
+        get the label specific from the func
+
+        :param idx: path to the dataset (str/Path)
+        :param func: symmetry, eye, mouth or forehead (str)
+
+        :returns label (int)
+        """
+        tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
+        grade_table = house_brackmann_grading[tmp]
         hb_single = house_brackmann_lookup[func]["enum"]
 
         return hb_single[grade_table[func]]
@@ -453,39 +450,53 @@ class ImbalancedDatasetSampler(tdata.sampler.Sampler):
         num_samples: number of samples to draw
     """
 
-    def __init__(self, dataset, func):
+    def __init__(self, dataset, func): #pylint: disable=super-init-not-called
         self.indices = list(range(len(dataset)))
         self.num_samples = len(self.indices)
         self.func = func
 
         # distribution of classes in the dataset
-        df = pd.DataFrame()
-        df["label"] = self._get_labels(dataset)
-        df.index = self.indices
-        df = df.sort_index()
+        dataframe = pd.DataFrame()
+        dataframe["label"] = self._get_labels(dataset)
+        dataframe.index = self.indices
+        dataframe = dataframe.sort_index()
 
-        label_to_count = df["label"].value_counts()
-        weights = 1.0 / label_to_count[df["label"]]
-
-        print(weights)
-
+        label_to_count = dataframe["label"].value_counts()
+        weights = 1.0 / label_to_count[dataframe["label"]]
         self.weights = torch.DoubleTensor(weights.to_list())
 
     def _get_labels(self, dataset):
+        """
+        get the label specific from the func
+
+        :param dataset: Dataset
+        :returns label (array)
+        """
         label = []
         for i in range(len(dataset)):
             label.append(  dataset.get_label_func(i, self.func)  )
         return label
 
     def __iter__(self):
+        """
+        Sampler iterator
+        :returns indices for given weights
+        """
         return (self.indices[i] for i in torch.multinomial(self.weights, self.num_samples, replacement=True))
 
     def __len__(self):
+        """
+        length of the samples
+        :returns length (int)
+        """
         return self.num_samples
 
 
 
-class CreateDataloader():
+class CreateDataloader(): #pylint: disable=too-few-public-methods
+    """
+    Create Dataloader Class
+    """
     def __init__(self, path, device, cache, batch_size, val_split=None, train_split=None):
         """
         creates and returns the DataLoader Class
@@ -519,6 +530,12 @@ class CreateDataloader():
 
 
     def get_dataloader_func(self, func):
+        """
+        Returns specific Dataloader for given func
+
+        :param func: symmetry, eye, mouth or forehead (str)
+        :returns train_loader, val_loader (DataLoader)
+        """
         sampler = tdata.distributed.DistributedSampler(self.train_dataset) if is_process_group(LOCAL_RANK) else ImbalancedDatasetSampler(self.train_dataset, func)
         train_loader =   DataLoader(self.train_dataset,
                                     batch_size=min(self.batch_size, len(self.train_dataset)),
