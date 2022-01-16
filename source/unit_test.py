@@ -34,12 +34,19 @@ from copy import deepcopy
 
 import torch
 
-from utils.config import LOGGER
-from utils.general import check_python, check_requirements, set_logging, OptArgs, init_dict, merge_two_dicts, check_online, check_version
-from utils.pytorch_utils import select_device, is_process_group, is_master_process
-from utils.decorators import try_except_none, try_except, thread_safe
-from utils.singleton import Singleton
-from utils.dataloader import LoadImages, CreateDataset
+from hbmedicalprocessing.utils.config import LOGGER
+from hbmedicalprocessing.utils.general import (check_python,
+                                               check_requirements,
+                                               set_logging,
+                                               OptArgs,
+                                               init_dict,
+                                               merge_two_dicts,
+                                               check_online,
+                                               check_version)
+from hbmedicalprocessing.utils.pytorch_utils import select_device, is_process_group, is_master_process
+from hbmedicalprocessing.utils.decorators import try_except_none, try_except, thread_safe
+from hbmedicalprocessing.utils.singleton import Singleton
+from hbmedicalprocessing.utils.dataloader import LoadImages, CreateDataset
 
 #pylint: disable=invalid-name, no-member, too-few-public-methods, no-self-use
 
