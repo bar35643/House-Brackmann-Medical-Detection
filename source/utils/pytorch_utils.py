@@ -1,18 +1,43 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
 
+import os
 import math
+from contextlib import contextmanager
+from pathlib import Path
 
 import torch
-from torch.optim import Adam, SGD
+from torch import optim
+from torch.optim import lr_scheduler
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
-from .config import LOGGER,LOCAL_RANK, RANK
+from hbmedicalprocessing.utils.templates import house_brackmann_lookup
+from hbmedicalprocessing.utils.config import LOGGER,LOCAL_RANK, RANK
+
 
 
 
@@ -58,17 +83,23 @@ def select_data_parallel_mode(model, cuda: bool):
     https://pytorch.org/docs/stable/distributed.html
     https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html
 
-    :param rank:  Rank of the global Process Group (int)
-    :param rank:  Rank of the local Process Group (int)
     :param model:  model selected for changind the mode (Model)
     :param cuda:  cuda aailable (bool)
     :returns: model (Model)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     #DP mode
     #Setting DataParrallel if Process Group not available but available devices more than 1
     if cuda and not is_process_group(RANK) and torch.cuda.device_count() > 1:
-        LOGGER.info("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
+        LOGGER.warning("DP not recommended! For better Multi-GPU performance with DistributedDataParallel \
                     use ---> python -m torch.distributed.run --nproc_per_node <gpu count> <file.py> <parser options>")
         model = DataParallel(model)
 
@@ -78,6 +109,30 @@ def select_data_parallel_mode(model, cuda: bool):
         model = DistributedDataParallel(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
     return model
+
+def load_model(pth_to_weights, func):
+    """
+    Selecting Cuda/Cpu devices
+
+    :param pth_to_weights:  Path to weights (str)
+    :param func: function name (str)
+    :returns: model
+    """
+
+    pth = os.path.join(Path(pth_to_weights), func + ".pt")
+    if pth.endswith('.pt') and Path(pth).exists():
+        LOGGER.debug("Using Pretrained model at Path %s", pth)
+
+        model = house_brackmann_lookup[func]["model"]
+        ckpt = torch.load(pth)  # load checkpoint
+        model.load_state_dict(ckpt["model"], strict=False)  # load
+        model.float()
+    else:
+        LOGGER.debug("Using General Model")
+        model = house_brackmann_lookup[func]["model"]
+    return model
+
+
 
 def select_device(device="", batch_size=None):
     """
@@ -92,10 +147,18 @@ def select_device(device="", batch_size=None):
     https://discuss.pytorch.org/t/cuda-visible-device-is-of-no-use/10018
     https://discuss.pytorch.org/t/difference-between-torch-device-cuda-and-torch-device-cuda-0/46306/18
     https://pytorch.org/docs/1.9.0/generated/torch.cuda.set_device.html
+
+    Source/Idea:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     # device = "cpu" or "0" or "0,1,2,3"
-    torch_str = f"torch {torch.__version__} "  # string
+    torch_str = f"Torch Version: torch {torch.__version__} Selected Devices: "  # string
     device = str(device).strip().lower().replace("cuda:", "").replace(" ", "")  # to string, "cuda:0" to "0" and "CPU" to "cpu"
     cpu = (device == "cpu") # set cpu to True/False
     cuda = not cpu and torch.cuda.is_available()
@@ -129,70 +192,103 @@ def select_device(device="", batch_size=None):
 
     return device
 
-
-
-
-
-
-#TODO  scheduler and optimizer to function
-class OptimizerClass:
+@contextmanager
+def torch_distributed_zero_first():
     """
-    TODO
-    Check internet connectivity
+    Decorator to make all processes in distributed training wait for each local_master to do something.
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
-    def __init__(self, neural_net):
-        """
-        TODO
-        Check internet connectivity
-        """
-        self.neural_net = neural_net
+    if not is_master_process(LOCAL_RANK):
+        dist.barrier(device_ids=[LOCAL_RANK])
+    yield
+    if LOCAL_RANK == 0:
+        dist.barrier(device_ids=[0])
 
-        self.optimizer_list = {
-        "SGD": SGD(self.neural_net.parameters(), lr=0.001, momentum=0.9, nesterov=True),
-        "ADAM": Adam(self.neural_net.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False),
-        #Adadelta(neural_net.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0),
-        #Adagrad(neural_net.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0),
-        #SparseAdam(neural_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08),
-        #Adamax(neural_net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0),
-        #ASGD(neural_net.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0),
-        #LBFGS(neural_net.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-05, tolerance_change=1e-09, history_size=100, line_search_fn=None),
-        #RMSprop(neural_net.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False),
-        #Rprop(neural_net.parameters(), lr=0.01, etas=(0.5, 1.2), step_sizes=(1e-06, 50))
-        }
 
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.optimizer_list:
-            ret_val =  self.optimizer_list[argument]
-        else:
-            assert False, "given Optimizer is not in the list!"
-        return ret_val
-
-#TODO Scheduler
-class SchedulerClass:
+def de_parallel(model):
     """
-    TODO
-    Check internet connectivity
+    De-parallelize a model: returns single-GPU model if model is of type DP or DDP
+
+    :param model:  Model (Model)
+    :returns: De-parallelized model (Model)
+
+    Info:
+    https://pytorch.org/tutorials/beginner/saving_loading_models.html
+
     """
-    def __init__(self, optimizer):
-        self.optimizer = optimizer
+    return model.module if type(model) in (DataParallel, DistributedDataParallel) else model
 
-        self.scheduler_list = {
-        }
 
-    def select(self, argument):
-        """
-        TODO
-        Check internet connectivity
-        """
-        ret_val = None
-        if argument in self.scheduler_list:
-            ret_val =  self.scheduler_list[argument]
-        else:
-            assert False, "given Scheduler is not in the list!"
-        return ret_val
+
+
+optimizer_list = {
+"Adadelta":   optim.Adadelta,
+"Adagrad":    optim.Adagrad,
+"Adam":       optim.Adam,
+"AdamW":      optim.AdamW,
+"SparseAdam": optim.SparseAdam,
+"Adamax":     optim.Adamax,
+"ASGD":       optim.ASGD,
+"LBFGS":      optim.LBFGS,
+"NAdam":      optim.NAdam,
+"RAdam":      optim.RAdam,
+"RMSprop":    optim.RMSprop,
+"Rprop":      optim.Rprop,
+"SGD":        optim.SGD,
+}
+
+scheduler_list = {
+"LambdaLR": lr_scheduler.LambdaLR,
+"MultiplicativeLR": lr_scheduler.MultiplicativeLR,
+"StepLR": lr_scheduler.StepLR,
+"MultiStepLR": lr_scheduler.MultiStepLR,
+"ConstantLR": lr_scheduler.ConstantLR,
+"LinearLR": lr_scheduler.LinearLR,
+"ExponentialLR": lr_scheduler.ExponentialLR,
+"CosineAnnealingLR": lr_scheduler.CosineAnnealingLR,
+#"ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau,
+"CyclicLR": lr_scheduler.CyclicLR,
+"OneCycleLR": lr_scheduler.OneCycleLR,
+"CosineAnnealingWarmRestarts": lr_scheduler.CosineAnnealingWarmRestarts,
+}
+
+def select_optimizer_and_scheduler(yml_hyp, neural_net, epoch):
+    """
+    Database functions to convert np.array to entry
+    :param yml_hyp: Loaded YAML Config (dict)
+    :param neural_net: model (model)
+    :param epoch: Epochs (int)
+    :return: scheduler, optimizer
+    """
+    item, param = list(yml_hyp['optimizer'].keys())[0], list(yml_hyp['optimizer'].values())[0]
+    optimizer = optimizer_list[item](neural_net.parameters(), **param)
+
+
+    scheduler_aray = []
+    for i in yml_hyp['scheduler']:
+        item, param = list(i.keys())[0], list(i.values())[0]
+        scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
+
+
+    if len(scheduler_aray) == 1:
+        return scheduler_aray[0], optimizer
+
+    if yml_hyp['sequential_scheduler']:
+        length = len(scheduler_aray)
+        milestone_size = epoch/length
+        scheduler = lr_scheduler.SequentialLR(optimizer,
+                                              schedulers=scheduler_aray,
+                                              milestones=[math.floor(milestone_size*i) for i in range(1, length)],
+                                              last_epoch=- 1,
+                                              verbose=False)
+    else:
+        scheduler = lr_scheduler.ChainedScheduler(scheduler_aray)
+
+    return scheduler, optimizer

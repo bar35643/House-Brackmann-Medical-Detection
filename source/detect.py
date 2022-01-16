@@ -1,120 +1,120 @@
-#TODO Docstring
 """
-TODO
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
 """
-
-#import os
 import argparse
-import logging
 import time
 import timeit
 from copy import deepcopy
-#import numpy
 
 import torch
-from torch.utils.data.dataloader import DataLoader
 
-
-#time tracking with timeit.timeit(lambda: func, number=1)
-#or
-# start_time = time.time()
-# fn()
-# elapsed = time.time() - start_time
-from utils.config import LOGGER
-from utils.general import check_requirements, set_logging
-from utils.pytorch_utils import select_device
-from utils.templates import allowed_fn, house_brackmann_lookup, house_brackmann_template
-from utils.dataloader import LoadImages
+from hbmedicalprocessing.utils.config import LOGGER
+from hbmedicalprocessing.utils.general import check_requirements, set_logging, init_dict, OptArgs
+from hbmedicalprocessing.utils.pytorch_utils import select_device, load_model
+from hbmedicalprocessing.utils.templates import house_brackmann_template
+from hbmedicalprocessing.utils.dataloader import create_dataloader_only_images
+from hbmedicalprocessing.utils.automata import hb_automata
 
 PREFIX = "detect: "
-LOGGING_STATE = logging.INFO #logging.DEBUG
 
 @torch.no_grad()
-def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
-        imgsz=640,
+        batch_size=16,
         device="cpu",
         half=False,
         function_selector="all"):
     """
-    TODO
-    Check internet connectivity
+    Calculates the Grade or the Modules for the House-Brackmann score
+
+    :param weights: path to Models (str)
+    :param source: Data Source Directory (str)
+    :param batch_size: max size of the Batch (int)
+    :param device: CPU or 0 or 0,1 (int)
+    :param half: Half Precsiosn Calculation (bool)
+    :param function_selector: Which function should be calculated Example: (str)
+                              function_selector=symmetry,eye,mouth,forehead
+                              function_selector=symmetry,eye
+                              unction_selector=forehead
+                              unction_selector=all
+    :return Dictionary of Result (Dict)
     """
+    LOGGER.info("%sStarting Detection...",PREFIX)
 
 
-    #Selecting the Functions
+    #Selecting the Moudles
     fn_ptr = []
     function_selector = function_selector.strip().lower().replace(" ", "").split(",")
+    LOGGER.debug("%sSelected Functions %s", PREFIX, function_selector)
     for i in function_selector:
         if i == "all":
-            fn_ptr = allowed_fn
+            fn_ptr = list(house_brackmann_template)
         else:
-            assert i in allowed_fn, "given Function not in the list of the allowed Functions! Only use all, symmetry, eye, mouth or forehead"
+            assert i in list(house_brackmann_template), "given Function not in the list of the allowed Functions! Only use all, symmetry, eye, mouth or forehead"
             fn_ptr.append(i)
+    fn_ptr = list(dict.fromkeys(fn_ptr))
+    LOGGER.debug("%sSelected Functions after deleting Duplicates %s", PREFIX, fn_ptr)
 
-    #Init
+    #Init Device
     device = select_device(device)
     half &= device.type != "cpu"  # half precision only supported on CUDA
 
-    dataset = LoadImages(path=source, imgsz=imgsz, device=device, prefix_for_log=PREFIX)
+    #Loading Data
+    dataloader= create_dataloader_only_images(path=source, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
 
-    assert dataset, "No data in dataset given!"
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
-
-    #Calculating
-    result_list = []
-    for i_name, img_list, img_inv_list in dataloader:
-        #TODO enable assert Path(weights).exists(), "File does not exists"
-        assert weights.endswith('.pt'), "File has wrong ending"
-        #TODO checkpoint = torch.load(weights)
-
-        results = deepcopy(house_brackmann_template)
-        results["symmetry"] = []
-        results["eye"] = []
-        results["mouth"] = []
-        results["forehead"] = []
+#-#-#-#-#-#-#-#-#-#-#-Calculating Operation-#-#-#-#-#-#-#-#-#-#-#-#
+    result_list = {}
+    for batch, item_struct in enumerate(dataloader):
+        #------------------------------BATCH------------------------------#
+        i_name, img_struct = item_struct
+        results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model=house_brackmann_lookup[selected_function]["model"]
-            #TODO model.load_state_dict(checkpoint[selected_function]).to(device)
+            model = load_model(weights, selected_function)
+            model.eval()
             if half:
                 model.half()  # to FP16
 
-            for img, img_inv in zip(img_list[selected_function], img_inv_list[selected_function]):
-                img = (img.half() if half else img.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-                img = img[None] if len(img.shape) == 3 else img
+            img = img_struct[selected_function]
+            img = (img.half() if half else img.float()) # uint8 to fp16/32
 
-                img_inv = (img_inv.half() if half else img_inv.float()) /255.0  # uint8 to fp16/32   0 - 255 to 0.0 - 1.0
-                img_inv = img_inv[None] if len(img_inv.shape) == 3 else img_inv
+            pred = model(img.to(device))
+            results[selected_function] = (pred.max(1)[1].cpu().numpy())
 
-                    #TODO mean of both prediction
-                pred = model(img.to(device))
-                pred_inv = model(img_inv.to(device))
+        LOGGER.debug("%sMINIBATCH --> Batch-Nr=%s, names=%s, resuts=%s", PREFIX, batch, i_name, results)
 
-                #TODO Lookup Prediction
-                #print(pred.max(1))
-                #print(pred.max(1)[1])
-                #print(numpy.argmax(pred.detach().numpy()))
-
-                #prediction = house_brackmann_lookup[selected_function]["lookup"][numpy.argmax(pred.detach().numpy())]
-
-                #results.append(house_brackmann_lookup[selected_function]["lookup"][pred])
-                results[selected_function].append(pred.max(1)[1])
-
-        print(i_name, results)
-
-        if function_selector == "all":
-        #TODO Desicion Tree
-            pass
-
-
-
+        #Calculates the Grade from the seperate Modules
+        if function_selector[0] == "all":
+            for idx, name in enumerate(i_name):
+                tmp = deepcopy(house_brackmann_template)
+                for func in results:
+                    tmp[func] = results[func][idx]
+                tmp["grade"] = hb_automata(tmp["symmetry"], tmp["eye"], tmp["mouth"], tmp["forehead"])
+                result_list[name] = tmp
+                del tmp
+        #----------------------------END BATCH----------------------------#
+#-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
+    LOGGER.info("%sFinal Results ---> %s", PREFIX, result_list)
     return result_list
-
-
-
-
-
-
 
 
 
@@ -127,27 +127,29 @@ def run(weights="models/model.pt", #pylint: disable=too-many-arguments, too-many
 
 def parse_opt():
     """
-    TODO
-    Check internet connectivity
+    Command line Parser Options see >> python detect.py -h for more about
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", nargs="+", type=str, default="models/model.pt",
-                        help="model path(s)")
+    parser.add_argument("--weights", type=str, default="models",
+                        help="model folder")
     parser.add_argument("--source", type=str, default="../test_data",
                         help="file/dir")
-    parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640],
-                        help="inference size h,w")
+    parser.add_argument("--batch-size", type=int, default=1,
+                        help="total batch size for all GPUs")
     parser.add_argument("--device", default="cpu",
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--half", action="store_true",
                         help="use FP16 half-precision inference")
-    parser.add_argument("--function_selector", type=str, default="all",
+    parser.add_argument("--function-selector", type=str, default="all",
                         help="funchtions which an be executed or multiple of the list (all, symmetry, eye, mouth, forehead)")
     return parser.parse_args()
 
 if __name__ == "__main__":
-    opt_args = parse_opt()
-    set_logging(LOGGING_STATE, PREFIX,opt_args)
+    opt_args = vars(parse_opt())
+    OptArgs.instance()(opt_args)
+
+    set_logging(PREFIX)
     check_requirements()
-    time = timeit.timeit(lambda: run(**vars(opt_args)), number=1) #pylint: disable=unnecessary-lambda
+
+    time = timeit.timeit(lambda: run(**opt_args), number=1) #pylint: disable=unnecessary-lambda
     LOGGER.info("Done with Detection. Finished in %s s", time)

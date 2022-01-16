@@ -1,26 +1,77 @@
+"""
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
+"""
+
 #⚠️ 🚀
-#TODO Docstring
-"""
-TODO
-"""
 
 import logging
 import glob
 import platform
 import re
 import socket
+from copy import deepcopy
 from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
-from .config import LOGGER, RANK
-from .pytorch_utils import is_process_group #pylint: disable=import-error
+import torch
 
-def set_logging(level, main_inp_func, opt):
+from hbmedicalprocessing.utils.config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
+from hbmedicalprocessing.utils.pytorch_utils import is_process_group
+from hbmedicalprocessing.utils.decorators import try_except
+from hbmedicalprocessing.utils.singleton import Singleton
+
+
+@Singleton
+class OptArgs():
+    """
+    Class for setting the augmentation to true or false globally
+    """
+    def __init__(self):
+        """
+        Initializes the class
+        :param val: value (bool)
+        """
+        self.args = None
+    def get_arg_from_key(self, key):
+        """
+        Setting the value
+        :param item: kewword in dict (dict)
+        """
+        return self.args[key]
+
+    def __call__(self, args):
+        """
+        Setting the value
+        :param args: args (dict)
+        """
+        self.args = args
+
+def set_logging(prefix):
     """
     Setting up the logger
 
-    :param level: one of (logging.DEBUG, logging.INFO)
+    :param prefix: Prefix of the function (str)
     """
     if is_process_group(RANK):
         format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"  #pylint: disable=redefined-builtin
@@ -28,18 +79,54 @@ def set_logging(level, main_inp_func, opt):
         format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
     logging.basicConfig(
-        level=level,
+        level=LOGGING_STATE,
         format=format,
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = main_inp_func + ", ".join(f"{k}={v}" for k, v in vars(opt).items())
-    if level == logging.WARN:
-        LOGGER.warning(log_str)
-    else:
+    if OptArgs.instance().args: #pylint: disable=no-member
+        log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
         LOGGER.info(log_str)
+    LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
+                       prefix, LOCAL_RANK, RANK, WORLD_SIZE)
+    LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
+                       prefix, torch.cuda.is_available(), torch.cuda.device_count(), torch.distributed.is_available())
+
+
+
+
+
+
+
+def merge_two_dicts(dict1, dict2):
+    """
+    merges two dictionary
+    :param dict1: Dictionary 1 (dict)
+    :param dict2: Dictionary 2 (dict)
+    :return dict
+    """
+    res_dict = dict1.copy()   # start with keys and values of dict1
+    res_dict.update(dict2)    # modifies res_dict with keys and values of dict2
+    return res_dict
+
+def init_dict(inp_dict: dict, val):
+    """
+    Creates a new Dictionary with a Preset Value
+
+    :param inp_dict: Input dictionary which should be Initialized (dict)
+    :param val: Value which the Dictionary should be initialized (string, int, float, list, ...)
+
+    :return dict
+    """
+    return dict((k, deepcopy(val)) for k in inp_dict)
+
+
+
+
+
+
 
 def check_online():
     """
@@ -63,7 +150,12 @@ def check_version(current="0.0.0", minimum="0.0.0", name="version "):
     :param minimum: Minimum version of the Package required (String)
     :param name: name of the Package (String)
 
-    #TODO pinned delete
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     current, minimum = (pkg.parse_version(x) for x in (current, minimum))
@@ -74,24 +166,16 @@ def check_python(minimum="3.8.0"):
     Check versions of Python
 
     :param minimum: Minimum version of the Package required (String)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     check_version(platform.python_version(), minimum, name="Python ")
-
-def try_except(func):
-    """
-    try-except function. Usage: @try_except decorator
-
-    :param func:  Function which should be decorated (function)
-    """
-
-    def handler(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except RuntimeError as err:
-            LOGGER.error(err)
-
-    return handler
 
 @try_except
 def check_requirements(requirements="requirements.txt", exclude=(), install=True):
@@ -101,6 +185,14 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
     :param requirements:  List of all Requirements needed (parse *.txt file or list of packages)
     :param exclude: List of all Requirements which will be excuded from the checking (list of packages)
     :param install: True for attempting auto update or False for manual use (True or False)
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
+    Modified Code
     """
 
     check_python()  # check python version
@@ -127,10 +219,22 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
             else:
                 LOGGER.error("requirements: %s not found and is required by this Package. Please install it manually and rerun your command.", req)
 
+
+
+
+
+
+
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
-    TODO
      Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
+
+    Source:
+        Project: yolov5
+        License: GNU GPL v3
+        Author: Glenn Jocher
+        Url: https://github.com/ultralytics/yolov5
+        Date of Copy: 6. October 2021
     """
 
     path = Path(path)  # os-agnostic

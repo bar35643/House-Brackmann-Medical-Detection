@@ -1,5 +1,6 @@
 detect
 train
+run*
 
 .pytest_cache
 __pycache__

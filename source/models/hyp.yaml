@@ -1,0 +1,68 @@
+##
+## Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+##
+## This file is part of house-brackmann-medical-processing
+## Author: Raphael Baumann
+##
+## License:
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+## Changelog:
+## - 2021-12-15 Initial (~Raphael Baumann)
+##
+optimizer:
+    SGD:
+      dampening: 0
+      lr: 0.01
+      momentum: 0.9
+      nesterov: true
+      weight_decay: 0
+    #ASGD:
+     # lr: 0.001
+
+sequential_scheduler: False
+scheduler:
+    - CosineAnnealingLR:
+        T_max: 50
+        eta_min: 0.00001
+        verbose: false
+    - ExponentialLR:
+        gamma: 0.96
+        last_epoch: -1
+        verbose: false
+
+hyp:
+  imgsz:
+    symmetry: [640, 640]
+    eye: [420, 500]
+    mouth: [640, 420]
+    forehead: [640, 300]
+  RandomHorizontalFlip: 0.5
+  Normalize:
+    mean: [0.5, 0.5, 0.5]
+    std:  [0.5, 0.5, 0.5]
+  ColorJitter:
+    brightness: 0.1
+    contrast: 0.1
+    saturation: 0.1
+    hue: 0.05
+  RandomAffine:
+    degrees: 3
+    translate: [0.01, 0.01]
+  GaussianBlur:
+    kernel_size: [7, 7]
+    sigma: [0.1, 2.0]
+  RandomAdjustSharpness:
+    probability: 0.1
+    val: 3
