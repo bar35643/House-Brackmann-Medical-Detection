@@ -38,14 +38,20 @@ from torch.cuda import amp
 
 from torchinfo import summary
 
-from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import RANK, WORLD_SIZE, LOGGER
-from utils.general import check_requirements, increment_path, set_logging, OptArgs
-from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
-from utils.dataloader import CreateDataloader, BatchSettings
-from utils.templates import house_brackmann_lookup
-from utils.plotting import Plotting
-from utils.specs import validate_file
+from hbmedicalprocessing.utils.argparse_utils import restricted_val_split, SmartFormatter
+from hbmedicalprocessing.utils.config import RANK, WORLD_SIZE, LOGGER
+from hbmedicalprocessing.utils.general import check_requirements, increment_path, set_logging, OptArgs
+from hbmedicalprocessing.utils.pytorch_utils import (select_device,
+                                                     select_data_parallel_mode,
+                                                     is_master_process,
+                                                     is_process_group,
+                                                     de_parallel,
+                                                     load_model,
+                                                     select_optimizer_and_scheduler)
+from hbmedicalprocessing.utils.dataloader import CreateDataloader, BatchSettings
+from hbmedicalprocessing.utils.templates import house_brackmann_lookup
+from hbmedicalprocessing.utils.plotting import Plotting
+from hbmedicalprocessing.utils.specs import validate_file
 
 PREFIX = "train: "
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
@@ -84,6 +90,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     :param name: Project name (str)
     :param epocs: Nomber of epochs (int)
     """
+    LOGGER.info("%sStarting Training...",PREFIX)
 
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
@@ -312,7 +319,7 @@ def parse_opt():
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--nosave", action="store_true",
                         help="do not save if activated")
-    parser.add_argument("--project", default="../results/train",
+    parser.add_argument("--project", default="../../results/train",
                         help="save results to project/name")
     parser.add_argument("--name", default="run",
                         help="save results to project/name")

@@ -36,10 +36,10 @@ import pkg_resources as pkg
 
 import torch
 
-from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
-from .pytorch_utils import is_process_group #pylint: disable=import-error
-from .decorators import try_except #pylint: disable=import-error
-from .singleton import Singleton #pylint: disable=import-error
+from hbmedicalprocessing.utils.config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
+from hbmedicalprocessing.utils.pytorch_utils import is_process_group
+from hbmedicalprocessing.utils.decorators import try_except
+from hbmedicalprocessing.utils.singleton import Singleton
 
 
 @Singleton
@@ -86,8 +86,9 @@ def set_logging(prefix):
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
-    LOGGER.info(log_str)
+    if OptArgs.instance().args: #pylint: disable=no-member
+        log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
+        LOGGER.info(log_str)
     LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
                        prefix, LOCAL_RANK, RANK, WORLD_SIZE)
     LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",

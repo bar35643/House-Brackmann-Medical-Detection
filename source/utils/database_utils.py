@@ -28,9 +28,9 @@ import sqlite3
 from functools import lru_cache
 import torch
 
-from .singleton import Singleton #pylint: disable=import-error
-from .decorators import try_except_none, try_except, thread_safe #pylint: disable=import-error
-from .config import LRU_MAX_SIZE, LOGGER
+from hbmedicalprocessing.utils.singleton import Singleton
+from hbmedicalprocessing.utils.decorators import try_except_none, try_except, thread_safe
+from hbmedicalprocessing.utils.config import LRU_MAX_SIZE, LOGGER
 
 def adapt_dictionary(data):
     """

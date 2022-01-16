@@ -24,7 +24,7 @@
 
 import threading
 
-from .config import LOGGER
+from hbmedicalprocessing.utils.config import LOGGER
 
 def try_except(func):
     """

@@ -31,14 +31,14 @@ from PIL import Image, ImageOps
 
 import face_alignment
 
-from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
-from .templates import house_brackmann_template #pylint: disable=import-error
-from .singleton import Singleton #pylint: disable=import-error
+from hbmedicalprocessing.utils.config import LOGGER, IMG_FORMATS
+from hbmedicalprocessing.utils.templates import house_brackmann_template
+from hbmedicalprocessing.utils.singleton import Singleton
 
-if sys.platform == 'win32': #pyheif does not work on Windows. So dummy is import
-    import errorimports as pyheif #pylint: disable=import-error
+if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
+    from .errorimports import read_heif
 if sys.platform == 'linux':
-    import pyheif #pylint: disable=import-error
+    from pyheif import read_heif #pylint: disable=import-error
 
 
 def load_image(path, img_name):
@@ -81,7 +81,7 @@ def load_image(path, img_name):
         return Image.open(image[0]).convert('RGB')
 
     if image[0].split('.')[-1].lower() in ['heic']:
-        temp = pyheif.read_heif(image[0])
+        temp = read_heif(image[0]) #pyheif read
         return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
 
     return None #Faisave

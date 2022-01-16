@@ -28,12 +28,12 @@ from copy import deepcopy
 
 import torch
 
-from utils.config import LOGGER
-from utils.general import check_requirements, set_logging, init_dict, OptArgs
-from utils.pytorch_utils import select_device, load_model
-from utils.templates import house_brackmann_template
-from utils.dataloader import create_dataloader_only_images
-from utils.automata import hb_automata
+from hbmedicalprocessing.utils.config import LOGGER
+from hbmedicalprocessing.utils.general import check_requirements, set_logging, init_dict, OptArgs
+from hbmedicalprocessing.utils.pytorch_utils import select_device, load_model
+from hbmedicalprocessing.utils.templates import house_brackmann_template
+from hbmedicalprocessing.utils.dataloader import create_dataloader_only_images
+from hbmedicalprocessing.utils.automata import hb_automata
 
 PREFIX = "detect: "
 
@@ -59,6 +59,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                               unction_selector=all
     :return Dictionary of Result (Dict)
     """
+    LOGGER.info("%sStarting Detection...",PREFIX)
 
 
     #Selecting the Moudles
@@ -112,7 +113,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 del tmp
         #----------------------------END BATCH----------------------------#
 #-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
-    LOGGER.info("%sFinal Results --->", PREFIX, result_list)
+    LOGGER.info("%sFinal Results ---> %s", PREFIX, result_list)
     return result_list
 
 
