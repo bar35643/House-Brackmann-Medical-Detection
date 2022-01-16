@@ -90,7 +90,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
             model = load_model(weights, selected_function)
-
+            model.eval()
             if half:
                 model.half()  # to FP16
 
