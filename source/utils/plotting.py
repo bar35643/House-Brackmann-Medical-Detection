@@ -33,9 +33,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-from hbmedicalprocessing.utils.config import LOGGER
-from hbmedicalprocessing.utils.general import merge_two_dicts
-from hbmedicalprocessing.utils.templates import house_brackmann_template, house_brackmann_lookup
+from .config import LOGGER
+from .templates import house_brackmann_template, house_brackmann_lookup #pylint: disable=import-error
+from .general import merge_two_dicts
 
 
 np.seterr(divide='ignore', invalid='ignore')

@@ -35,8 +35,8 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
-from hbmedicalprocessing.utils.templates import house_brackmann_lookup
-from hbmedicalprocessing.utils.config import LOGGER,LOCAL_RANK, RANK
+from .templates import house_brackmann_lookup #pylint: disable=import-error
+from .config import LOGGER,LOCAL_RANK, RANK
 
 
 

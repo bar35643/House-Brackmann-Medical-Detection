@@ -42,18 +42,14 @@ from torch.utils.data import Dataset, DataLoader, Subset
 import torchvision.transforms as T
 from sklearn.model_selection import train_test_split
 
-from hbmedicalprocessing.utils.config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
-from hbmedicalprocessing.utils.cutter import Cutter
-from hbmedicalprocessing.utils.database_utils import Database
-from hbmedicalprocessing.utils.pytorch_utils import (is_process_group,
-                                                     is_master_process,
-                                                     torch_distributed_zero_first)
-from hbmedicalprocessing.utils.templates import (house_brackmann_template,
-                                                 house_brackmann_lookup,
-                                                 house_brackmann_grading)
-from hbmedicalprocessing.utils.general import init_dict
-from hbmedicalprocessing.utils.decorators import try_except
-from hbmedicalprocessing.utils.singleton import Singleton
+from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
+from .cutter import Cutter
+from .database_utils import Database
+from .pytorch_utils import is_process_group, is_master_process, torch_distributed_zero_first #pylint: disable=import-error
+from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
+from .general import init_dict #pylint: disable=import-error
+from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 @Singleton
 class BatchSettings():

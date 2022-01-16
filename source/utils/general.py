@@ -36,10 +36,10 @@ import pkg_resources as pkg
 
 import torch
 
-from hbmedicalprocessing.utils.config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
-from hbmedicalprocessing.utils.pytorch_utils import is_process_group
-from hbmedicalprocessing.utils.decorators import try_except
-from hbmedicalprocessing.utils.singleton import Singleton
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
+from .pytorch_utils import is_process_group #pylint: disable=import-error
+from .decorators import try_except #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 
 @Singleton

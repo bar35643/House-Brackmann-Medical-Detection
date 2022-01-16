@@ -31,9 +31,9 @@ from PIL import Image, ImageOps
 
 import face_alignment
 
-from hbmedicalprocessing.utils.config import LOGGER, IMG_FORMATS
-from hbmedicalprocessing.utils.templates import house_brackmann_template
-from hbmedicalprocessing.utils.singleton import Singleton
+from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
+from .templates import house_brackmann_template #pylint: disable=import-error
+from .singleton import Singleton #pylint: disable=import-error
 
 if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
     from .errorimports import read_heif
