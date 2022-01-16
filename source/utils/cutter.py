@@ -81,7 +81,7 @@ def load_image(path, img_name):
         return Image.open(image[0]).convert('RGB')
 
     if image[0].split('.')[-1].lower() in ['heic']:
-        temp = pyheif.read_heif(image[0])
+        temp = read_heif(image[0]) #pyheif read
         return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
 
     return None #Faisave

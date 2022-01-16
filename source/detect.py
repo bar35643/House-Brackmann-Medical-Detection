@@ -113,7 +113,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 del tmp
         #----------------------------END BATCH----------------------------#
 #-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
-    LOGGER.info("%sFinal Results --->", PREFIX, result_list)
+    LOGGER.info("%sFinal Results ---> %s", PREFIX, result_list)
     return result_list
 
 
