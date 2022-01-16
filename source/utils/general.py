@@ -226,7 +226,6 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
 
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
-    TODO
      Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
     Source:

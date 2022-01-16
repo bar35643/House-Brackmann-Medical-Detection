@@ -32,6 +32,10 @@ from mapproxy.util.ext.dictspec.spec import one_of, number, required, combined
 #Infos https://pytorch.org/docs/stable/optim.html
 #https://github.com/mapproxy/mapproxy/blob/master/mapproxy/util/ext/dictspec/spec.py
 
+#List of all Schedulers available on pytorch docs written down as Dictionarys with their
+#allowed Values for crosschecking input config file
+
+
 #lambdalr = {'LambdaLR':  {'lr_lambda': float(), 'last_epoch': int(), 'verbose': bool()}  }
 #multiplicativelr = {'MultiplicativeLR':  {'lr_lambda': float(), 'last_epoch': int(), 'verbose': bool()}  }
 steplr = {'StepLR':{required('step_size'): int(),
@@ -99,8 +103,8 @@ cosineannealingwarmrestarts = {'CosineAnnealingWarmRestarts':{required('T_0'): i
                                                               'last_epoch': int(),
                                                               'verbose': bool()}  }
 
-
-
+#List of all Optimizers available on pytorch docs written down as Dictionarys with their
+#allowed Values for crosschecking input config file
 adadelta = {'Adadelta':{'lr': number(),
                         'rho': number(),
                         'eps': number(),
@@ -163,6 +167,8 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
+#List of used Augmentations  written down as Dictionarys with their
+#allowed Values for crosschecking input config file
 hyperparameter = {required('imgsz'):{
                         required('symmetry'): [number()],
                         required('eye') : [number()],

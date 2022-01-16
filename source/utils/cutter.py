@@ -51,24 +51,32 @@ def load_image(path, img_name):
     """
     path_list = os.listdir(path)
     matching_folders = [os.path.join(path, s) for s in path_list if ("T000" in s) and ("postop" not in s)]
+    LOGGER.debug("Matching Folder list -> %s", matching_folders)
 
     if not matching_folders:
         matching_folders = [path]
 
+    LOGGER.debug("Matching Folder list after checking if empty -> %s", matching_folders)
+
     matching_img_path = []
     for i in matching_folders:
         matching_img_path += [os.path.join(i, s) for s in os.listdir(i)]
+    LOGGER.debug("Matching Imagepath  -> %s", matching_img_path)
 
     matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not "IMG" in x]
     image   = [x for x in matching_img_path_format if img_name in re.split(r'\\|/',x)[-1]]
     image.sort()
+    LOGGER.debug("Matching Imagepath after checking Formats and sorting  -> %s", image)
 
 
     #print(img_name, path, matching_folders, image, )
 
     if not image:
+        LOGGER.debug("No image found return None!")
         return None
 
+    #loading images
+    #using the first image in the array
     if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
         return Image.open(image[0]).convert('RGB')
 
@@ -125,7 +133,7 @@ class Cutter():
         :returns  Array of Landmarks ([x, y], x and y from type int)
         """
         #Documentation for Framework: https://github.com/1adrianb/face-alignment
-        assert self.fn_landmarks, "Use Cutter.instanche().set(<properties>) to set the self Values!"
+        assert self.fn_landmarks, "Framework is not defined! Use Cutter.instanche().set(<properties>) to set the Values!"
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
@@ -159,6 +167,7 @@ class Cutter():
             exit_condition += 1
             assert exit_condition!=10, "Can not turn Images automatically!!"
 
+        #returns the originam image only rotated and the landmarks (det)
         return det, img_input
 
     def crop_image(self, img):
@@ -168,29 +177,34 @@ class Cutter():
         :param img: Image (Image)
         :returns  landmarks and cropped image (array, Image)
         """
-
+        #Setting the factor for resizing the image
+        #Marker generation does not work for high resolution Images!
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
         dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
-        #print(img.size, "to", new_size, "factor", dyn_factor)
-        det, img_flip_org = self.flip_image_and_return_landmarks(img, dyn_factor)
 
+        #landmarks and the image is not affected from the factor!
+        det, img_flip_org = self.flip_image_and_return_landmarks(img, dyn_factor)
         assert len(det), "Marker Detection Failture"
 
+        #Setting the minimal and maximal x,y value
         x_min_det = det[:,0].min()*dyn_factor
         x_max_det = det[:,0].max()*dyn_factor
         y_min_det = det[:,1].min()*dyn_factor
         y_max_det = det[:,1].max()*dyn_factor
 
+        #calculating max width, height of the face
         x_diff = abs(x_max_det-x_min_det)
         y_diff = abs(y_max_det-y_min_det)
 
+        #Offsetting the Frame. Leaving space between the border and the Face
         x_min = int(x_min_det - (x_diff/8)) if int(x_min_det - (x_diff/8)) > 0 else 0
         x_max = int(x_max_det + (x_diff/8)) if int(x_max_det + (x_diff/8)) < img.size[0] else img.size[0]
-
         y_min = int(y_min_det - (y_diff/2)) if int(y_min_det - (y_diff/2)) > 0 else 0
         y_max = int(y_max_det + (y_diff/4)) if int(y_max_det + (y_diff/4)) < img.size[1] else img.size[1]
 
+        # Cropping the image. Cut of all unneccessary
         img_crop = img_flip_org.crop((x_min,y_min,x_max,y_max))
+        #Correcting the landmarks to the new position
         det = det*dyn_factor - [x_min, y_min]
 
         return det, img_crop

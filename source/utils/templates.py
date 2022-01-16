@@ -26,6 +26,11 @@ from torchvision.models import resnet18
 
 
 #https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
+
+
+#Modyfying the Models for the Modules
+#first layer hs to be istead of 3, 27 because of concartenation
+#last layer has to be the size of the len(label)
 model_2_label = resnet18(pretrained=True)
 model_2_label.conv1 = nn.Conv2d(27, model_2_label.conv1.out_channels,
                             kernel_size=model_2_label.conv1.kernel_size,
@@ -50,6 +55,10 @@ model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
                             bias=model_4_label.conv1.bias)
 model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4)
 
+
+#Lookuptable for the modules
+#Enum reprenentates the correlation between nabe and a Number
+#model is the representaing Neural Net
 house_brackmann_lookup = {
     "symmetry": {
         "enum":{
@@ -81,7 +90,9 @@ house_brackmann_lookup = {
     }
 }
 
-
+#Template used for everything else.
+# e.g copying results
+# access via tmp=deepcopy(house_brackmann_template) for no overwriting
 house_brackmann_template = {
     "symmetry": None,
     "eye": None,
@@ -89,6 +100,7 @@ house_brackmann_template = {
     "forehead": None,
 }
 
+#Relation between Grade and the Modules/Labels
 house_brackmann_grading = {
     "I"    : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"normal"   },
     "II"   : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"min_asymm"},

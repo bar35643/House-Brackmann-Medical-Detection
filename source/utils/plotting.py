@@ -249,14 +249,15 @@ class Plotting():
         to_be_saved_dict = merge_two_dicts(train_dict, val_dict)
         fieldnames = list(to_be_saved_dict.keys())
 
-        #Saving as CSV for Each Epoch (Averaged Values)
-        filename = os.path.join(self.path, func + ".csv")
-        file_exists = os.path.isfile(filename)
-        with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
-            if not file_exists:
-                writer.writeheader()
-            writer.writerow(to_be_saved_dict)
+        if not self.nosave: #nosave is not enabled
+            #Saving as CSV for Each Epoch (Averaged Values)
+            filename = os.path.join(self.path, func + ".csv")
+            file_exists = os.path.isfile(filename)
+            with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerow(to_be_saved_dict)
 
 
 
