@@ -84,6 +84,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     :param name: Project name (str)
     :param epocs: Nomber of epochs (int)
     """
+    LOGGER.info("%sStarting Training...",PREFIX)
 
     assert epochs, "Numper of Epochs is 0. Enter a valid Number that is greater than 0"
 
@@ -117,23 +118,25 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
     LOGGER.info("\n")
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-    for selected_function in house_brackmann_lookup:
-        LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", PREFIX, selected_function, batch_size, save_dir, epochs)
+    #Iterate over all modules
+    for selected_module in house_brackmann_lookup:
+        LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", PREFIX, selected_module, batch_size, save_dir, epochs)
 
         #Saving folder for the Models
-        last = os.path.join(model_save_dir, selected_function+"_last.pt")
-        best = os.path.join(model_save_dir, selected_function+"_best.pt")
+        last = os.path.join(model_save_dir, selected_module+"_last.pt")
+        best = os.path.join(model_save_dir, selected_module+"_best.pt")
 
         #Loading the Model and selecting mode
-        model = load_model(weights, selected_function)
+        model = load_model(weights, selected_module)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
 
-        input_size = (batch_size // WORLD_SIZE, 27) + tuple(BatchSettings.instance().hyp["imgsz"][selected_function]) #pylint: disable=no-member
+        #Model infos
+        input_size = (batch_size // WORLD_SIZE, 27) + tuple(BatchSettings.instance().hyp["imgsz"][selected_module]) #pylint: disable=no-member
         LOGGER.info("%sModel Infos --> Batch input_size=%s", PREFIX, input_size)
         LOGGER.info("%sModel Infos --> Layer View and Estimated Size\n %s\n", PREFIX, summary(model, input_size=input_size, verbose=0))
 
         #Get Dataloader specific from teh functeion because of Imbalance
-        train_loader, val_loader = dataloader.get_dataloader_func(selected_function)
+        train_loader, val_loader = dataloader.get_dataloader_func(selected_module)
 
         #Optimizer & Scheduler & Loss function
         _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
@@ -152,11 +155,11 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
             LOGGER.info("Start train Epoch=%s", epoch)
             for idx, item in enumerate(train_loader):
                 i_name, img_struct,label_struct = item
-                img   = img_struct[selected_function]
-                label = label_struct[selected_function]
+                img   = img_struct[selected_module]
+                label = label_struct[selected_module]
 
                 LOGGER.debug("train -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                              epoch, idx, selected_function, i_name, img.shape, label.shape)
+                              epoch, idx, selected_module, i_name, img.shape, label.shape)
 
                 _optimizer.zero_grad()
                 img = img.to(device, non_blocking=True).float() # uint8 to float32
@@ -178,25 +181,24 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 scaler.step(_optimizer)  #optimizer.step
                 scaler.update()
 
-                plotter.update("train", selected_function, label.cpu(), pred.cpu(), loss)
+                plotter.update("train", selected_module, label.cpu(), pred.cpu(), loss)
             LOGGER.info("End train Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
 
             BatchSettings.instance().eval() #pylint: disable=no-member
-            model.eval()
+            model.eval() #https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
+        #---------------------------Validation----------------------------#
             if is_master_process(RANK): #Master Process 0 or -1
             #------------------------------BATCH------------------------------#
                 LOGGER.info("Start val Epoch=%s", epoch)
-
-                #https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
-                with torch.no_grad():
+                with torch.no_grad(): ##https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
                     for idx, item in enumerate(val_loader):
                         i_name, img_struct,label_struct = item
-                        img   = img_struct[selected_function]
-                        label = label_struct[selected_function]
+                        img   = img_struct[selected_module]
+                        label = label_struct[selected_module]
 
                         LOGGER.debug("val -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                                      epoch, idx, selected_function, i_name, img.shape, label.shape)
+                                      epoch, idx, selected_module, i_name, img.shape, label.shape)
 
                         _optimizer.zero_grad()
                         img = img.to(device, non_blocking=True).float() # uint8 to float32
@@ -213,13 +215,13 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                         LOGGER.info("real=%s", label)
                         LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
 
-                        plotter.update("val", selected_function, label.cpu(), pred.cpu(), loss)
+                        plotter.update("val", selected_module, label.cpu(), pred.cpu(), loss)
                 LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
-                val_dict = plotter.update_epoch(selected_function)
+                val_dict = plotter.update_epoch(selected_module)
 
                 # Save model
-                if not nosave:  # if save
+                if not nosave:  #nosave is not enabled
                     ckpt = {"timestamp": datetime.datetime.now(),
                             "epoch": epoch,
                             "score": val_dict,
@@ -229,21 +231,24 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
                     # Save last, best and delete ckpt
                     torch.save(ckpt, last)
+                    LOGGER.debug("Saved model for epoch %s", epoch)
                     if best_score <= val_dict["val_f1"]:
                         torch.save(ckpt, best)
                         best_score = val_dict["val_f1"]
+                        LOGGER.debug("Saved model at epoch %s for best f1 score %s", epoch, best_score)
                     del ckpt
-
-            #Scheduler
+        #-------------------------End Validation--------------------------#
+            #Scheduler Step
             _scheduler.step()
+            #Collecting active garbage
             collected = garbage_collector.collect()
-            LOGGER.info('Collected Garbage: %s', collected)
+            LOGGER.debug('Collected Garbage: %s', collected)
             LOGGER.info('\n')
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK): #Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)
 
-
+    #Emptying cuda cache and destroying porcess group
     torch.cuda.empty_cache()
     if WORLD_SIZE > 1 and RANK == 0:
         LOGGER.info('Destroying process group... ')
@@ -275,8 +280,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
 def parse_opt():
     """
-    TODO
-    Check internet connectivity
+    Command line Parser Options see >> python train.py -h for more about
     """
     parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
     parser.add_argument("--weights", type=str, default="models",

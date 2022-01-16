@@ -86,8 +86,9 @@ def set_logging(prefix):
             logging.StreamHandler(),
             #logging.FileHandler("debug.log"), #TODO enable
         ])
-    log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
-    LOGGER.info(log_str)
+    if OptArgs.instance().args: #pylint: disable=no-member
+        log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
+        LOGGER.info(log_str)
     LOGGER.info("%sEnvironment: Local_Rank=%s Rank=%s World-Size=%s",
                        prefix, LOCAL_RANK, RANK, WORLD_SIZE)
     LOGGER.info("%sEnvironment: Cuda-Available=%s Device-Count=%s Distributed-Available=%s",
@@ -226,7 +227,6 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
 
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
-    TODO
      Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
     Source:

@@ -59,9 +59,10 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                               unction_selector=all
     :return Dictionary of Result (Dict)
     """
+    LOGGER.info("%sStarting Detection...",PREFIX)
 
 
-    #Selecting the Functions
+    #Selecting the Moudles
     fn_ptr = []
     function_selector = function_selector.strip().lower().replace(" ", "").split(",")
     LOGGER.debug("%sSelected Functions %s", PREFIX, function_selector)
@@ -81,7 +82,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     #Loading Data
     dataloader= create_dataloader_only_images(path=source, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
 
-#---------------------Calculating Operation-----------------------#
+#-#-#-#-#-#-#-#-#-#-#-Calculating Operation-#-#-#-#-#-#-#-#-#-#-#-#
     result_list = {}
     for batch, item_struct in enumerate(dataloader):
         #------------------------------BATCH------------------------------#
@@ -111,7 +112,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 result_list[name] = tmp
                 del tmp
         #----------------------------END BATCH----------------------------#
-#--------------------End Calculating Operation--------------------#
+#-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
     LOGGER.info("%sFinal Results --->", PREFIX, result_list)
     return result_list
 
@@ -126,8 +127,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
 def parse_opt():
     """
-    TODO
-    Check internet connectivity
+    Command line Parser Options see >> python detect.py -h for more about
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="models",

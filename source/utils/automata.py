@@ -22,7 +22,7 @@
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
 
-from config import LOGGER #pylint: disable=import-error
+from .config import LOGGER #pylint: disable=import-error
 
 
 # define the function blocks
