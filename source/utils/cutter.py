@@ -23,6 +23,7 @@
 """
 import sys
 import os
+import re
 from copy import deepcopy
 import numpy as np
 from PIL import Image, ImageOps
@@ -34,13 +35,13 @@ from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
-if sys.platform == 'win32':
-    import errorimports as pyheif #pylint: disable=import-error
+if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
+    from .errorimports import read_heif
 if sys.platform == 'linux':
-    import pyheif #pylint: disable=import-error
+    from pyheif import read_heif #pylint: disable=import-error
 
 
-def load_images_format(path, img_name):
+def load_image(path, img_name):
     """
     Loading images in correct Format
 
@@ -50,50 +51,48 @@ def load_images_format(path, img_name):
     """
     path_list = os.listdir(path)
     matching_folders = [os.path.join(path, s) for s in path_list if ("T000" in s) and ("postop" not in s)]
+    LOGGER.debug("Matching Folder list -> %s", matching_folders)
 
     if not matching_folders:
         matching_folders = [path]
 
+    LOGGER.debug("Matching Folder list after checking if empty -> %s", matching_folders)
+
     matching_img_path = []
     for i in matching_folders:
         matching_img_path += [os.path.join(i, s) for s in os.listdir(i)]
+    LOGGER.debug("Matching Imagepath  -> %s", matching_img_path)
 
-    matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not ("IMG" in x)]
-    matching_img_path_name   = [x for x in matching_img_path_format if img_name in x.split('/')[-1]]
-    matching_img_path_name.sort()
+    matching_img_path_format = [x for x in matching_img_path if x.split('.')[-1].lower() in IMG_FORMATS and not "IMG" in x]
+    image   = [x for x in matching_img_path_format if img_name in re.split(r'\\|/',x)[-1]]
+    image.sort()
+    LOGGER.debug("Matching Imagepath after checking Formats and sorting  -> %s", image)
 
-    # print("------")
-    # for j in matching_img_path_format:
-    #     print(pic                        , "   ########   ",
-    #           (pic in j.split('/')[-1]) , "   ########   ",
-    #           j.split('/')[-1]         , "   ########   ",
-    #           j.split('.')[-1].lower() , "   ########   ",
-    #           j  )
-    #
-    # print("------")
 
-    image = matching_img_path_name if matching_img_path_name else matching_img_path_format
-    assert image, f"Error While loading Image at Path {matching_img_path}"
+    #print(img_name, path, matching_folders, image, )
 
+    if not image:
+        LOGGER.debug("No image found return None!")
+        return None
+
+    #loading images
+    #using the first image in the array
     if image[0].split('.')[-1].lower() in ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo']:
         return Image.open(image[0]).convert('RGB')
 
     if image[0].split('.')[-1].lower() in ['heic']:
-        temp = pyheif.read_heif(image[0])
+        temp = read_heif(image[0]) #pyheif read
         return Image.frombytes(mode=temp.mode, size=temp.size, data=temp.data).convert('RGB')
 
-    return None
+    return None #Faisave
 
 @Singleton
 class Cutter():
     """
-    Check installed dependencies meet requirements
+    Cutter Class
 
-    :param requirements:  List of all Requirements needed (parse *.txt file or list of packages)
-    :param exclude: List of all Requirements which will be excuded from the checking (list of packages)
-    :param install: True for attempting auto update or False for manual use (True or False)
+    Handles the cutting for the images into the different types
     """
-    #TODO Redo all functions (input=img_symmetry)
     def __init__(self):
         """
         Initializes Cutter Class and Face Alignment module
@@ -134,7 +133,7 @@ class Cutter():
         :returns  Array of Landmarks ([x, y], x and y from type int)
         """
         #Documentation for Framework: https://github.com/1adrianb/face-alignment
-        assert self.fn_landmarks, "Use Cutter.instanche().set(<properties>) to set the self Values!"
+        assert self.fn_landmarks, "Framework is not defined! Use Cutter.instanche().set(<properties>) to set the Values!"
         landmarks = self.fn_landmarks.get_landmarks(np.array(img))
         return landmarks[0]
 
@@ -168,42 +167,44 @@ class Cutter():
             exit_condition += 1
             assert exit_condition!=10, "Can not turn Images automatically!!"
 
+        #returns the originam image only rotated and the landmarks (det)
         return det, img_input
 
-    def load_image(self, path, img_name):
+    def crop_image(self, img):
         """
         Loading Images
 
-        :param path: Path to image (str)
+        :param img: Image (Image)
         :returns  landmarks and cropped image (array, Image)
         """
-
-
-
-        img = load_images_format(path, img_name)
-
+        #Setting the factor for resizing the image
+        #Marker generation does not work for high resolution Images!
         dyn_factor = max(int(img.size[0]/1000), int(img.size[1]/1000), 1)
         dyn_factor = dyn_factor+1 if dyn_factor%2 else dyn_factor
-        #print(img.size, "to", new_size, "factor", dyn_factor)
-        det, img_flip_org = self.flip_image_and_return_landmarks(img, dyn_factor)
 
+        #landmarks and the image is not affected from the factor!
+        det, img_flip_org = self.flip_image_and_return_landmarks(img, dyn_factor)
         assert len(det), "Marker Detection Failture"
 
+        #Setting the minimal and maximal x,y value
         x_min_det = det[:,0].min()*dyn_factor
         x_max_det = det[:,0].max()*dyn_factor
         y_min_det = det[:,1].min()*dyn_factor
         y_max_det = det[:,1].max()*dyn_factor
 
+        #calculating max width, height of the face
         x_diff = abs(x_max_det-x_min_det)
         y_diff = abs(y_max_det-y_min_det)
 
+        #Offsetting the Frame. Leaving space between the border and the Face
         x_min = int(x_min_det - (x_diff/8)) if int(x_min_det - (x_diff/8)) > 0 else 0
         x_max = int(x_max_det + (x_diff/8)) if int(x_max_det + (x_diff/8)) < img.size[0] else img.size[0]
-
         y_min = int(y_min_det - (y_diff/2)) if int(y_min_det - (y_diff/2)) > 0 else 0
         y_max = int(y_max_det + (y_diff/4)) if int(y_max_det + (y_diff/4)) < img.size[1] else img.size[1]
 
+        # Cropping the image. Cut of all unneccessary
         img_crop = img_flip_org.crop((x_min,y_min,x_max,y_max))
+        #Correcting the landmarks to the new position
         det = det*dyn_factor - [x_min, y_min]
 
         return det, img_crop
@@ -230,7 +231,10 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        _, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
+        if not img:
+            return None
+        _, img = self.crop_image(img)
         # plt.imshow(img)
         # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
@@ -243,7 +247,12 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
+        if not img:
+            return None
+        landmarks, img = self.crop_image(img)
+
+
         eye = landmarks[slice(36, 42)]
         fac = (landmarks[:,0].min())/4
 
@@ -276,7 +285,7 @@ class Cutter():
         # plt.imshow(dst)
         # plt.show()
 
-        return img_slice_right
+        return dst
 
     def cut_mouth(self, path, img_name):
         """
@@ -285,7 +294,12 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
+        if not img:
+            return None
+        landmarks, img = self.crop_image(img)
+
+
         landmarks = landmarks[slice(48, 68)]
         fac = (landmarks[:,0].min())/4
 
@@ -307,7 +321,12 @@ class Cutter():
         :param path: input path
         :returns  cropped image
         """
-        landmarks, img = self.load_image(path, img_name)
+        img = load_image(path, img_name)
+        if not img:
+            return None
+        landmarks, img = self.crop_image(img)
+
+
         landmarks = landmarks[slice(17, 27)]
         fac = (landmarks[:,0].min())/16
 

@@ -37,6 +37,9 @@ model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3)
 model_4_label = resnet18(pretrained=True)
 model_4_label.fc = nn.Linear(model_3_label.fc.in_features, 4)
 
+#Lookuptable for the modules
+#Enum reprenentates the correlation between nabe and a Number
+#model is the representaing Neural Net
 house_brackmann_lookup = {
     "symmetry": {
         "enum":{
@@ -68,7 +71,9 @@ house_brackmann_lookup = {
     }
 }
 
-
+#Template used for everything else.
+# e.g copying results
+# access via tmp=deepcopy(house_brackmann_template) for no overwriting
 house_brackmann_template = {
     "symmetry": None,
     "eye": None,
@@ -88,6 +93,7 @@ image_input_template = {
     "9_depression_lower_lip": None,
 }
 
+#Relation between Grade and the Modules/Labels
 house_brackmann_grading = {
     "I"    : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"normal"   },
     "II"   : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"min_asymm"},

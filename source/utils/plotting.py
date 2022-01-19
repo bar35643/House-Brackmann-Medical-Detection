@@ -124,7 +124,6 @@ class Plotting():
         }
 
 
-        #TODO DELETE deprecated accurancy
         self.averagemeter = {
             "train": {
                 "loss": AverageMeter(),
@@ -250,23 +249,25 @@ class Plotting():
         to_be_saved_dict = merge_two_dicts(train_dict, val_dict)
         fieldnames = list(to_be_saved_dict.keys())
 
-        #Saving as CSV for Each Epoch (Averaged Values)
-        filename = os.path.join(self.path, func + ".csv")
-        file_exists = os.path.isfile(filename)
-        with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
-            if not file_exists:
-                writer.writeheader()
-            writer.writerow(to_be_saved_dict)
+        if not self.nosave: #nosave is not enabled
+            #Saving as CSV for Each Epoch (Averaged Values)
+            filename = os.path.join(self.path, func + ".csv")
+            file_exists = os.path.isfile(filename)
+            with open(filename, 'a+', newline='', encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerow(to_be_saved_dict)
 
 
 
         #Reset conf_matrix_epoch
-        for i in self.conf_matrix_epoch:
+        #diable is better for reading
+        for i in self.conf_matrix_epoch: #pylint: disable=consider-using-dict-items
             self.conf_matrix_epoch[i][func].fill(0)
 
         #Reset all AverageMeter
-        for i in self.averagemeter:
+        for i in self.averagemeter: #pylint: disable=consider-using-dict-items
             for j in self.averagemeter[i]:
                 self.averagemeter[i][j].reset()
 
@@ -292,17 +293,11 @@ class Plotting():
 
 
         #Update AverageMeter
-        #TODO DELETE deprecated accurancy
         accurancy = accuracy_score(label, pred.max(1)[1].cpu())
         self.averagemeter[dataset]["loss"].update(loss.item())
         self.averagemeter[dataset]["accurancy"].update(accurancy)
 
-
-        print("loss_avg: ", self.averagemeter[dataset]["loss"].avg,
-              "accurancy_avg: ", self.averagemeter[dataset]["accurancy"].avg)
-
-
-
+        LOGGER.info("Average from Batch -- loss-avg=%s, accurancy-avg=%s", self.averagemeter[dataset]["loss"].avg, self.averagemeter[dataset]["accurancy"].avg)
 
 
 

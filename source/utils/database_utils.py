@@ -34,7 +34,7 @@ from .config import LRU_MAX_SIZE, LOGGER
 
 def adapt_dictionary(data):
     """
-    Database functions to convert np.array to entry
+    Database functions to convert dict to entry
     :param data: dict
     :return: binary stream
     """
@@ -46,7 +46,7 @@ def adapt_dictionary(data):
 @lru_cache(LRU_MAX_SIZE)
 def convert_dictionary(text):
     """
-    Database functions to convert entries back to np.np_array
+    Database functions to convert entries back to dict
     :param text: text
     :return: dict
     """

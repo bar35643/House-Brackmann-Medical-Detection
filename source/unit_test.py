@@ -34,13 +34,12 @@ from copy import deepcopy
 
 import torch
 
+from utils.config import LOGGER
 from utils.general import check_python, check_requirements, set_logging, OptArgs, init_dict, merge_two_dicts, check_online, check_version
 from utils.pytorch_utils import select_device, is_process_group, is_master_process
 from utils.decorators import try_except_none, try_except, thread_safe
 from utils.singleton import Singleton
 from utils.dataloader import LoadImages, CreateDataset
-
-LOGGER = logging.getLogger(__name__)
 
 #pylint: disable=invalid-name, no-member, too-few-public-methods, no-self-use
 
@@ -225,6 +224,7 @@ class TestCasePatterns(unittest.TestCase):
         @Singleton
         class Test1():
             """
+            test Class
             """
             def __init__(self):
                 pass
@@ -234,6 +234,7 @@ class TestCasePatterns(unittest.TestCase):
 
         class Test2():
             """
+            test Class
             """
             def __init__(self):
                 pass
@@ -360,6 +361,7 @@ def parse_opt():
 if __name__ == "__main__":
     opt_args = vars(parse_opt())
     OptArgs.instance()(opt_args)
-    set_logging(logging.CRITICAL, "unittest: starting...")
+    set_logging("unittest: ")
+    LOGGER.setLevel(logging.CRITICAL)
     check_requirements()
     unittest.main()

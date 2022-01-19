@@ -32,6 +32,10 @@ from mapproxy.util.ext.dictspec.spec import one_of, number, required, combined
 #Infos https://pytorch.org/docs/stable/optim.html
 #https://github.com/mapproxy/mapproxy/blob/master/mapproxy/util/ext/dictspec/spec.py
 
+#List of all Schedulers available on pytorch docs written down as Dictionarys with their
+#allowed Values for crosschecking input config file
+
+
 #lambdalr = {'LambdaLR':  {'lr_lambda': float(), 'last_epoch': int(), 'verbose': bool()}  }
 #multiplicativelr = {'MultiplicativeLR':  {'lr_lambda': float(), 'last_epoch': int(), 'verbose': bool()}  }
 steplr = {'StepLR':{required('step_size'): int(),
@@ -99,8 +103,8 @@ cosineannealingwarmrestarts = {'CosineAnnealingWarmRestarts':{required('T_0'): i
                                                               'last_epoch': int(),
                                                               'verbose': bool()}  }
 
-
-
+#List of all Optimizers available on pytorch docs written down as Dictionarys with their
+#allowed Values for crosschecking input config file
 adadelta = {'Adadelta':{'lr': number(),
                         'rho': number(),
                         'eps': number(),
@@ -163,16 +167,35 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
-hyperparameter = {'imgsz':{
+#List of used Augmentations  written down as Dictionarys with their
+#allowed Values for crosschecking input config file
+hyperparameter = {required('imgsz'):{
                         required('symmetry'): [number()],
                         required('eye') : [number()],
                         required('mouth') : [number()],
                         required('forehead') : [number()],},
-                   'RandomHorizontalFlip': number(),
-                   'RandomRotation_Degree': number(),
-                   'Normalize':{
-                        'mean': [number()],
-                        'std' : [number()],
+                   required('RandomHorizontalFlip'): number(),
+                   required('Normalize'):{
+                        required('mean'): [number()],
+                        required('std') : [number()],
+                   },
+                   required('ColorJitter'):{
+                        required('brightness'): float(),
+                        required('contrast')  : float(),
+                        required('saturation'): float(),
+                        required('hue')       : float(),
+                   },
+                   required('RandomAffine'):{
+                        required('degrees')  : number(),
+                        required('translate'): [number()],
+                   },
+                   required('GaussianBlur'):{
+                        required('kernel_size'): [number()],
+                        required('sigma')      : [number()],
+                   },
+                   required('RandomAdjustSharpness'):{
+                        required('probability'):float(),
+                        required('val')        : number(),
                    },
 }
 
@@ -205,6 +228,12 @@ def validate_yaml_config(inp):
 
 
 def validate_file(hyp:str):
+    """
+    This function validates the input to a spec
+
+    :param hyp: path to File (str)
+    :return loaded YAML config as Dictionary (Dict)
+    """
     pth = Path(hyp)
     assert hyp.endswith('.yaml') and pth.exists(), f"Error Path {hyp} has the wron ending or do not exist"
     with open(pth, 'r', encoding="UTF-8") as yaml_file:
