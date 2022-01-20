@@ -31,7 +31,6 @@ import torch
 from utils.config import LOGGER
 from utils.general import check_requirements, set_logging, init_dict, OptArgs
 from utils.pytorch_utils import select_device, load_model
-from utils.templates import house_brackmann_template
 from utils.dataloader import create_dataloader_only_images
 from utils.automata import hb_automata
 
@@ -42,8 +41,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         source="../data",
         batch_size=16,
         device="cpu",
-        half=False,
-        function_selector="all"):
+        half=False,):
     """
     Calculates the Grade or the Modules for the House-Brackmann score
 
@@ -52,28 +50,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     :param batch_size: max size of the Batch (int)
     :param device: CPU or 0 or 0,1 (int)
     :param half: Half Precsiosn Calculation (bool)
-    :param function_selector: Which function should be calculated Example: (str)
-                              function_selector=symmetry,eye,mouth,forehead
-                              function_selector=symmetry,eye
-                              unction_selector=forehead
-                              unction_selector=all
     :return Dictionary of Result (Dict)
     """
     LOGGER.info("%sStarting Detection...",PREFIX)
-
-
-    #Selecting the Moudles
-    fn_ptr = []
-    function_selector = function_selector.strip().lower().replace(" ", "").split(",")
-    LOGGER.debug("%sSelected Functions %s", PREFIX, function_selector)
-    for i in function_selector:
-        if i == "all":
-            fn_ptr = list(house_brackmann_template)
-        else:
-            assert i in list(house_brackmann_template), "given Function not in the list of the allowed Functions! Only use all, symmetry, eye, mouth or forehead"
-            fn_ptr.append(i)
-    fn_ptr = list(dict.fromkeys(fn_ptr))
-    LOGGER.debug("%sSelected Functions after deleting Duplicates %s", PREFIX, fn_ptr)
 
     #Init Device
     device = select_device(device)
@@ -82,35 +61,26 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     #Loading Data
     dataloader= create_dataloader_only_images(path=source, device=device, batch_size=batch_size, prefix_for_log=PREFIX)
 
+    selected_module = "hb_direct"
+
+
+    model = load_model(weights, selected_module)
 #-#-#-#-#-#-#-#-#-#-#-Calculating Operation-#-#-#-#-#-#-#-#-#-#-#-#
     result_list = {}
     for batch, item_struct in enumerate(dataloader):
         #------------------------------BATCH------------------------------#
-        i_name, img_struct = item_struct
-        results = init_dict(house_brackmann_template, [])
-        for selected_function in fn_ptr:
-            model = load_model(weights, selected_function)
-            model.eval()
-            if half:
-                model.half()  # to FP16
+        i_name, img = item_struct
+        model.eval()
+        if half:
+            model.half()  # to FP16
 
-            img = img_struct[selected_function]
-            img = (img.half() if half else img.float()) # uint8 to fp16/32
+        img = (img.half() if half else img.float()) # uint8 to fp16/32
+        pred = model(img.to(device))
 
-            pred = model(img.to(device))
-            results[selected_function] = (pred.max(1)[1].cpu().numpy())
+        LOGGER.debug("%sMINIBATCH --> Batch-Nr=%s, names=%s, resuts=%s", PREFIX, batch, i_name, pred.max(1)[1].cpu().numpy())
 
-        LOGGER.debug("%sMINIBATCH --> Batch-Nr=%s, names=%s, resuts=%s", PREFIX, batch, i_name, results)
-
-        #Calculates the Grade from the seperate Modules
-        if function_selector[0] == "all":
-            for idx, name in enumerate(i_name):
-                tmp = deepcopy(house_brackmann_template)
-                for func in results:
-                    tmp[func] = results[func][idx]
-                tmp["grade"] = hb_automata(tmp["symmetry"], tmp["eye"], tmp["mouth"], tmp["forehead"])
-                result_list[name] = tmp
-                del tmp
+        for idx, name in enumerate(i_name):
+            result_list[name] = {"grade": pred.max(1)[1].cpu().numpy()}
         #----------------------------END BATCH----------------------------#
 #-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
     LOGGER.info("%sFinal Results ---> %s", PREFIX, result_list)
@@ -140,8 +110,6 @@ def parse_opt():
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--half", action="store_true",
                         help="use FP16 half-precision inference")
-    parser.add_argument("--function-selector", type=str, default="all",
-                        help="funchtions which an be executed or multiple of the list (all, symmetry, eye, mouth, forehead)")
     return parser.parse_args()
 
 if __name__ == "__main__":

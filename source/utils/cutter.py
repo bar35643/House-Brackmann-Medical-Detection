@@ -32,7 +32,6 @@ from PIL import Image, ImageOps
 import face_alignment
 
 from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
-from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
 if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
@@ -216,13 +215,7 @@ class Cutter():
         :returns  Dictionary with the Functions (dict))
         """
 
-        struct_func_list = deepcopy(house_brackmann_template)
-        struct_func_list["symmetry"] = self.cut_symmetry
-        struct_func_list["eye"] = self.cut_eye
-        struct_func_list["mouth"] = self.cut_mouth
-        struct_func_list["forehead"] = self.cut_forehead
-
-        return  struct_func_list
+        return  self.cut_symmetry
 
     def cut_symmetry(self, path, img_name):
         """
@@ -239,104 +232,3 @@ class Cutter():
         # plt.scatter(landmarks[:,0], landmarks[:,1],10, color=[1, 0, 0, 1])
         # plt.show()
         return img
-
-    def cut_eye(self, path, img_name):
-        """
-        Cutter Module for the Eye. Cropping the input image to the Specs.
-
-        :param path: input path
-        :returns  cropped image
-        """
-        img = load_image(path, img_name)
-        if not img:
-            return None
-        landmarks, img = self.crop_image(img)
-
-
-        eye = landmarks[slice(36, 42)]
-        fac = (landmarks[:,0].min())/4
-
-        x_min_eye = int(eye[:,0].min() -fac)
-        x_max_eye = int(eye[:,0].max() +fac)
-        y_min_eye = int(eye[:,1].min() -fac)
-        y_max_eye = int(eye[:,1].max() +fac)
-
-        img_slice_left = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
-
-        eye = landmarks[slice(42, 48)]
-        x_min_eye = int(eye[:,0].min() -fac)
-        x_max_eye = int(eye[:,0].max() +fac)
-        y_min_eye = int(eye[:,1].min() -fac)
-        y_max_eye = int(eye[:,1].max() +fac)
-
-        img_slice_right = img.crop((x_min_eye,y_min_eye,x_max_eye,y_max_eye))
-
-
-        width = img_slice_right.width   if img_slice_right.width  >= img_slice_left.width  else img_slice_left.width
-        height = img_slice_right.height if img_slice_right.height >= img_slice_left.height else img_slice_left.height
-
-        img_slice_right = img_slice_right.resize((width,height))
-        img_slice_left  =  img_slice_left.resize((width,height))
-
-        dst = Image.new('RGB', (img_slice_left.width + img_slice_right.width, img_slice_left.height))
-        dst.paste(img_slice_left, (0, 0))
-        dst.paste(img_slice_right, (img_slice_left.width, 0))
-
-        # plt.imshow(dst)
-        # plt.show()
-
-        return dst
-
-    def cut_mouth(self, path, img_name):
-        """
-        Cutter Module for the Mouth. Cropping the input image to the Specs.
-
-        :param path: input path
-        :returns  cropped image
-        """
-        img = load_image(path, img_name)
-        if not img:
-            return None
-        landmarks, img = self.crop_image(img)
-
-
-        landmarks = landmarks[slice(48, 68)]
-        fac = (landmarks[:,0].min())/4
-
-        x_min_mouth = int(landmarks[:,0].min() -fac)
-        x_max_mouth = int(landmarks[:,0].max() +fac)
-        y_min_mouth = int(landmarks[:,1].min() -fac)
-        y_max_mouth = int(landmarks[:,1].max() +fac)
-
-        img_slice = img.crop((x_min_mouth,y_min_mouth,x_max_mouth,y_max_mouth))
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0]-x_min_mouth, landmarks[:,1]-y_min_mouth,10, color=[1, 0, 0, 1])
-        # plt.show()
-        return img_slice
-
-    def cut_forehead(self, path, img_name):
-        """
-        Cutter Module for the Forehead. Cropping the input image to the Specs.
-
-        :param path: input path
-        :returns  cropped image
-        """
-        img = load_image(path, img_name)
-        if not img:
-            return None
-        landmarks, img = self.crop_image(img)
-
-
-        landmarks = landmarks[slice(17, 27)]
-        fac = (landmarks[:,0].min())/16
-
-        x_min_forehead = 0
-        x_max_forehead = img.size[0]
-        y_min_forehead = 0
-        y_max_forehead = int(landmarks[:,1].max()+fac)
-
-        img_slice = img.crop((x_min_forehead,y_min_forehead,x_max_forehead,y_max_forehead))
-        # plt.imshow(img_slice)
-        # plt.scatter(landmarks[:,0]-x_min_forehead, landmarks[:,1]-y_min_forehead,10, color=[1, 0, 0, 1])
-        # plt.show()
-        return img_slice

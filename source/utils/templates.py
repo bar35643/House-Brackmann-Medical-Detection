@@ -31,73 +31,33 @@ from torchvision.models import resnet18
 #Modyfying the Models for the Modules
 #first layer hs to be istead of 3, 27 because of concartenation
 #last layer has to be the size of the len(label)
-model_2_label = resnet18(pretrained=True)
-model_2_label.conv1 = nn.Conv2d(27, model_2_label.conv1.out_channels,
-                            kernel_size=model_2_label.conv1.kernel_size,
-                            stride=model_2_label.conv1.stride,
-                            padding=model_2_label.conv1.padding,
-                            bias=model_2_label.conv1.bias)
-model_2_label.fc = nn.Linear(model_2_label.fc.in_features, 2)
-
-model_3_label = resnet18(pretrained=True)
-model_3_label.conv1 = nn.Conv2d(27, model_3_label.conv1.out_channels,
-                            kernel_size=model_3_label.conv1.kernel_size,
-                            stride=model_3_label.conv1.stride,
-                            padding=model_3_label.conv1.padding,
-                            bias=model_3_label.conv1.bias)
-model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3)
-
-model_4_label = resnet18(pretrained=True)
-model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
-                            kernel_size=model_4_label.conv1.kernel_size,
-                            stride=model_4_label.conv1.stride,
-                            padding=model_4_label.conv1.padding,
-                            bias=model_4_label.conv1.bias)
-model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4)
+special = resnet18(pretrained=True)
+special.conv1 = nn.Conv2d(27, special.conv1.out_channels,
+                            kernel_size=special.conv1.kernel_size,
+                            stride=special.conv1.stride,
+                            padding=special.conv1.padding,
+                            bias=special.conv1.bias)
+special.fc = nn.Linear(special.fc.in_features, 6)
 
 
 #Lookuptable for the modules
 #Enum reprenentates the correlation between nabe and a Number
 #model is the representaing Neural Net
 house_brackmann_lookup = {
-    "symmetry": {
+    "hb_direct": {
         "enum":{
-            "normal":0,
-            "asymm" :1,
-            "none"  :2},
-        "model": model_3_label
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
     },
-    "eye": {
-        "enum":{
-            "complete"  :0,
-            "incomplete":1},
-        "model": model_2_label
-    },
-    "mouth": {
-        "enum":{
-            "normal"   :0,
-            "min_asymm":1,
-            "asymm"    :2,
-            "none"     :3},
-        "model":model_4_label
-    },
-    "forehead": {
-        "enum":{
-            "normal"   :0,
-            "min_asymm":1,
-            "none"     :2},
-        "model": model_3_label
-    }
 }
 
-#Template used for everything else.
-# e.g copying results
-# access via tmp=deepcopy(house_brackmann_template) for no overwriting
 house_brackmann_template = {
-    "symmetry": None,
-    "eye": None,
-    "mouth": None,
-    "forehead": None,
+"hb_direct" : None,
 }
 
 #Relation between Grade and the Modules/Labels
