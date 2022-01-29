@@ -197,9 +197,9 @@ class Cutter():
 
         #Offsetting the Frame. Leaving space between the border and the Face
         x_min = int(x_min_det - (x_diff/8)) if int(x_min_det - (x_diff/8)) > 0 else 0
-        x_max = int(x_max_det + (x_diff/8)) if int(x_max_det + (x_diff/8)) < img.size[0] else img.size[0]
+        x_max = int(x_max_det + (x_diff/8)) if int(x_max_det + (x_diff/8)) < img_flip_org.size[0] else img_flip_org.size[0]
         y_min = int(y_min_det - (y_diff/2)) if int(y_min_det - (y_diff/2)) > 0 else 0
-        y_max = int(y_max_det + (y_diff/4)) if int(y_max_det + (y_diff/4)) < img.size[1] else img.size[1]
+        y_max = int(y_max_det + (y_diff/4)) if int(y_max_det + (y_diff/4)) < img_flip_org.size[1] else img_flip_org.size[1]
 
         # Cropping the image. Cut of all unneccessary
         img_crop = img_flip_org.crop((x_min,y_min,x_max,y_max))
