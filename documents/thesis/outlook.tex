@@ -1,0 +1,67 @@
+\chapter{Aublick}\label{ausblick}
+
+
+\section{Verschlüsselung und HTTPS Verbindung}\label{encryption}
+Um die Problematik zu entgehen unverschlüsset Patientendaten über ein öffentliches Netz zu versenden, sollte darüber nachgedacht werden, vor der FastAPI Anwendungssoftware, kurz \Acp{app}, ein Proxy gesetzt werden, der den Ein- und Ausgangsverkehr nach dem Empfehlungen des \Acp{bsi_fa} verschlüsselt. So soll wird Sichergestellt, dass Datenpiraterie keine Chance hat und die vertraulichen Bildmaterialien nur dem zugänglich gemacht werden, der befugt ist \cite{fastapi} \cite{bsi}.
+
+\begin{figure}[h]
+\begin{center}
+  %width=0.98\textwidth
+ \includesvg[inkscapelatex=false, width=12cm]{./images/FastAPI_HTTPS}
+\caption[FastAPI HTTPS Request Verlauf]{Verlauf eines HTTPS Requestes im Zusammenhang mit der \ac{app} \cite{fastapi}}\label{cap:fastapi}
+\end{center}
+\end{figure}\label{fig:fastapi}
+
+Für eine sichere Verbindung (HTTPS) wird ein \Acp{tls} Handshake zwischen dem Client und den Server durchgeführt (siehe Abb. \ref{cap:fastapi}). Dazu wird mithilfe des Diffie-Hellman-Schlüsselaustausch Protokolls auf sicherem Wege ein Public-Key-Kryptoverfahren angewendet. Um den bestmöglichen Schutz zu haben sollte die Version \ac{tls} 1.2 oder 1.3 verwendet werden, sodass sichere Hashalgorithmus zu Anwendung kommen als bei 1.1, da dieser keine kollisionsresistente Hashfunktion (SHA-1) benutzt. Auch muss in betracht gezogen werden die Patientendaten nach dem versenden, lokal auf dem Server zu verschlüsseln, sodass Fremdzugriff Serverseitig ausgeschlossen ist. Damit der Schlüssel ausserhalb des Systems nicht einsehbar ist und nur mit einem sehr großem Aufwand berechnet werden kann, jedoch vom System für die decodierung des Bildmateriales verfügbar ist, muss dieser während der Laufzeit berechnet werden. Dafür eignet sich ein symmetrisches Kryptoverfahren wie \Acp{aes} mit einer Schlüssellänge von 256 Bits und von einem Zufallsgenerator erzeugten Schlüssel, der sich für jedem Nutzer induviduell generiert \cite{bsi}.
+
+Nach der Beendigung sollen natürlich die Patientendaten gelöscht werden!
+
+\section{Thick- und Thin-Client Architektur}\label{client}
+Ein Thin Client ist ein Computer mit abgespeckter Leistung, der auf Ressourcen von einem zentralen Server, innerhalb oder ausserhalb des Netzwerkes, zugreift. So können die Kostenanschaffungen für den Speicher und leistungsfähigere Prozessoren reduziert werden, da der Server die anspruchsvollen Berechnungen vollzieht (siehe Tabelle \ref{cap:thinclient}). Thin Clients verbinden sich über Remote Access oder senden einen Request an den Server für die Ressource die sie benötigen.
+
+\begin{table}[h]\vspace{1ex}\centering
+  \begin{tabular*}{14cm}{l|l}
+  \textbf{Vorteile} & \textbf{Nachteile}
+  \\\hline
+  Aufs Nötigste reduziert          & Nur mit Netzwerkverbindung nutzbar   \\
+  Weniger störanfällig             & Abhängigkeitsverhältnis vom Server   \\
+  Kostengünstig                    &                                      \\
+  Niedriger Administrationsaufwand &                                      \\
+  Wartungsarm                      &                                      \\
+  Einfach nutzbar                  &                                      \\
+  Hohe Verfügbarkeit               &
+  \\\hline
+  \end{tabular*}
+  \caption[Vor- und Nachteile von Thin Client]{Vor- und Nachdeile einer Thin Client Architektur}\label{cap:thinclient}
+\vspace{2ex}\end{table}\label{table:thinclient}
+
+Dieser Lösungsansatz bietet auch die Möglichkeit für Andorid und IPhone Smartphones die Ermittlung des House-Brackmann Grades auszuführen. Apss auf Smartphones haben nicht die Kapazitäten, Bildverarbeitung mit Neuronalen Netzen, zu verarbeiten. Diese würden dem Prozessor für längere Zeit beanspruchen und eventuell zu Überhitzung und starkem Akkuverbrauch führen. Der zentrale Server führt für jeden Request, die Detektion aus. Nach dem Prozess wird die Lösung and den Anforderer zurückgesendet.
+
+\vspace{3ex}
+
+Thick Client oder auch als Fat Client bekannt sind vollumfänglich ausgestattete leistungsfähige Computer, die mit ausreichender Rechenkapazität und Speicher Berechnungen ausführen können. Diese Computer verfügen auch über eine Benutzerschnittstele, worüber der Anwender seine Applikation verwenden kann. Fat Clients werden über Desktop-Computer umgesetzt. Nachteilig dabei ist, dass ein hoher administrativer Aufwand besteht. Alle Clients die eine neue Softwareversion benötigen, müssen einzeln das Update herunterziehen. Auch ein wichtiger Aspekt sind die Kosten. Für eine effiziente Berechnung der Dedektion von dem House-Brackmann Score werden Grafikkarten benötigt, die teuer sind. Daher ist der Kosten-Nutzen Faktor viel zu hoch um allein auf eine Thick Client basierte Applikationsverwaltung zu setzen (siehe Tabelle \ref{cap:thickclient}).
+
+\begin{table}[h]\vspace{1ex}\centering
+  \begin{tabular*}{14cm}{l|l}
+  \textbf{Vorteile} & \textbf{Nachteile}
+  \\\hline
+  Offline Funktionalität             &  Wartungsintensiv               \\
+  Direkte Verarbeitung der Eingaben  &  Hoher Administrationsaufwand   \\
+                                     &  Kostenintensiv                 \\
+                                     &  Verwundbarkeit durch Ausfall   \\
+                                     &  Langsam durch Kapazitätsbegrenzungen
+  \\\hline
+  \end{tabular*}
+  \caption[Vor- und Nachteile von Thick Client]{Vor- und Nachdeile einer Thick Client Architektur}\label{cap:thickclient}
+\vspace{2ex}\end{table}\label{table:thickclient}
+
+Denkbar wäre eine kombination aus Thick und Thin Client. Wenn der Server, worauf die Anbindung zur Applikation läuft, ausfällt kann auf eine Offlineversion derselbigen zugegriffen werden (siehe Tabelle \ref{cap:thickclient}). Nachteilig ist dabei, dass die Berechnungen für die Applikation, je nach Ausstattung des Desktop-Computers langsamer verläuft. So kann je nach Anforderung sichergestellt werden, dass immer eine Ausführung der Dedektierung erfolgt, ausgenommen von dem zeitlichen Faktor.
+
+\section{Anderweitige Möglichkeiten}\label{other}
+Vorstellbar ist auch eine anderweitige Ermittlung zusätzlich zu implementieren. Dazu fidet die Sunnybrook Scala Anwendung, die seperat, anhand derselbigen Bilder, die Detection ausführt. Da die Sunnybrook Scala über ein punktebasiertes System die Grade ermittelt, kann so ein genaueres Ergebnis abgedeckt werden, da die Unterteilung um ein wesentliches präziser ist als beim House-Brackmann. Durch eine Gewichtung kann so ein Mittel zwischen den Sunnybrook und Hosue-Brackmann Scala gezogen werden, der näher am wahren Grad des Patienten liegt. Das Prinzip ist auch bekann als Informationsfusion. Der Vorteil dabei ist, wenn beide, Sunnybrook und House-Brackmann Skala, schlechte Ergebnisse liefern, zusammen dennoch eine präzisere Angaben des wahren grades machen können, alls seperat.
+
+\textbf{TODO Quelle Informationsfusion}
+
+\vspace{0.5cm}
+
+Loadbalancing von den eingesetzen Prozessorkernen und Grafikkarten ist auch ein wichtiges Thema. Je nachdem wieviele Anfragen an einen Client oder auch eine Liste an Patienten die Detektion des Grades der Fazialisparese ausgeführt werden soll, ist es sinnvoll die Last gleichmäßig zu verteilen. Mihilfe eines Schedulers muss die Last auf die vorhandenen Porzessoren und Grafikkarten verteilen. Der Scheduler verwaltet und kennt die maximale Auslastung von den Prozessoren und den Grafikkarten. Im optimalfall sollte so, wenn eine Häufung von Anfragen bearbeitet werden soll, gleichmäßig auf alle Kerne und GPU's, verteilt werden
