@@ -13,7 +13,7 @@ F(a, b) = \begin{cases*}
 \end{cases*}
 \end{equation}
 
-Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origialbild mit der vollen Größe angewendet. Dazu werden alle Punkte mit $F_{ab}$ multipliziert. Für die spätere Anwendung in den Neuronalen-Netzen, werden so die hochauflösenden Bilder verwendet.
+Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origialbild mit der vollen Größe angewendet. Dazu werden alle Punkte mit $F_{ab}$ multipliziert. Für die spätere Anwendung in den Neuronalen-Netzen und der Auschneidung der Regionen, werden so die hochauflösenden Bilder verwendet. Damit auch die Patienenbilder, deren Landmarks teilweise von der Ideallineie abweichen, verwendet werden können, muss beim Ausscheiden ein Offset hinzu gerechnet werden.
 
 
 
@@ -23,12 +23,12 @@ Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origi
   \cline{3-5}
   \multirow{2}{*}{}      &       & \multicolumn{3}{c|}{Plazierung der Landmarks}                                               \\ \cline{3-5}
                          &       & \multicolumn{1}{c|}{korrekt} & \multicolumn{1}{c|}{teilweise} & falsch \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}vor Anpassung\\ der Bildgröße\end{tabular}}}  & \# & \multicolumn{1}{c|}{a} & \multicolumn{1}{c|}{b} & c \\ \cline{2-5}
-  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{a}       & \multicolumn{1}{c|}{b}                 & c      \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}nach Anpassung\\ der Bildgröße\end{tabular}}} & \# & \multicolumn{1}{c|}{a} & \multicolumn{1}{c|}{b} & c \\ \cline{2-5}
-  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{a}       & \multicolumn{1}{c|}{b}                 & c      \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}vor Anpassung\\ der Bildgröße\end{tabular}}}  & \# & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{12} & 639 \\ \cline{2-5}
+  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{0}       & \multicolumn{1}{c|}{1.84}                 & 98.16      \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}nach Anpassung\\ der Bildgröße\end{tabular}}} & \# & \multicolumn{1}{c|}{572} & \multicolumn{1}{c|}{78} & 1 \\ \cline{2-5}
+  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{87.87}       & \multicolumn{1}{c|}{11.98}                 & 0.15      \\ \hline
   \end{tabular}
-  \caption[Plazierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor]{Plazierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor $F_{ab}$ bezogen auf die 86 Patien*innen des Datensatzes }\label{cap:fa_factor}
+  \caption[Plazierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor]{Plazierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor $F_{ab}$ bezogen auf die 86 Patient*innen des Datensatzes und deren vorhandenen Bilder}\label{cap:fa_factor}
 \vspace{2ex}\end{table}\label{table:fa_factor}
 
 
@@ -118,7 +118,7 @@ Der Nicht-Deterministischer endlicher Automat für die Bestimmung des Grades nac
 \end{itemize}
 
 
-\begin{table}[h]\vspace{1ex}\centering
+\begin{table}[!tb]\vspace{1ex}\centering
   %\resizebox{10cm}{!}{
   \begin{tabular*}{16cm}{c||c|c|c|c|}
   %\backslashbox{Room}{Date}
@@ -137,7 +137,7 @@ Der Nicht-Deterministischer endlicher Automat für die Bestimmung des Grades nac
 \vspace{2ex}\end{table}\label{table:transition}
 
 %\definecolor{mycolor}{RGB}{50,180,255}
-\begin{figure}[h]
+\begin{figure}[!tb]
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
   \tikzstyle{every state}=[fill=cyan,draw=black,text=black]
@@ -169,7 +169,7 @@ Der Nicht-Deterministischer endlicher Automat für die Bestimmung des Grades nac
 
 
 
-\subsection{? Mittel der Zeilensumme}\label{rowsum}
+\subsection{Mittelwertbildung der Zeilensumme}\label{rowsum}
 \textbf{TODO}
 
 
