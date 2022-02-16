@@ -462,7 +462,7 @@ class ImbalancedDatasetSampler(tdata.sampler.Sampler):
 
 
 
-def create_dataloader(path, device, cache, batch_size, val_split=None, train_split=None):
+def create_dataloader(path, device, cache, batch_size, val_split=None, train_split=None, oversampling=False):
     """
     creates and returns the DataLoader
     checks the batch size
@@ -497,8 +497,8 @@ def create_dataloader(path, device, cache, batch_size, val_split=None, train_spl
     sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(LOCAL_RANK) else ImbalancedDatasetSampler(train_dataset)
     train_loader = DataLoader(train_dataset,
                              batch_size=min(batch_size, len(train_dataset)),
-                             sampler=sampler,
-                             shuffle=False)
+                             sampler=sampler if self.oversampling else None,
+                             shuffle=False if self.oversampling else True)
 
     if is_master_process(RANK): #Only Process 0
         val_loader = DataLoader(val_dataset,

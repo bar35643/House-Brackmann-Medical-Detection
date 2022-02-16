@@ -69,7 +69,8 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
         nosave=False,
         project="../results/train",
         name="run",
-        epochs=100):
+        epochs=100,
+        oversampling=False):
     """
     Training Routines for the Hosue-Brackmannn Score
 
@@ -116,7 +117,7 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
     # Setting up the Dataloader
     train_loader, val_loader = create_dataloader(path=source, device=device, cache=cache,
                                   batch_size=batch_size // WORLD_SIZE,
-                                  val_split=val_split, train_split=train_split)
+                                  val_split=val_split, train_split=train_split, oversampling=oversampling)
     # Setting up the Plotter Classs
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
@@ -291,6 +292,9 @@ def parse_opt():
                         help="save results to project/name")
     parser.add_argument("--epochs", type=int, default=100,
                         help="total epochs running")
+    parser.add_argument("--oversampling", action="store_true",
+                        help="do activate oversampling")
+
     return parser.parse_args()
 
 
