@@ -282,24 +282,13 @@ class LoadImages(Dataset):
 
         func_list = self.cutter_class.cut_wrapper()
 
-        image_input= {
-            "1_rest":                 transform_resize_and_to_tensor(func_list["symmetry"](path, "01"), "symmetry"  ),
-            "2_lift_eyebrow":         transform_resize_and_to_tensor(func_list["forehead"](path, "02"), "forehead"  ),
-            "3_smile_closed":         transform_resize_and_to_tensor(   func_list["mouth"](path, "03"), "mouth"  ),
-            "4_smile_open":           transform_resize_and_to_tensor(   func_list["mouth"](path, "04"), "mouth"  ),
-            "5_Duckface":             transform_resize_and_to_tensor(   func_list["mouth"](path, "05"), "mouth"  ),
-            "6_eye_closed_easy":      transform_resize_and_to_tensor(     func_list["eye"](path, "06"), "eye"  ),
-            "7_eye_closed_forced":    transform_resize_and_to_tensor     (func_list["eye"](path, "07"), "eye"  ),
-            "8_blow_nose":            transform_resize_and_to_tensor(   func_list["mouth"](path, "08"), "mouth"  ),
-            "9_depression_lower_lip": transform_resize_and_to_tensor(   func_list["mouth"](path, "09"), "mouth"  ),
-        }
 
-        struct_img = deepcopy(house_brackmann_template)
-        struct_img["symmetry"]  = [  image_input["1_rest"]   ]
-        struct_img["eye"]       = [  image_input["6_eye_closed_easy"], image_input["7_eye_closed_forced"]   ]
-        struct_img["mouth"]     = [  image_input["3_smile_closed"], image_input["4_smile_open"], image_input["5_Duckface"],
-                                     image_input["8_blow_nose"], image_input["9_depression_lower_lip"]   ]
-        struct_img["forehead"]  = [  image_input["2_lift_eyebrow"]   ]
+        struct_img = init_dict(house_brackmann_template, [])
+        for i in struct_img:
+            for j in ["01", "02", "03", "04", "05", "06", "07", "08", "09"]:
+                tmp = transform_resize_and_to_tensor(func_list[i](path, j), i  )
+                struct_img[i].append(tmp)
+
 
         return struct_img
 

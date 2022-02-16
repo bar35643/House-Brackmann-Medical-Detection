@@ -81,18 +81,6 @@ house_brackmann_template = {
     "forehead": None,
 }
 
-image_input_template = {
-    "1_rest": None,
-    "2_lift_eyebrow": None,
-    "3_smile_closed": None,
-    "4_smile_open": None,
-    "5_Duckface": None,
-    "6_eye_closed_easy": None,
-    "7_eye_closed_forced": None,
-    "8_blow_nose": None,
-    "9_depression_lower_lip": None,
-}
-
 #Relation between Grade and the Modules/Labels
 house_brackmann_grading = {
     "I"    : {"symmetry":"normal",   "eye":"complete"  ,   "forehead":"normal"   ,   "mouth":"normal"   },
