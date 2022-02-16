@@ -403,7 +403,6 @@ class CreateDataset(Dataset):
             hb_single = house_brackmann_lookup[func]["enum"]
             struct_label[func].extend(repeat(   hb_single[grade_table[func]]  , len(struct_img[func])  ))
         tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
-        LOGGER.info("Dataloader: index=%s, img-path=%s, label-id=%s, Grade: %s", idx, path, self.labels[idx][0], tmp)
 
         return path, struct_img, struct_label
 
@@ -508,7 +507,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
     """
     Create Dataloader Class
     """
-    def __init__(self, path, device, cache, batch_size, val_split=None, train_split=None):
+    def __init__(self, path, device, cache, batch_size, val_split=None, train_split=None, oversampling=False):
         """
         creates and returns the DataLoader Class
         checks the batch size
@@ -523,6 +522,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
         prefix_for_log="Setup Train & Validation Data: "
 
         self.batch_size = batch_size
+        self.oversampling = oversampling
 
         with torch_distributed_zero_first():
             dataset = CreateDataset(path=path, device=device, cache=cache, prefix_for_log=prefix_for_log)
@@ -550,8 +550,8 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
         sampler = tdata.distributed.DistributedSampler(self.train_dataset) if is_process_group(LOCAL_RANK) else ImbalancedDatasetSampler(self.train_dataset, func)
         train_loader =   DataLoader(self.train_dataset,
                                     batch_size=min(self.batch_size, len(self.train_dataset)),
-                                    sampler=sampler,
-                                    shuffle=False)
+                                    sampler=sampler if self.oversampling else None,
+                                    shuffle=False if self.oversampling else True)
 
         if is_master_process(RANK): #Only Process 0
             val_loader = DataLoader(self.val_dataset,
