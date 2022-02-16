@@ -150,37 +150,37 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
          if is_process_group(RANK):
              train_loader.sampler.set_epoch(epoch)
 
-        #------------------------------BATCH------------------------------#
+         #------------------------------BATCH------------------------------#
          LOGGER.info("Start train Epoch=%s", epoch)
-         for idx, item in enumerate(train_loader):
-             i_name, img, label = item
-
-             LOGGER.debug("train -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                             epoch, idx, selected_module, i_name, img.shape, label.shape)
-
+         for i_name, img_struct,label_struct in train_loader:
              _optimizer.zero_grad()
-             # uint8 to float32
-             img = img.to(device, non_blocking=True).float()
+             for idx, item_list in enumerate(zip(img_struct, label_struct)):
+                 img, label = item_list
 
-             # https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
-             # https://pytorch.org/docs/stable/amp.html
-             # https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
-             # with amp.autocast(enabled=cuda):
-             pred = model(img)  # forward
-             loss = criterion(pred, label.to(device))
-             accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+                 img = img.to(device, non_blocking=True).float() # uint8 to float32
 
-             LOGGER.info("pred=%s", pred.max(1)[1])
-             LOGGER.info("real=%s", label)
-             LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
+                 #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                 #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
+                 #with amp.autocast(enabled=cuda):
+                 pred = model(img)  # forward
+                 loss = criterion(pred, label.to(device))
+                 accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+                 LOGGER.debug("train -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
+                               epoch, idx, selected_module, i_name, img.shape, label.shape)
 
-             # Backward & Optimize
-             scaler.scale(loss).backward()  # loss.backward()
-             scaler.step(_optimizer)  # optimizer.step
-             scaler.update()
 
-             plotter.update("train", selected_module, label.cpu(), pred.cpu(), loss)
-             LOGGER.info("End train Epoch=%s", epoch)
+
+                 LOGGER.info("pred=%s", pred.max(1)[1])
+                 LOGGER.info("real=%s", label)
+                 LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
+
+                 #Backward & Optimize
+                 scaler.scale(loss).backward() #loss.backward()
+                 scaler.step(_optimizer)  #optimizer.step
+                 scaler.update()
+
+                 plotter.update("train", selected_module, label.cpu(), pred.cpu(), loss)
+         LOGGER.info("End train Epoch=%s", epoch)
         #----------------------------END BATCH----------------------------#
 
          BatchSettings.instance().eval()  # pylint: disable=no-member
@@ -190,31 +190,32 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
             #------------------------------BATCH------------------------------#
             LOGGER.info("Start val Epoch=%s", epoch)
             with torch.no_grad():  # https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
-                for idx, item in enumerate(val_loader):
-                    i_name, img, label = item
-
-                    LOGGER.debug("val -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                                     epoch, idx, selected_module, i_name, img.shape, label.shape)
-
+                for i_name, img_struct,label_struct in val_loader:
                     _optimizer.zero_grad()
-                    # uint8 to float32
-                    img = img.to(device, non_blocking=True).float()
+                    for idx, item_list in enumerate(zip(img_struct, label_struct)):
+                        img, label = item_list
+                        LOGGER.debug("val -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
+                                      epoch, idx, selected_module, i_name, img.shape, label.shape)
 
-                    # https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
-                    # https://pytorch.org/docs/stable/amp.html
-                    # https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
-                    # with amp.autocast(enabled=cuda):
-                    pred = model(img)
-                    loss = criterion(pred, label.to(device))
-                    accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
+                        _optimizer.zero_grad()
+                        img = img.to(device, non_blocking=True).float() # uint8 to float32
 
-                    LOGGER.info("pred=%s", pred.max(1)[1])
-                    LOGGER.info("real=%s", label)
-                    LOGGER.info("loss=%s, accurancy=%s",loss.item(), accurancy)
+                        #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+                        #https://pytorch.org/docs/stable/amp.html
+                        #https://pytorch.org/docs/stable/notes/amp_examples.html#amp-examples
+                        #with amp.autocast(enabled=cuda):
+                        pred = model(img)
+                        loss = criterion(pred, label.to(device))
+                        accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
 
-                    plotter.update("val", selected_module,label.cpu(), pred.cpu(), loss)
-            LOGGER.info("End val Epoch=%s", epoch)
+                        LOGGER.info("pred=%s", pred.max(1)[1])
+                        LOGGER.info("real=%s", label)
+                        LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
+
+                        plotter.update("val", selected_module, label.cpu(), pred.cpu(), loss)
+                LOGGER.info("End val Epoch=%s", epoch)
             #----------------------------END BATCH----------------------------#
+
             val_dict = plotter.update_epoch(selected_module)
 
             # Save model

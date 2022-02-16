@@ -303,7 +303,7 @@ class LoadImages(Dataset):
 
         struct_img = self.database.get_db_one(self.table, idx)[1] if self.database else self.get_structs(idx)
 
-        struct_img_aug = torch.cat(  [self.augmentation(i) for i in struct_img]  )
+        struct_img_aug = [self.augmentation(i) for i in struct_img]
 
         return path, struct_img_aug
 
@@ -377,7 +377,7 @@ class CreateDataset(Dataset):
 
         LOGGER.info("Dataloader: index=%s, img-path=%s, label-id=%s, Grade: %s", idx, path, self.labels[idx][0], label)
 
-        return path, struct_img, label
+        return path, struct_img, [label, label, label, label, label, label, label, label, label]
 
 
     def __len__(self):
@@ -443,7 +443,7 @@ class ImbalancedDatasetSampler(tdata.sampler.Sampler):
         """
         label = []
         for path, img, lab in dataset:
-            label.append(  lab )
+            label.append(  lab[0] )
         return label
 
     def __iter__(self):
@@ -497,8 +497,8 @@ def create_dataloader(path, device, cache, batch_size, val_split=None, train_spl
     sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if is_process_group(LOCAL_RANK) else ImbalancedDatasetSampler(train_dataset)
     train_loader = DataLoader(train_dataset,
                              batch_size=min(batch_size, len(train_dataset)),
-                             sampler=sampler if self.oversampling else None,
-                             shuffle=False if self.oversampling else True)
+                             sampler=sampler if oversampling else None,
+                             shuffle=False if oversampling else True)
 
     if is_master_process(RANK): #Only Process 0
         val_loader = DataLoader(val_dataset,

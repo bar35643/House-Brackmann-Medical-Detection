@@ -32,7 +32,7 @@ from torchvision.models import resnet18
 #first layer hs to be istead of 3, 27 because of concartenation
 #last layer has to be the size of the len(label)
 special = resnet18(pretrained=True)
-special.conv1 = nn.Conv2d(27, special.conv1.out_channels,
+special.conv1 = nn.Conv2d(3, special.conv1.out_channels,
                             kernel_size=special.conv1.kernel_size,
                             stride=special.conv1.stride,
                             padding=special.conv1.padding,
