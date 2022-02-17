@@ -134,6 +134,7 @@ class Plotting():
                 "accurancy": AverageMeter()
             }
         }
+
     def statistics_criteria_calculation(self, dataset, conf_matrix):
         """
         Calculate Statistics
@@ -321,9 +322,9 @@ class Plotting():
 
         :return fig
         """
-        fig, axs = plt.subplots(len(list(house_brackmann_lookup.keys())), #Collum
-                                len(list(self.conf_matrix.keys())),     #Row
-                                figsize=(12, 12))
+        fig, axs = plt.subplots(len(list(self.conf_matrix.keys())),     #Row
+                                len(list(house_brackmann_lookup.keys())), #Collum
+                                figsize=(16, 16))
 
         if normalize:
             LOGGER.info("%sNormalized confusion matrix", self.prefix_for_log)
@@ -332,33 +333,33 @@ class Plotting():
 
         for col, dataset in enumerate(list(self.conf_matrix.keys())):
             for row, func in enumerate(list(house_brackmann_lookup.keys())):
-
+                print(col, row, func)
                 tmp = self.conf_matrix[dataset][func]
                 #print(dataset, func,  tmp)
                 tmp = tmp.astype('int') if not normalize else tmp.astype('float') / tmp.sum(axis=1)[:, np.newaxis]
 
-                axs[col].imshow(tmp, interpolation='nearest', cmap=self.params["cmap"])
-                axs[col].set_title(dataset+"_"+func)
+                axs[col, row].imshow(tmp, interpolation='nearest', cmap=self.params["cmap"])
+                axs[col, row].set_title(dataset+"_"+func)
                 #axs[col, row].colorbar()
 
                 keys = list(house_brackmann_lookup[func]["enum"].keys())
 
-                axs[col].set_xticks(np.arange(len(keys)))
-                axs[col].set_xticklabels(keys, rotation=45)
+                axs[col, row].set_xticks(np.arange(len(keys)))
+                axs[col, row].set_xticklabels(keys, rotation=45)
 
-                axs[col].set_yticks(np.arange(len(keys)))
-                axs[col].set_yticklabels(keys)
+                axs[col, row].set_yticks(np.arange(len(keys)))
+                axs[col, row].set_yticklabels(keys)
 
                 fmt = '.2f' if normalize else 'd'
                 thresh = tmp.max() / 1.2
                 for i, j in itertools.product(range(tmp.shape[0]), range(tmp.shape[1])):
-                    axs[col].text(j, i,                                               #Positon
+                    axs[col, row].text(j, i,                                               #Positon
                                        format(tmp[i, j], fmt),                             #Formatted Value
                                        horizontalalignment="center",                       #Alignment
                                        color="white" if tmp[i, j] > thresh else "black")   #color of text
 
-                    axs[col].set_ylabel('True label')
-                    axs[col].set_xlabel('Predicted label')
+                    axs[col, row].set_ylabel('True label')
+                    axs[col, row].set_xlabel('Predicted label')
 
         #fig.subplots_adjust(wspace=0.2, hspace=0.2)
         fig.suptitle(title, y=0.8, fontsize=self.params["fontsize"], fontweight=self.params["fontweight"])

@@ -26,6 +26,7 @@ import os
 import math
 from contextlib import contextmanager
 from pathlib import Path
+from copy import deepcopy
 
 import torch
 from torch import optim
@@ -129,7 +130,7 @@ def load_model(pth_to_weights, func):
         model.float()
     else:
         LOGGER.debug("Using General Model")
-        model = house_brackmann_lookup[func]["model"]
+        model = deepcopy(house_brackmann_lookup[func]["model"])
     return model
 
 

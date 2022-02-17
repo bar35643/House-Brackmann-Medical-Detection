@@ -44,7 +44,87 @@ special.fc = nn.Linear(special.fc.in_features, 6)
 #Enum reprenentates the correlation between nabe and a Number
 #model is the representaing Neural Net
 house_brackmann_lookup = {
-    "hb_direct": {
+    "hb_direct_0": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_1": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_2": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_3": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_4": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_5": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_6": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_7": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+    "hb_direct_8": {
         "enum":{
             "I"  :0,
             "II" :1,
@@ -57,7 +137,15 @@ house_brackmann_lookup = {
 }
 
 house_brackmann_template = {
-"hb_direct" : None,
+"hb_direct_0" : None,
+"hb_direct_1" : None,
+"hb_direct_2" : None,
+"hb_direct_3" : None,
+"hb_direct_4" : None,
+"hb_direct_5" : None,
+"hb_direct_6" : None,
+"hb_direct_7" : None,
+"hb_direct_8" : None,
 }
 
 #Relation between Grade and the Modules/Labels

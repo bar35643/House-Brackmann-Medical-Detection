@@ -122,40 +122,42 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
     plotter = Plotting(path=save_dir, nosave=nosave, prefix_for_log=PREFIX)
 
     LOGGER.info("\n")
-    selected_module = "hb_direct"
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     # Iterate over all modules
-    LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...",
-                PREFIX, selected_module, batch_size, save_dir, epochs)
 
-
-    # Saving folder for the Models
-    last = os.path.join(model_save_dir, selected_module + "_last.pt")
-    best = os.path.join(model_save_dir, selected_module + "_best.pt")
-
-    model = load_model(weights, selected_module)
-    model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
-
-    # Optimizer & Scheduler & Loss function
-    _scheduler, _optimizer = select_optimizer_and_scheduler(
-        yml_hyp, model, epochs)
-    criterion = CrossEntropyLoss()  # https://pytorch.org/docs/stable/nn.html
-
-    scaler = amp.GradScaler(enabled=cuda)
 
     best_score = 0
-    for epoch in range(epochs):
-         BatchSettings.instance().train()  # pylint: disable=no-member
-         model.train()
-         if is_process_group(RANK):
-             train_loader.sampler.set_epoch(epoch)
+    for number in range (0, 9): #0..8 Index
+        selected_module = "hb_direct_" + str(number)
 
-         #------------------------------BATCH------------------------------#
-         LOGGER.info("Start train Epoch=%s", epoch)
-         for i_name, img_struct,label_struct in train_loader:
-             _optimizer.zero_grad()
-             for idx, item_list in enumerate(zip(img_struct, label_struct)):
-                 img, label = item_list
+        LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...",
+                    PREFIX, selected_module, batch_size, save_dir, epochs)
+
+        # Saving folder for the Models
+        last = os.path.join(model_save_dir, selected_module + "_last.pt")
+        best = os.path.join(model_save_dir, selected_module  + "_best.pt")
+
+        model = load_model(weights, selected_module)
+        model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
+
+        # Optimizer & Scheduler & Loss function
+        _scheduler, _optimizer = select_optimizer_and_scheduler(yml_hyp, model, epochs)
+        criterion = CrossEntropyLoss()  # https://pytorch.org/docs/stable/nn.html
+
+        scaler = amp.GradScaler(enabled=cuda)
+
+        for epoch in range(epochs):
+             BatchSettings.instance().train()  # pylint: disable=no-member
+             model.train()
+             if is_process_group(RANK):
+                 train_loader.sampler.set_epoch(epoch)
+
+             #------------------------------BATCH------------------------------#
+             LOGGER.info("Start train Epoch=%s", epoch)
+             for i_name, img_struct,label_struct in train_loader:
+                 _optimizer.zero_grad()
+                 img = img_struct[number]
+                 label = label_struct[number]
 
                  img = img.to(device, non_blocking=True).float() # uint8 to float32
 
@@ -165,8 +167,8 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
                  pred = model(img)  # forward
                  loss = criterion(pred, label.to(device))
                  accurancy = accuracy_score(label.cpu(), pred.max(1)[1].cpu())
-                 LOGGER.debug("train -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                               epoch, idx, selected_module, i_name, img.shape, label.shape)
+                 LOGGER.debug("train -> epoch=%s, names=%s, img-shape=%s, label-shape=%s",
+                                   epoch, selected_module, i_name, img.shape, label.shape)
 
 
 
@@ -180,24 +182,23 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
                  scaler.update()
 
                  plotter.update("train", selected_module, label.cpu(), pred.cpu(), loss)
-         LOGGER.info("End train Epoch=%s", epoch)
-        #----------------------------END BATCH----------------------------#
+             LOGGER.info("End train Epoch=%s", epoch)
+            #----------------------------END BATCH----------------------------#
 
-         BatchSettings.instance().eval()  # pylint: disable=no-member
-         model.eval()  # https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
-         #---------------------------Validation----------------------------#
-         if is_master_process(RANK):  # Master Process 0 or -1
-            #------------------------------BATCH------------------------------#
-            LOGGER.info("Start val Epoch=%s", epoch)
-            with torch.no_grad():  # https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
-                for i_name, img_struct,label_struct in val_loader:
-                    _optimizer.zero_grad()
-                    for idx, item_list in enumerate(zip(img_struct, label_struct)):
-                        img, label = item_list
-                        LOGGER.debug("val -> epoch=%s, minibatch-id=%s, names=%s, img-shape=%s, label-shape=%s",
-                                      epoch, idx, selected_module, i_name, img.shape, label.shape)
-
+             BatchSettings.instance().eval()  # pylint: disable=no-member
+             model.eval()  # https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
+             #---------------------------Validation----------------------------#
+             if is_master_process(RANK):  # Master Process 0 or -1
+                #------------------------------BATCH------------------------------#
+                LOGGER.info("Start val Epoch=%s", epoch)
+                with torch.no_grad():  # https://stackoverflow.com/questions/60018578/what-does-model-eval-do-in-pytorch
+                    for i_name, img_struct,label_struct in val_loader:
                         _optimizer.zero_grad()
+                        img = img_struct[number]
+                        label = label_struct[number]
+                        LOGGER.debug("val -> epoch=%s, names=%s, img-shape=%s, label-shape=%s",
+                                          epoch, selected_module, i_name, img.shape, label.shape)
+
                         img = img.to(device, non_blocking=True).float() # uint8 to float32
 
                         #https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
@@ -213,34 +214,34 @@ def run(weights="models",  # pylint: disable=too-many-arguments, too-many-locals
                         LOGGER.info("loss=%s, accurancy=%s", loss.item(), accurancy)
 
                         plotter.update("val", selected_module, label.cpu(), pred.cpu(), loss)
-                LOGGER.info("End val Epoch=%s", epoch)
-            #----------------------------END BATCH----------------------------#
+                    LOGGER.info("End val Epoch=%s", epoch)
+                #----------------------------END BATCH----------------------------#
 
-            val_dict = plotter.update_epoch(selected_module)
+                val_dict = plotter.update_epoch(selected_module)
 
-            # Save model
-            if not nosave:  # nosave is not enabled
-                ckpt = {"timestamp": datetime.datetime.now(),
-                        "epoch": epoch,
-                        "score": val_dict,
-                        "model": de_parallel(model).state_dict(),
-                        "optimizer": _optimizer.state_dict(),
-                        "scheduler": _scheduler.state_dict(), }
-                # Save last, best and delete ckpt
-                torch.save(ckpt, last)
-                LOGGER.debug("Saved model for epoch %s", epoch)
-                if best_score <= val_dict["val_f1"]:
-                    torch.save(ckpt, best)
-                    best_score = val_dict["val_f1"]
-                    LOGGER.debug("Saved model at epoch %s for best f1 score %s", epoch, best_score)
-                del ckpt
-        #-------------------------End Validation--------------------------#
-        # Scheduler Step
-         _scheduler.step()
-        # Collecting active garbage
-         collected = garbage_collector.collect()
-         LOGGER.debug('Collected Garbage: %s', collected)
-         LOGGER.info('\n')
+                # Save model
+                if not nosave:  # nosave is not enabled
+                    ckpt = {"timestamp": datetime.datetime.now(),
+                            "epoch": epoch,
+                            "score": val_dict,
+                            "model": de_parallel(model).state_dict(),
+                            "optimizer": _optimizer.state_dict(),
+                            "scheduler": _scheduler.state_dict(), }
+                    # Save last, best and delete ckpt
+                    torch.save(ckpt, last)
+                    LOGGER.debug("Saved model for epoch %s", epoch)
+                    if best_score <= val_dict["val_f1"]:
+                        torch.save(ckpt, best)
+                        best_score = val_dict["val_f1"]
+                        LOGGER.debug("Saved model at epoch %s for best f1 score %s", epoch, best_score)
+                    del ckpt
+            #-------------------------End Validation--------------------------#
+            # Scheduler Step
+             _scheduler.step()
+            # Collecting active garbage
+             collected = garbage_collector.collect()
+             LOGGER.debug('Collected Garbage: %s', collected)
+             LOGGER.info('\n')
 # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
     if is_master_process(RANK):  # Plotting only needed in Process 0 (GPU) or -1 (CPU)
         plotter.plot(show=False)
