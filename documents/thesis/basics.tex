@@ -136,44 +136,139 @@ Im Verlauf dieser Arbeit wird nur das \textbf{überwachte Lernen} der Modelle be
     \node[annot,left of=hl] {Input layer};
     \node[annot,right of=hl] {Output layer};
 \end{tikzpicture}
-\caption[Beispielaufbau eines Neuronale Netzes]{Beispielaufbau eines Neuronale Netzes. Die Input Layer repräsentieren die Eingabe in das Netz. Hidden Layer sind versteckte Schichten im Modell. Die Ausgabe auf der linken Seite sind bei einer Klassifikation Wahrscheinlichkeiten, bezogen auf die  zu erwartenden Label. Die Kanten zwischen den Schichten haben Gewichte ahand deren die Eingabe modifiziert wird.}\label{cap:neuralnet}
+\caption[Beispielaufbau eines Neuronale Netzes]{Beispielaufbau eines Neuronale Netzes. Die Input Layer repräsentieren die Eingabe in das Netz. Hidden Layer sind versteckte Schichten im Modell. Die Ausgabe auf der linken Seite sind bei einer Klassifikation, Wahrscheinlichkeiten, bezogen auf die  zu erwartenden Label. Die Kanten zwischen den Schichten haben Gewichte ahand deren die Eingabe modifiziert wird.}\label{cap:neuralnet}
 \end{figure}\label{fig:neuralnet}
 
-Das Training dieser Netze basiert auf Forwärts- und Rückwärtsrechnen dier Geichte und Parameter an den Kanten. Dabei läuft zuerst die Eingabe des neuronalen Netzes alle Schichten, die eine Reihe von Transformationen ausführt. Das Ergebnis nach den Durchlauf wird mit dem realen Ergebnis verglichen, das innerhalb der Trainingsphase bekannt ist. Die Abweichung von diesem Vergleich, auck bekannt als Fehler, wird in der umgekehrten Richtung durch das Netzwerk geschickt. Die Gewichte an den Kanten zwischen den Layern werden anhand des Fehlers angepasst. So soll erreicht werden, dass das Netz sich im Verhalten der Ein- und Ausgabe konvergiert.
+Das Training dieser Netze basiert auf Forwärts- und Rückwärtsrechnen der Parameter an den Kanten der Layer. Dabei läuft zuerst das Eingabebild alle Schichten des Neuronalen Netzes ab, die Reihen von verschiedenen Transformationen ausführen. Das Ergebnis nach den Durchlauf wird mit dem realen, zu erwartenden Ergebnis, verglichen, das innerhalb der Trainingsphase bekannt ist. Die Abweichung von diesem Vergleich, auck bekannt als Fehler (Loss), wird in der umgekehrten Richtung durch das Netzwerk geschickt. Die Gewichte an den Kanten zwischen den Layern werden anhand des Fehlers angepasst. So soll erreicht werden, dass das Netz sich im Verhalten der Ein- und Ausgabe konvergiert und der Loss abnimmt.
 
 \section{Automatentheorie}\label{automatatheory}
-\textbf{TODO}
+Automaten sind wichtige Bestandteile der Informatik. In der Theoretischen Informatk ist die zu erfüllende Aufgabe so im Wortlaut definiert:
+
+\begin{quote}
+\glqq Die Aufgabe des Automaten besteht darin, eine Eingabe $w \in \{0, 1 \}\ast$ zu
+durchlaufen (Buchstabe für Buchstabe), und die entsprechenden Transitionen
+zwischen den Zuständen durchzuführen. Wenn die Eingabe komplett
+durchlaufen wurde, also keine neuen Buchstaben mehr vorhanden sind, wird
+das Eingabewort akzeptiert, sofern sich der Automat in einem akzeptierenden
+Zustand befindet. Anderenfalls wird das Wort abgelehnt. Dies entspricht dem
+weiter oben eingeführten Wortproblem. Man sagt, der Automat entscheidet
+die Sprache.\grqq \cite{theororeticalinformatic}
+\end{quote}
+
+Die Eingabe $w$ muss nicht zwangsläufig sich auf den Wertebereich $\{0, 1 \}\ast$ beziehen. Aufgabegebiete solcher Maschinen beinhalten Steuerungsaufgaben, Mustererkennung in Daten, Netzwerkprotokolle, Sprachverarbeitung, Klassifizierungen und anderweitige Anwendunsmöglichkeiten. Es gibt zwei Hauptkategorien von Automatenklassen \acp{dea} und \acp{nea}, die unterschieden werden.
+
+Ein \ac{dea} ist formal komplett durch ein 5-Tupel $M = (Q, \Sigma, \delta, q_0, F)$ definiert. Das 5-Tupel für den \ac{dea} enthält folgende Komponenten:
+
+\begin{itemize}
+  \setlength\itemsep{-0.6em}
+\item $Q$  ist eine endliche Zustandsmenge
+\item $\Sigma$ ist ein endliches Alphabet
+\item $\delta:Q \times \Sigma \rightarrow Q$ deterministische Übergangsfunktion
+\item $q_0 \in Q$ ist der Startzustand
+\item $F \subseteq Q$ Menge aller akzeptierten Endzustände
+\end{itemize}
+
+
+Ein \ac{nea} ist formal durch ein 5-Tupel $M = (Q, \Sigma, \delta, E, F)$ definiert. Der unterschied zwischen \ac{dea} und \ac{nea}, ist, dass mehere Startzustände vorhanden sein können und die Übergangsfunktionen nicht alle Formal definiert sein müssen. Das 5-Tupel für den \ac{nea} enthält folgende Komponenten:
+
+\begin{itemize}
+  \setlength\itemsep{-0.6em}
+\item $Q$  ist eine endliche Zustandsmenge
+\item $\Sigma$ ist ein endliches Alphabet
+\item $\delta:Q \times \Sigma \rightarrow P(Q)$ nicht-deterministische Übergangsfunktion
+\item $E \subseteq Q$ die Menge der Startzustände
+\item $F \subseteq Q$ Menge aller akzeptierten Endzustände
+\end{itemize}
+
+
+
 
 \section{Statistik}\label{statistics}
-\textbf{Erklären wie man die ausrechnet über Confusion Matrix}
+Um die verschiedenen Experimene statischtisch vergleichen zu können, wird eine Wahrheitsmatrix $W$ (eng. Confusion Matrix) erstellt. Diese Matrix ist eine Auflistung aller Ergebnisse eines Trainingsschrittes (Epoch) der Neuronalen Netze. Dazu werden die vorhergesagten Klassen in die Zeile mit der realen Klasse in die Matrix eingetragen (Abb. \ref{cap:conv_matrix}).
+
+%The matrix in numbers
+%Horizontal target class
+%Vertical output class
+\def\myConfMat{{
+{110,  25,  30},  %row 1
+{   0, 59,  31},  %row 2
+{   5, 35,  90},  %row 3
+}}
+
+\def\classNames{{1, 2, 3}} %class names. Adapt at will
+
+\def\numClasses{3} %number of classes. Could be automatic, but you can change it for tests.
+
+\def\myScale{1.5} % 1.5 is a good scale. Values under 1 may need smaller fonts!
+
+\begin{figure}[t]
+\begin{center}
+\begin{tikzpicture}[scale = \myScale,%font={\scriptsize}, %for smaller scales, even \tiny may be useful
+  ]
+\tikzset{vertical label/.style={rotate=90,anchor=east}}   % usable styles for below
+\tikzset{diagonal label/.style={rotate=45,anchor=north east}}
+
+\foreach \y in {1,...,\numClasses} %loop vertical starting on top
+{
+    % Add class name on the left
+    \node [anchor=east] at (0.4,-\y) {\pgfmathparse{\classNames[\y-1]}\pgfmathresult};
+    \foreach \x in {1,...,\numClasses}  %loop horizontal starting on left
+    {
+%---- Start of automatic calculation of totSamples for the column ------------
+    \def\totSamples{0}
+    \foreach \ll in {1,...,\numClasses}
+    {
+        \pgfmathparse{\myConfMat[\ll-1][\x-1]}   %fetch next element
+        \xdef\totSamples{\totSamples+\pgfmathresult} %accumulate it with previous sum
+        %must use \xdef fro global effect otherwise lost in foreach loop!
+    }
+    \pgfmathparse{\totSamples} \xdef\totSamples{\pgfmathresult}  % put the final sum in variable
+%---- End of automatic calculation of totSamples ----------------
+
+    \begin{scope}[shift={(\x,-\y)}]
+        \def\mVal{\myConfMat[\y-1][\x-1]} % The value at index y,x (-1 because of zero indexing)
+        \pgfmathtruncatemacro{\r}{\mVal}   %
+        \pgfmathtruncatemacro{\p}{round(\r/\totSamples*100)}
+        \coordinate (C) at (0,0);
+        \ifthenelse{\p<50}{\def\txtcol{black}}{\def\txtcol{white}} %decide text color for contrast
+        \node[
+            draw,                 %draw lines
+            text=\txtcol,         %text color (automatic for better contrast)
+            align=center,         %align text inside cells (also for wrapping)
+            fill=black!\p,        %intensity of fill (can change base color)
+            minimum size=\myScale*10mm,    %cell size to fit the scale and integer dimensions (in cm)
+            inner sep=0,          %remove all inner gaps to save space in small scales
+            ] (C) {\r};     %text to put in cell (adapt at will)
+        %Now if last vertical class add its label at the bottom
+        \ifthenelse{\y=\numClasses}{
+        \node [] at ($(C)-(0,0.75)$) % can use vertical or diagonal label as option
+        {\pgfmathparse{\classNames[\x-1]}\pgfmathresult};}{}
+    \end{scope}
+    }
+}
+%Now add x and y labels on suitable coordinates
+\coordinate (yaxis) at (-0.3,0.5-\numClasses/2);  %must adapt if class labels are wider!
+\coordinate (xaxis) at (0.5+\numClasses/2, -\numClasses-1.25); %id. for non horizontal labels!
+\node [vertical label] at (yaxis) {Reale Klasse ($r$)};
+\node []               at (xaxis) {Berechnete Klasse aus einem Neuronalen Netz ($p$)};
+\end{tikzpicture}
+\caption[Beispiel einer Warheitsmatrix $W$]{Beispiel einer Wahrheitsmatrix. Das Ergebnis aus den Neuronalen Netzen wird einzeln mit den richtigen Ausgabewert verglichen und in die Zeile mit +1 eingetragen.}\label{cap:conv_matrix}
+\end{center}
+\end{figure}\label{fig:conv_matrix}
+
+Durch die Matrix, sind fünf Metriken bestimmbar. Sensitivität, welches die Wahrscheinlichkeit angibt, anhand deren ein Objekt richtig klassifiziert wurde. Das Gegenteil ist die Spezifität. Diese gibt an, mit welcher Wahrscheinlichkeit ein Objekt falsch klassifiziert wird. Als weitere Werte lassen sich Spezifität und Segreganz (Positiver und negativer Vorhersagewert) berechnen. Diese geben den Anteil der korrekt klassifizierten an der Gesamtheit der klassifizierten Ergebnisse positiv und negativ an. Der F1-Wert ist dabei das harmonische Mittel zwischen Sensitivität und Genauigkeit. Für die statistischen Merkmale Sensitivität, Genauigkeit, Spezifität, Segreganz und F1 für die Matrix als Mittelwert berechnen zu können, ist für alle Klassen zuerst deren ihre Einzelwerte für diese zu berechnen. Danach werden alle Klassen zusammenaddiert und der Mittelwert über ihnen gebildet. Die spezifischen Werte für ein Label $g$, die Wahrheitsmatrix $W$, die Reihe $r$ und Spalte $p$ können nach den Formeln (\ref{eg:tpr} - \ref{eg:f1}) ausgerechnet werden \cite{matrix_calc_paper}:
 
 
+\begin{alignat}{1}
+  Sensitivität (TPR) &= \frac{TP}{TP + FN} = \frac{W_{g, g}}{\sum_{n=1}^{n} r_{g}}\label{eg:tpr}\\
+  Genauigkeit (PPV)  &= \frac{TP}{TP + FP} = \frac{W_{g, g}}{\sum_{n=1}^{n} p_{g}}\label{eg:ppv}\\
+  Spezifität (TNR)   &= \frac{TN}{TN + FP} = \frac{W_{\neg g, \neg g}}{\sum_{n=1}^{n} r_{\neg g}}\label{eg:tnr}\\
+  Segreganz (NPV)    &= \frac{TN}{TN + FP} = \frac{W_{\neg g, \neg g}}{\sum_{n=1}^{n} p_{\neg g}}\label{eg:npr}\\
+  F1                 &= \frac{2 * PPV * TPR}{PPV + TPR}\label{eg:f1}
+\end{alignat}
 
-here Recall refers to as true positive rate (tpr), and
-Confidence denotes the true positive accuracy (tpa). Consid-
-ering all four metrics rather than only an accuracy can help
-to reduce the evaluation bias to an extent.
 
-
-\textbf{Treffergenauigkeit}
-\begin{equation}
-Treffergenauigkeit (ACC) = \frac{TP+TN}{TP + TN + FP + FN}
-\end{equation}
-
-\textbf{Sensitivity, hit rate, recall, or true positive rate}
-\begin{equation}
-Sensitivität (TPR) = \frac{TP}{TP + FN}
-\end{equation}
-
-\textbf{Precision or positive predictive value}
-\begin{equation}
-Genauigkeit (PPV) = \frac{TP}{TP + FP}
-\end{equation}
-
-\textbf{F1}
-\begin{equation}
-F1 = \frac{2 * PPV * TPR}{PPV + TPR} = \frac{2 * TP}{2 * TP + FP + FN}
-\end{equation}
+Die Diagonale der Matrix repräsentiert alle Richtig-Positiv Klassifizierungen aller Klassen. Anhand dieser Metriken kann so herausgefunden werden, ob ein Neuronales Netz in eine Über- bzw. Unteranpassung (eng. Over- und Underfitting) hineinläuft. Auch ein Indiz für einen guten Lernvortschritt ist, wenn der F1-Wert quasi asymptotisch Richtung 1 annähert. In der Szene des Machine-Learning ist der F1-Wert der Maßstab.
 
 
 
@@ -202,24 +297,88 @@ F1 = \frac{2 * PPV * TPR}{PPV + TPR} = \frac{2 * TP}{2 * TP + FP + FN}
 
 \chapter{Stand der Technik}\label{std}
 
-Im folgenden Kapitel soll der momentane  Stand der Technik für die zugrunge liegende Aufgabenstellung erläutert werden. Der Abschnitt \ref{segmentation} veranschaulicht dabei die Graduierung der Fazialisparese duch die Anwendung von Segmentierung zur Extraktion der wichtigsten Gesichtseigenschaften.
-\textbf{TODO}
+Im folgenden Kapitel soll der momentane  Stand der Technik für die zugrunge liegende Aufgabenstellung erläutert werden. Dabei werden 2 verschiedenste vorangehensweisen kurz erläutert. Der Abschnitt \ref{segmentation} veranschaulicht dabei die Graduierung der Fazialisparese duch die Anwendung von Segmentierung zur Extraktion der wichtigsten Gesichtseigenschaften. Eine andere Herangehensweise ist mit Videoframes vergleichsbasiert anhand einer aufgenommenen Referensstellung den \ac{hb_grade} festzustellen (Kapitel \ref{compare}).
 
 \section{Segmentierung basierte Methode}\label{segmentation}
 Eine Methode zur Erkennung einer Fazialisparese ist die Anwendung von Segmentierung, um die Gesichtsmerkmale aus den Bildern extrahierten. Diese semantischen Merkmale enthalten räumliche Eigenschaften des Patienten*in, die für die Klassifikation des Schweregrades, aus optischer sicht, unerlässlich sind.
 
-\begin{figure}[tb]\centering
-  %width=0.98\textwidth
-  \includegraphics[width=15cm]{./images/wang1-2942143-large.eps}
-\caption[tmp2]{TODO NEU ZEICHNEN\cite{detection_fp2}}\label{cap:tmp2}
-\end{figure}\label{fig:tmp2}
+\begin{figure}[!b]
+\resizebox{0.95\textwidth}{!}{%
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick,scale=0.50]
+  \tikzstyle{every state}=[fill=cyan,draw=black,text=black]
 
-Der Experimentaufbau von T. Wang, S. Zhang, L. Liu, G. Wu und J. Dong enthaltet ein kaskadierenden Encoder Netzstruktur zur Ausführung der Bewertung der Fazialisparese. Auf Basis von Neuronalen Netzen, besteht dieser Aufbau aus zwei Komponenten. Semantischen Segmenterung von Gesichtsattributen und ein Klassifikationsnetz über eine vorher extrahierte Funktionskarte (Encoder). Dieser Encoder komprimiert die Bilddaten Pixel für Pixel durch ein Faltungsnetzwerk (eng. Convolution). Verwendet wird dazu ein vortrainiertes ResNet-101 ohne Verkleinerung des Eingabemateriales. Als Training für für den Encoder diente ein Mix aus beiden, normale und an einer Fazialisparese leidenden Personen, um ihn seperat vom Rest vorab zu trainieren. Daturch konnte genug räumliche Informationen über die Gesicher gewonnen werden, die für die Segmenterung und die Graduierung benötigt werden. Die daraus enthaltenen Daten aus dem Encoder dienen als Feature für die Segmentierung und die direkte Klassifikation des Grades nach House-Brackmann. Segmentierung ist eine Pixel für Pixel Klassifikation über das gesammte Bild. Die Gesichtspartien können so für die betrachteten Teilregionen der House-Brackmann Skala eingefärbt werden. Als Ausgabe dient die Klassifizerung und das segmentierte Bild, der für die weitere klinische Einschätzung durch einen Facharzt*in zurückgeliefert werden. Durch die Anwendung des kaskadierenden Trainings ist so ein F1 Wert von 95.85\% erzielt \cite{detection_fp2}.
+  \definecolor{in_out_col}{RGB}{60,199,215}
+  \tikzstyle{level0} = [rectangle, draw, fill=in_out_col, text width=8cm, text centered, rounded corners, minimum height=1cm, minimum width=8cm]
+
+  \definecolor{enc_col}{RGB}{199,215,60}
+  \tikzstyle{level1} = [rectangle, draw, fill=enc_col, text width=4cm, text centered, inner sep=1pt  , minimum height=2cm, minimum width=2cm]
+
+  \tikzstyle{level2} = [rectangle, draw, fill=blue!20, text width=5cm, text centered, rounded corners, minimum height=1cm, minimum width=5cm]
+
+  \tikzstyle{level3} = [rectangle, draw, fill=green!40!blue!20, text width=4cm, text centered, inner sep=1pt  , minimum height=3cm, minimum width=3cm]
+
+  \definecolor{att_mod_col}{RGB}{60, 142, 215}
+  \tikzstyle{level3_att_mod} = [rectangle, draw, fill=att_mod_col, text width=3cm, text centered, inner sep=1pt  , minimum height=0.5cm, minimum width=2.5cm]
+
+  \definecolor{enc_2_col}{RGB}{215,60, 199}
+  \tikzstyle{level3_2} = [rectangle, draw, fill=enc_2_col, text width=4cm, text centered, inner sep=1pt  , minimum height=3cm, minimum width=3cm]
+
+  \tikzstyle{level4} = [rectangle, draw, fill=blue!20, text width=3cm, text centered, rounded corners, minimum height=1.5cm, minimum width=3cm]
+
+  \tikzstyle{level5} = [rectangle, draw, fill=in_out_col, text width=4cm, text centered, rounded corners, minimum height=1.5cm, minimum width=4cm]
 
 
 
+  \node[level0]    (Z0)[rotate=90]                                 {\textbf{Eingabe}};
+  \node[level1]    (A) [right of=Z0, xshift=1.5cm]                 {\textbf{Encoder E1} \\ vollständiges \\ Faltungsnetzwerk};
+  \node[level2]    (B) [right of=A      , xshift=1.5cm, rotate=90] {Featuremap};
+  \node[level3]    (C) [above right of=B, xshift=2cm , yshift=1cm, text depth=2cm] {Attention Modul};
+  \node[level3_att_mod]    (C1) [above right of=B, xshift=2cm , yshift=1.3cm] {};
+  \node[level3_att_mod]    (C2) [above right of=B, xshift=2cm , yshift=0.7cm] {};
+  \node[level3_att_mod]    (C3) [above right of=B, xshift=2cm , yshift=0.1cm] {};
 
-\section{Vergleichsbasiert}\label{compare}
+  \node[level4]    (D) [right of=C      , xshift=1.5cm, rotate=90] {Pixel für Pixel \\ Klassifikation};
+  \node[level3_2]  (E) [below right of=B, xshift=2cm, yshift=-1cm] {\textbf{Encoder E2} \\ Faltungsnetzwerk als Dimensionskompressor};
+  \node[level4]    (F) [right of=E      , xshift=1.5cm, rotate=90] {Grad \\ Klassifizierer};
+
+  \node[level5]    (Z1)[right of=D      , xshift=1.5cm, rotate=90] {\textbf{Ausgabe} \\ \textbf{Segmentierung}};
+  \node[level5]    (Z2)[right of=F      , xshift=1.5cm, rotate=90] {\textbf{Ausgabe} \\ \textbf{Klassifizierung} \\ $[I, II, III, IV, V, VI]$};
+
+
+  \path (A)  edge [line width=0.8mm,  green!70, bend left= 15] node {} (B)
+        (A)  edge [line width=0.8mm,   blue!70, bend left=-15] node {} (B)
+        (B)  edge [line width=0.8mm,    red!70               ] node {} (A)
+
+        (B)  edge [line width=0.8mm,  green!70, bend left=15]  node {} (C)
+        (C)  edge [line width=0.8mm,    red!70, bend left=15]  node {} (B)
+        (C)  edge [line width=0.8mm,  green!70, bend left=15]  node {} (D)
+        (D)  edge [line width=0.8mm,    red!70, bend left=15]  node {} (C)
+        (D)  edge [line width=0.8mm,  green!70, bend left=15]  node {} (Z1)
+        (Z1) edge [line width=0.8mm,    red!70, bend left=15]  node {} (D)
+
+
+        (B)  edge [line width=0.8mm,   blue!70              ] node {} (E)
+        (E)  edge [line width=0.8mm,   blue!70, bend left=15] node {} (F)
+        (F)  edge [line width=0.8mm, bend left=15           ] node {} (E)
+        (F)  edge [line width=0.8mm,   blue!70, bend left=15] node {} (Z2)
+        (Z2) edge [line width=0.8mm, bend left=15           ] node {} (F)
+
+        (Z0) edge [line width=0.8mm,  blue!70, bend right=30] node {}(E)
+        (Z0) edge [line width=0.8mm,  blue!70, bend left=-15] node {} (A)
+        (Z0) edge [line width=0.8mm,  green!70, bend left=15] node {} (A);
+\end{tikzpicture}
+}%
+%\caption[Darstellung der Flowchart vom Paper {Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure]{Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure. \cite{detection_fp2}}\label{cap:paper_1}
+
+\caption[Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure.]{Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure. Die blauen und grünen Pfeile ist der Evaluierungsdatenfluss. Rot und Schwarz jeweils der Trainingsfluss \cite{detection_fp2}.}\label{cap:paper_1}
+\end{figure}\label{fig:paper_1}
+
+Der Experimentaufbau von T. Wang, S. Zhang, L. Liu, G. Wu und J. Dong enthaltet ein kaskadierenden Encoder Netzstruktur zur Ausführung der Bewertung der Fazialisparese (Abb. \ref{cap:paper_1}). Auf Basis von Neuronalen Netzen, besteht dieser Aufbau aus zwei Komponenten. Semantischen Segmenterung von Gesichtsattributen und ein Klassifikationsnetz über eine vorher extrahierte Funktionskarte (Encoder). Dieser Encoder komprimiert die Bilddaten Pixel für Pixel durch ein Faltungsnetzwerk (eng. Convolution). Verwendet wird dazu ein vortrainiertes ResNet-101 ohne Verkleinerung des Eingabemateriales. Als Training für für den Encoder diente ein Mix aus beiden, normale und an einer Fazialisparese leidenden Personen, um ihn seperat vom Rest vorab zu trainieren. Daturch konnte genug räumliche Informationen über die Gesicher gewonnen werden, die für die Segmenterung und die Graduierung benötigt werden. Die daraus enthaltenen Daten aus dem Encoder dienen als Feature für die Segmentierung und die direkte Klassifikation des Grades nach House-Brackmann. Segmentierung ist eine Pixel für Pixel Klassifikation über das gesammte Bild. Die Gesichtspartien können so für die betrachteten Teilregionen der House-Brackmann Skala eingefärbt werden. Als Ausgabe dient die Klassifizerung und das segmentierte Bild, der für die weitere klinische Einschätzung durch einen Facharzt*in zurückgeliefert werden. Durch die Anwendung des kaskadierenden Trainings ist so ein F1 Wert von 95.85\% erzielt \cite{detection_fp2}.
+
+
+
+\section{Vergleichsbasierte Erkennung anhand eines Videos}\label{compare}
 Eine anderweitige Möglichkeit ist es mit einem Video Frames mit einer Referenz zu vergleichen. Dazu werden fünf unterschiedlichste Gesichstbewegungen durchgeführt. Diese sind Augenbraun heben, Augen sanft und forciert schließen, Nase rümpfen und Lächeln. Die Viedeosequenz beginnt mit der Referenzansicht, wobei sich der/die Patient*in in Ruheposition befindet. Nach jeder Bewegung kehren sie auch wiederum in die Ausgangsposition zurück. Anhand von Framesubstraktion können die einzelnen Positionen aus dem Video entnommen werden.
 
 Nachdem die einzelnen Posen entnommen worden sind werden die einzelnen Gesichtsregionen lokalisiert. Um die Gesichskonturen zu detektieren wird ein Sobel-Filter angewendet. Dieser nutzt eine Faltungsoperation, die aus dem Bild einen Gradienten erzeugt. Die Bereiche mit der größten Intensität, also den Stellen wo sich die Helligkeit am stärksten ändert, werden hervorgehoben. Die anderen Stellen werden mit Grauwerten drargestellt. Alle eintscheidenden Features des Gesichtes (Augenbraun, Nase, Mund und Augen) sind dunkler als die normale Hautfarbe. Durch Eine Verschiebung der Pixelwerte lassen sich diese hervorheben und deren absolute Position im Bild feststellen.

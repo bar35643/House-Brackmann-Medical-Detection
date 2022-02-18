@@ -1,5 +1,5 @@
 
-\chapter{Material und Methoden}\label{method}
+\chapter{Material und Methoden}\label{mat_and_method}
 
 
 \section{Material}\label{material}
@@ -29,9 +29,9 @@ Als Material zu Verfügung stehen instesammt 86 Patient*innen als Datensatz. Die
 \item Depression Unterlippe
 \end{enumerate}
 
-Das Bild mit der Codierung 1 fokusiert sich dabei auf die Symmetrie in Ruhe. Die 2 bildet die Stirn ab. Dadurch sollen die Auswirkungen und die Beweglichkeit der Muskeln rund um die Stirnpartie gezeigt werden (absichtliche Faltenbildung). Der Lidschluss wird mit den Bildern 6 und 7 statisch eingefangen. Meistens ist ein nicht geschlossenes Auge durch das Weiße im Augenball erkennbar. 3, 4, 5, 8 und 9 zeigen den Mund in unterschiedlichtsen Positionen.
+Das Bild mit der Codierung 1 fokusiert sich dabei auf die Symmetrie in Ruhe. Die 2 bildet die Stirn ab. Dadurch sollen die Auswirkungen und die Beweglichkeit der Muskeln rund um die Stirnpartie bildlich festgehalten werden (absichtliche Faltenbildung). Der Lidschluss wird mit den Bildern 6 und 7 statisch eingefangen. Ein nicht geschlossenes Auge durch das Weiße im Augenball erkennbar. 3, 4, 5, 8 und 9 zeigen den Mund in unterschiedlichtsen Positionen. So sollen die Unterschiede zwischen den beiden Gesichtshälften am besten Aufzeigen. Die Posen für den Mund sind von Aussen gesehen einer der Hauptmerkmale, der einfach auch schon für Laien Erkennbar ist.
 
-Problematisch dabei ist, dass nicht für jeden Patient*in alle 9 korrespondierenden Bilder vorhanden sind (Abb. \ref{cap:bar_code}).
+Problematisch dabei ist, dass nicht für jeden Patient*in alle 9 korrespondierenden Bilder vorhanden sind (Abb. \ref{cap:bar_code}). Beim Trainieren der Neuronalen Netze muss Rücksicht darauf genommen werden.
 
 
 \begin{figure}[!tb]\centering
@@ -64,11 +64,10 @@ Problematisch dabei ist, dass nicht für jeden Patient*in alle 9 korrespondieren
 
 
 \clearpage
-\section{Modulverarbeitung}\label{module}
-\textbf{TODO, Anpassung der House-Brackmann Skala hier migirieren, Zerschneigung des Gesichtes, erklärung der Einzelmodule}
-
+\section{Methode}\label{method}
+\subsection{Module}\label{module} %Modulverarbeitung
 Für die Detektion des Grades nach House-Brackmann, werden die einzelnen Merkmale der Skala in Module eingeteilt (Abb. \ref{cap:module_graph}). Ziel dieser Aufteilung ist es Expertensysteme für die Teilbereiche der House-Brackmann Skala zu bilden. Diese muss für die Detektion angepasst werden. Die dynamischen Eigenschaften Stirn, Lidschluss und Mund können so nicht als ein Label interpretiert werden. Die 9 Eingabebilder in das System stellen die Posen statisch dar. So können alle Eigenschaften bis auf Lidschluss nach der House-Brackmann Skala auf die Grundlabel Normal, minimale Asymetrie, Asymmetrie und Keine reduziert werden. Lidschluss besitzt nurnoch die zwei Möglichkeiten, vollständig geschlossen oder geöffnet zu sein (Tabelle \ref{cap:housebrackmannnew}).
-Nach dieser Tabelle werden so für die einzelnen Module die passenden Label bestimmt.
+Nach dieser Tabelle werden so für die einzelnen Module die passenden Label bestimmt. Die Spalten sind dabei die einzelnen Module. Die Überschrift der Spalte bezeichnet das einzelne Modul. Der Inhalt dieser sind die zu ermittelnden Klassen für das Modul.
 
 \begin{table}[h]\vspace{1ex}\centering
   \begin{tabular}{c||c|c|c|c|}
@@ -90,7 +89,7 @@ Nach dieser Tabelle werden so für die einzelnen Module die passenden Label best
   \tikzstyle{every state}=[fill=cyan,draw=black,text=black]
 
   \tikzstyle{level1} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
-  \tikzstyle{level2} = [rectangle, draw, fill=blue!20,          text width=2cm, text centered, rounded corners, minimum height=2.5cm]
+  \tikzstyle{level2} = [rectangle, draw, fill=blue!20,          text width=2.4cm, text centered, rounded corners, minimum height=4cm]
   \tikzstyle{level3} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
   \tikzstyle{level4} = [rectangle, draw=white, fill=white, text width=1cm, text centered, minimum height=0.1cm, minimum width=0.1cm]
 
@@ -99,17 +98,17 @@ Nach dieser Tabelle werden so für die einzelnen Module die passenden Label best
   \node[level4]         (Z1)                                 {};
 
   \node[level1]         (A) [left of=Z1, xshift=8cm]        {Regions of Interest};
-  \node[level2]         (B) [below left  of=A, yshift=-2cm] {Lidschluss};
-  \node[level2]         (C) [below right of=A, yshift=-2cm] {Mund};
-  \node[level2]         (D) [left  of=B]                    {Symmetrie};
-  \node[level2]         (E) [right of=C]                    {Stirn};
+  \node[level2]         (B) [below left  of=A, yshift=-2cm] {Lidschluss \\$y_l = [vollständing,\linebreak unvollständig]$};
+  \node[level2]         (C) [below right of=A, yshift=-2cm] {Mund \\$y_m = [normal,\linebreak min_asymm,\linebreak asymm,\linebreak keine]$};
+  \node[level2]         (D) [left  of=B, xshift=-1cm]       {Symmetrie \\$y_s = [normal,\linebreak asymm,\linebreak keine]$};
+  \node[level2]         (E) [right of=C, xshift=1cm]        {Stirn \\$y_f = [normal,\linebreak min_asymm,\linebreak keine]$};
   \node[level3]         (F) [below right of=B, yshift=-2cm] {Fusionierung};
   \node[container, fit=(B) (C) (D) (E)] (his) {};
-    \node at (his.north west) [below right,node distance=0 and 0] {Module};
+    \node at (his.north west) [above right,node distance=0 and 0] {Module};
 
   \node[level4]         (Z2) [right of=F, xshift=3cm]        {};
 
-  \path (Z1) edge [out=0   , in=180] node [left, xshift=-0.3cm]                {Input $x$} (A)
+  \path (Z1) edge [out=0   , in=180] node [left, xshift=-0.3cm, align=right]                {Input \\ Bilder $x_1 ... x_9$} (A)
 
         (A) edge [out=-145, in=90 ] node [right, yshift=-0.1cm, xshift=0cm   ] {$x_{l}$} (B) %Lidschluss
             edge [out=-35 , in=90 ] node [left , yshift=-0.1cm, xshift=0cm   ] {$x_{m}$} (C) %Mund
@@ -120,13 +119,13 @@ Nach dieser Tabelle werden so für die einzelnen Module die passenden Label best
         (D) edge [out=-90 , in=160] node [below, yshift=0.5cm , xshift=0.8cm ] {$y_{s}$} (F)
         (E) edge [out=-90 , in=20 ] node [below, yshift=0.5cm , xshift=-0.5cm] {$y_{f}$} (F)
 
-        (F) edge [out=0   , in=180] node [right, xshift=0.3cm]                {Output} (Z2);
+        (F) edge [out=0   , in=180] node [right, xshift=0.3cm, align=left]                {Output \\ H-B Grad $[I, ..., VI]$} (Z2);
 
 \end{tikzpicture}
-\caption[Darstellung der Modulbauweise]{{Schematische Darstellung der Module}\label{cap:module_graph}}
+\caption[Darstellung der Modulbauweise]{{Schematische Darstellung der Module. Die Eingabebilder $x_1, ..., x_9$ werden für jedes Bild in die Regions of Interest zerschnitten. Diese wandern sie als Stack $x_s, x_l, x_m, x_f$ (zerschnittenes Bildmaterial) in die einzelnen vorgesehenen Module. Danach werden diese zum \ac{hb_grade} Fusioniert.}\label{cap:module_graph}}
 \end{figure}\label{fig:module_graph}
 
-Anhand von Markerpunkten im Gesicht sollen die 9 Bilder jeder Patient*in in die Bestandteile der Skala, in die Regions of Interest, zerschnitten werden, um nur die jeweils relevanten Teile zu betrachten um proaktiv zu verhindern, dass die Neuronalen Netze nicht notwendige Eigenschaften betrachten. Zu den nicht notwendigen Bestandteile des Bildes zählen Hintergrund, welches verschiedenste Farben und Helligkeitsstufen annehmen kann und der Körper des Patient*innen. Nur der Kopf ist für die Feststellung der Parese nötig. Die Landmarks, die für die Einteilung in die Regionen müssen dazu immer an der selben Position $P$ im Array sein (Abb. \ref{cap:abba}). Nach der Formel (\ref{eg:bbox}) und der jeweils zugeordneten Punkte, können die Eingabebilder für die Module definerit werden (Tabelle \ref{cap:rel_landmarks}). Dabei sind $a_{min}, b_{min}$ und $a_{max}, b_{max}$ die beiden neuen Ecken.
+Anhand von Markerpunkten im Gesicht sollen die 9 Bilder jeder Patient*in in die Bestandteile der Skala, in die Regions of Interest, zerschnitten werden, um nur die jeweils relevanten Teile zu betrachten um proaktiv zu verhindern, dass die Neuronalen Netze nicht notwendige Eigenschaften als relevante Merkmale interpretieren. Zu den nicht notwendigen Bestandteilen der Bilder zählen Hintergrund, welches verschiedenste Farben und Helligkeitsstufen annehmen kann und der Körper, ab Kinn abwärts, der Patient*innen. Nur der Kopf ist für die Feststellung der Parese nötig. Die Landmarks, die für die Einteilung in die Regionen müssen dazu immer an der selben Position $P$ im generierten Array sein (Abb. \ref{cap:r_of_interest}). Nach der Formel (\ref{eg:bbox}) und der jeweils zugeordneten Punkte, können die Eingabebilder für die Module definerit werden (Tabelle \ref{cap:rel_landmarks}). Dabei sind ($a_{min}, b_{min}$) und ($a_{max}, b_{max}$) die beiden neuen Ecken des benötigten Bildfragments.
 
 \noindent\begin{minipage}{.5\linewidth}
 \begin{alignat*}{3}
@@ -139,7 +138,7 @@ Anhand von Markerpunkten im Gesicht sollen die 9 Bilder jeder Patient*in in die 
 \begin{minipage}{.5\linewidth}
   \begin{equation}
   \begin{split}
-    &\textrm{Bedingungen:}\\
+    &\textrm{Zu erfüllende Bedingungen:}\\
     &\textrm{1.}\quad  a_{min} < a_{max}\\
     &\textrm{2.}\quad  b_{min} < b_{max}\\
     &\textrm{3.}\quad a_{min}, a_{max}, b_{min}, b_{max} \in \mathbb{N}
@@ -148,27 +147,23 @@ Anhand von Markerpunkten im Gesicht sollen die 9 Bilder jeder Patient*in in die 
   \end{equation}
 \end{minipage}
 
-\vspace{1cm}
 
-Die Box spannt einen Raum auf, dessen Inhalt das Eingabebild für eines der Module (z.B Lidschluss nur Punkte $P(36)$ bis $P(47)$) relevant ist. Alles was sich nicht innerhalb des Rechteckes befindet wird weggeschnitten. Ein Offset wird dazu noch in alle Richtungen addiert bzw. subtrahiert um Ungleichheiten in der Landmarkberechnung auszugleichen.
-
-
-
-
-
-
-
-
-\begin{table}[!tb]\vspace{1ex}\centering
+\begin{table}[b]\vspace{1ex}\centering
 \begin{tabular}{c||c|c}
-Modul & \begin{tabular}[c]{@{}c@{}}zugeschnittenes\\ Eingabebild\end{tabular} & \begin{tabular}[c]{@{}c@{}}Betrachtete\\ Landmarks\end{tabular} \\ \hline\hline
+Modul & \begin{tabular}[c]{@{}c@{}}zugeschnittene\\ Eingabebilder als\\ Stack\end{tabular} & \begin{tabular}[c]{@{}c@{}}Betrachtete\\ Landmarks\end{tabular} \\ \hline\hline
 Symmetrie  & $x_s$  & P(00) - P(68)  \\ \hline
 Lidschluss & $x_l$  & P(38) - P(47) \\ \hline
 Mund       & $x_m$  & P(48) - P(68) \\ \hline
 Stirn      & $x_f$  & P(17) - P(27) \\ \hline
 \end{tabular}
-\caption[Zuordnung der Module zu die relevanten Punkte der Landmarks und das Eingabebild in die Module nach dem Ausschneiden vom Originalbild $x$]{Zuordnung der Module zu die relevanten Punkte der Landmarks und das Eingabebild in die Module nach dem Ausschneiden vom Originalbild $x$}\label{cap:rel_landmarks}
+\caption[Zuordnung der Module zu die relevanten Punkte der Landmarks und das Eingabebild in die Module nach dem Ausschneiden vom Originalbild $x$]{Zuordnung der Module zu die relevanten Punkte der Landmarks und die Eingabebilder in die Module nach dem Ausschneiden vom Originalbild $x$}\label{cap:rel_landmarks}
 \vspace{1ex}\end{table}\label{fig:rel_landmarks}
+
+\vspace{1cm}
+
+Die Box spannt einen Raum auf, dessen Inhalt das Eingabebild für eines der Module (z.B Lidschluss nur Punkte $P(36)$ bis $P(47)$) relevant ist. Alles was sich nicht innerhalb des Rechteckes befindet wird weggeschnitten. Ein Offset wird dazu noch in alle Richtungen addiert bzw. subtrahiert um Ungleichheiten in der Landmarkberechnung auszugleichen, falls die Kontur nicht korrekt getroffen wurde.
+
+
 
 
 
@@ -181,8 +176,9 @@ Stirn      & $x_f$  & P(17) - P(27) \\ \hline
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=30cm]{./images/landmarks}}
 %}
 \vspace{-1cm}
-\caption[Abba]{TODO Regionen Einzeichnen, Framework nennen}\label{cap:abba}
-\end{figure}\label{fig:abba}
+\caption[Anschauliche Darstellung der Regions of Interest]{Anschauliche Darstellung der Regions of Interest\footnotemark. Inhald des roten Rahmens ist Eingabe für das Modul Symmetrie, grün für die Sitrn, Gelb der Lidschluss und Pink für den Mund.}\label{cap:r_of_interest}
+\end{figure}\label{fig:r_of_interest}
+\footnotetext{Aus Datenschutzgründen über einen Sobel-Filter verändert.}
 
 
 Die einzelnen Module Symmetrie, Lidschluss, Mund und Stirn (Abb. \ref{cap:module_graph}) sind vortrainierte ResNet18 Netze vom ImageNet Contest. Benutzen von vortrainierte Netzen spart wertvolle Trainingszeit durch die an den Layern und schon vorhandenen Parameter. Diese einzelnen Gewichte an den Kanten müssen so nurnoch verfeinert werden, um damit das gewünschte Ergebnis zu erzielen. Für alle Experimente (siehe Kapitel \ref{experiment} Experimente) ist das gewählte Netz identisch, damit die Ergebnisse vergleichbar sind. Die Abbildungsvorschrift für die Relation Eingabebild $x$ mit der Pixelgröße $a, b$ und drei Schichten für den Farbraum RGB zu auszugebenden Label $y$ ist:
@@ -193,9 +189,10 @@ y: \mathbb{R}^{3 \times a \times b} \to \mathbb{R}, y(x) = resnet18(x)
 
 Jedem Eingabebild ist so genau eine natürliche Zahl zugeordnet. Diese Zahl ist letzenendes eine Nummer, die ein Label repräsentiert nach der oben genannten Tabelle. Die Operation liefert Wahrscheinlichkeiten für alle Label der Kategorie.
 
-Im Anschluss nachdem alle Label der seperaten Module ausgerechnet wurden, können diese fusioniert werden um den Grad nach House-Brackmann zu bestimmen. Dabei gibt es zwei Vorgehensweisen, die Experimentell zu bestätigen sind (siehe Kapitel \ref{fusion}). Dabei können einmal alle Wahrscheinlichkeiten direkt als Zeilensumme gebildet werden. So kann direkt der am höchsten befindliche Wert einer Zeile der Tabelle den an der linken Seite befindlichen Grad angenommen werden. Eine andere Herangehensweise ist das heranziehen eines Automaten. Dazu werden zuerst die Wahrscheinlichkeiten in Label umgemünzt. Die Position des höchsten Wert im zurückgelieferten Array ist gleich der Position des Labels nach der Tabellenspalte. Alle Positionen jedes Modules durchlaufen den Automaten. Der Endzustand des Automaten, wenn alle Label jedes Modules den Automaten durchläuft, ist der zu ermittelnde Grad nach House-Brackmann.
+Im Anschluss nachdem alle Label der seperaten Module ausgerechnet wurden, können diese fusioniert werden um den Grad nach House-Brackmann zu bestimmen. Dabei gibt es zwei Vorgehensweisen, die Experimentell zu bestätigen sind (siehe Kapitel \ref{fusion}). Dabei können einmal alle Wahrscheinlichkeiten direkt als Zeilensumme gebildet werden. So kann direkt der am höchsten befindliche Wert der Zeilensumme der Tabelleneinträge den an der linken Seite befindlichen Grad für einen Patient*in angenommen werden. Eine andere Herangehensweise ist das heranziehen eines Automaten. Dazu werden zuerst die Wahrscheinlichkeiten in die jeweils den Modulen zugeordneten Label umgemünzt. Die Position des höchsten Wert im zurückgelieferten Array des Ausgabewertes der Neuronalen Netze ist gleich der Position des Labels nach der Tabellenspalte von der angepassten House-Brackmann Tabelle. Danach durchlaufen alle 4 finalen Klassen jedes Modules den Automaten. Der Endzustand des Automaten repräsentiert den zu ermittelnden Grad nach House-Brackmann.
 
 
+\subsection{Direkte Gradermittlung}\label{direct_grade}
 
 
 
@@ -213,10 +210,98 @@ Im Anschluss nachdem alle Label der seperaten Module ausgerechnet wurden, könne
 
 \clearpage
 \section{Oversampling zum Klassenausgleich}\label{oversamplingmethod}
+\begin{table}[h]
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|l||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 \\ \hline\hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{Sequentiell}}  & nein & 0.39 / 0.33 & 0.65 / 0.67  & 0.32 / 0.28 & 0.60 / 0.63 & 0.33 / 0.30 \\ \cline{2-7}
+  \multicolumn{1}{c|}{}                              & ja   & 0.53 / 0.32 & 0.83 / 0.61  & 0.55 / 0.29 & 0.70 / 0.63 & 0.51 / 0.26 \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{Early Fusion}} & nein & 0.93 / 0.95 & 0.97 / 0.97  & 0.88 / 0.91 & 0.95 / 0.96 & 0.95 / 0.97 \\ \cline{2-7}
+  \multicolumn{1}{c|}{}                              & ja   & 0.91 / 0.85 & 0.95 / 0.90  & 0.83 / 0.85 & 0.89 / 0.80 & 0.93 / 0.88 \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{Late Fusion}}  & nein & 0.33 / 0.21 & 0.77 /  0.75 & 0.29 / 0.29 & 0.76 / 0.79 & 0.35 / 0.32 \\ \cline{2-7}
+  \multicolumn{1}{c|}{}                              & ja   & 0.50 / 0.23 & 0.88 / 0.72  & 0.45 / 0.27 & 0.81 / 0.89 & 0.31 / 0.34 \\ \hline
+  \end{tabular}%
+}
+  \end{table}
+
+  \begin{table}[h]
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|l||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 \\ \hline\hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Early Fusion\\ Direkt\end{tabular}}} &
+    nein &
+    0.99 / 0.95 &
+    0.99 / 0.97 &
+    0.98 / 0.93 &
+    0.99 / 0.96 &
+    0.98 / 0.94 \\ \cline{2-7}
+  \multicolumn{1}{c|}{} &
+    ja &
+    0.98 / 0.93 &
+    0.95 / 0.98 &
+    0.99 / 0.96 &
+    0.96 / 0.97 &
+    0.97 / 0.95 \\ \hline
+  \end{tabular}%
+  }
+  \end{table}
 \textbf{TODO}
 
-\section{Early Fusion und Late Fusion}\label{fusionmethod}
+
+
+
+\section{Vorgehensweise}\label{process}
+\subsection{Sequentiell}\label{sequential_method}
+\textbf{TODO}
+
+
+\subsection{Early Fusion}\label{earlyfusion_method}
 \textbf{TODO Early Fusion Concatenation}
+
+\subsection{Late Fusion}\label{latefusion_method}
+\textbf{TODO }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -227,17 +312,14 @@ Im Anschluss nachdem alle Label der seperaten Module ausgerechnet wurden, könne
 
 \clearpage
 \section{Caching}\label{caching}
-\textbf{TODO: Problem schildern}
+Problematisch ist, bei größerwerdenden Datensätzen, dass die Laufzeit sehr schnell sehr groß werden kann. Dazu muss der Server, der die Trainingsphase der Neuronalen Netze betreuut, für alle Epochs, bei allen Bildern die Berechnung der Punkte ausführen, die Bilder in die Regions of Interest zerlegen und die Augmentierung durchführen, die ResNet18 Modelle, Forwärtsrechnung ausführen und Rückwärtsoptimierung anhand des Losses optimieren. Die Schritte Punkteberechnung und Einteilung sind für alle Epochs identisch. Die Idee zur Beschleunigung der Trainingsschritte ist, diese fertigen zerschnittenen Bildfragmente in einem Cache vorab abzuspeichern, um diese Schritte einzusparen.
 
-
-Zwei mögliche Lösungsansätze wären \ac{lru} und eine stationäre externe Datenbank als, der als temporären Cache agiert.
+Zwei mögliche Lösungsansätze sind \ac{lru} (Kapitel \ref{lrucache}) und eine stationäre externe Datenbank (Kapitel \ref{database}) als, der als temporären Cache, währen der Trainingsphase agiert.
 
 \subsection{Least Recently Used Cache}\label{lrucache}
-\ac{lru}, bedetuet, der am längsten nicht zugegriffenen Eintrag wird aus dem Cache entfernt. Vergleichen lässt sich das mit einer Warteschlange mit begrenztem Platzinhalt. Aufgerufene Elemente reihen sich am Ende der Warteschlange ein (im dargestellten Array die linke Seite). Alle nachfolgenden wandern um eine Position nach vorne. Der Vorderste in der Warteschlange wird entfernt (Abb. \ref{cap:lrucache}), sobald ein noch nicht bekannes Element einreiht. Dieses neue Element muss zur Laufzeit initial berechnet werden. Danach ist es solange Verfügbar bis es wieder herausgeschoben wurde.
+\ac{lru}, bedetuet, der am längsten nicht zugegriffenen Eintrag wird aus dem Cache entfernt. Vergleichen lässt sich das mit einer Warteschlange mit begrenztem Platzinhalt. Aufgerufene Elemente reihen sich am Ende der Warteschlange ein (im dargestellten Array die linke Seite). Alle nachfolgenden wandern um eine Position nach vorne. Der Vorderste in der Warteschlange wird entfernt (Abb. \ref{cap:lrucache}), sobald ein noch nicht bekannes Element sich in die Warteschlange einreiht. Dieses neue Element muss zur Laufzeit initial berechnet werden. Danach ist es solange Verfügbar bis es wieder herausgeschoben wurde.
 
-Einträge im Cache haben einen Index. Über diesen werden auf die dahinter liegenden Elemente zugegriffen. Sei $l$ die Länge des Caches und $\Sigma$ Indizes (z.B. A-Z). Insgesammt $l$ Elemente können im Cache für das schnelle Aufrufen vorgehalten werden.
-
-\begin{figure}[h]\centering
+\begin{figure}[b]\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=4cm,semithick]
 
   \tikzstyle{style} = [rectangle, draw, fill=green!40!blue!20, text centered, inner sep=1pt  , minimum height=2cm, align=center]
@@ -252,26 +334,24 @@ Einträge im Cache haben einen Index. Über diesen werden auf die dahinter liege
         (C) edge  node [yshift=-1cm, align=center] {Z\\ \\ \textcolor{red}{Miss}}  (D);
 
 \end{tikzpicture}
-\caption[Beispiel des \ac{lru}]{Beispiel des \ac{lru} mit $l=5$ und dem $\Sigma=A-Z$}\label{cap:lrucache}
+\caption[Beispiel des \ac{lru}]{Hit sind Treffer. Diese Elemente sind bereits im Cache vorhanden. Miss hingegen sind dem Cache nicht bekannt, diese werden berechnet und reihen sich ein. Beispiel des \ac{lru} mit $l=5$ und dem $\Sigma=A-Z$. Wenn Z sich einreiht fliegt D raus, da kein Platz mehr vorhanden ist.}\label{cap:lrucache}
 \end{figure}\label{fig:lrucache}
 
-
-Im Cache liegenden Elemente besizen eine kürzere Aufrufdauer als diejenigen, die nicht im Cache sind. Die \ac{wcet}, die Zeit welche benötigt wird um ein Element aufzufen, beträgt für
+Einträge im Cache haben einen Index. Über diesen werden auf die dahinter liegenden Elemente, das Bildmaterial der einzelnen Patient*innen, zugegriffen. Sei $l$ die Länge des Caches und $\Sigma$ Indizes (z.B. A-Z), so können insgesammt $l$ Elemente im Cache für das schnelle Aufrufen vorgehalten werden. Alle nicht vorgehaltene Einträge müssen berechnet werden. Die im Cache liegenden Elemente besizen eine kürzere Aufrufdauer als diejenigen, die nicht im Cache sind. Die \ac{wcet}, die Zeit welche benötigt wird um ein Element aufzufen, beträgt für
 
 \begin{itemize}
-\item im Cache liegende Elemente: $WCET_{ges}=WCET_{cache}$
-\item nicht im Cache liegende Elemente: $WCET_{ges}=WCET_{cache} + WCET_{berechnung}$
+  \setlength\itemsep{-0.5em}
+\item im Cache liegend: \qquad\, $WCET_{ges}=WCET_{cache}$
+\item nicht im Cache liegend: $WCET_{ges}=WCET_{cache} + WCET_{berechnung}$
 \end{itemize}
 
-Dabei ist $WCET_{cache}$ die Laufzeit, die für das Nachschauen der Elemente im Cache benötigt wird und $WCET_{berechnung}$ für die initiale Berechnung des abzuspeichernden Elementes beträgt. Solange $l$ nicht wesentlich kleiner als die Anzahl von Elementem im Dataloader ist, können teilweise Einträge wiederverwertet werden, wenn ein neuer Epoch in der Trainingsphase der Neuronalen Netze beginnt. Die Berechnung der recycelten Elemente kann so eingespart werden, woraus eine kürzere Laufzeit zu erwarten ist.
-
-
+Dabei ist $WCET_{cache}$ die Laufzeit, die für das Nachschauen der Elemente im Cache benötigt wird und $WCET_{berechnung}$ für die initiale Berechnung des abzuspeichernden Elementes beträgt. Solange $l$ nicht wesentlich kleiner als die Anzahl von allen Elementem im Dataloader ist, können größtenteils Einträge wiederverwertet werden wenn ein neuer Epoch in der Trainingsphase der Neuronalen Netze beginnt. Die Berechnung der recycelten Elemente kann demzufolgen eingespart werden, woraus eine kürzere Gesammtlaufzeit zu Erwarten ist.
 
 
 
 
 \subsection{Datenbank}\label{database}
-Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu speichern. Der Aufbau ist dabei relativ Identisch zu dem \ac{lru}. Über einen Index wird auf das benötigte Element zugegriffen, jedoch sind \textbf{alle} Elemente in der Datenbank gespeichert. Die \ac{wcet} beträgt immer die Zeit, welche zum Zugriff auf die Datenbank benötigt wird. Zusätzlich kommt die Rechenzeit hinzu, welche benötigt wird, um alle Elemente in die Datenbank einzutragen. Solange nicht auf den selben Index geschrieben wird, ist es ratsam die Einträge parallel in die Datenbank zu schreiben, um Rechenzeit zu sparen. Indexe müssen als Primärschlüssel einendeutig sein, damit keine Konflikte beim Schreiben und Lesen auftreten!
+Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu speichern (Tabelle \ref{cap:database}). Der Aufbau ist dabei relativ identisch zu dem \ac{lru}. Über einen Index wird auf das benötigte Element zugegriffen, jedoch sind \textbf{alle Elemente} in der Datenbank gespeichert. Die \ac{wcet} beträgt schlussfolglich immer die Zeit, welche zum Zugriff auf die Datenbank benötigt wird. Zusätzlich kommt global auf die globale Laufzeut, einmal die Rechenzeit hinzu, welche benötigt wird, um alle Elemente zu berechnen und in die Datenbank einzutragen. Solange nicht auf den selben Index geschrieben wird, ist es ratsam die Einträge parallel in die Datenbank zu schreiben und zu berechnen. Das hat den Vorteil, dass das komplette Potentiel des Servers/Coputer ausgenutzt werden kann. Die Indexe Repräsentieren dabei eine Nummer, die jeden einzelnen Patient*in zuegordnet ist. Indexe müssen als Primärschlüssel einendeutig sein, damit keine Konflikte beim Schreiben und Lesen auftreten!
 
 \begin{table}[h]\vspace{1ex}\centering
   \begin{tabular*}{9cm}{c|c}
@@ -286,11 +366,11 @@ Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu spei
 
   \\\hline
   \end{tabular*}
-  \caption[Beispieltabelle in einer relationalen Datenbank]{Beispieltabelle in einer relationalen Datenbank}\label{cap:database}
+  \caption[Beispieltabelle in einer relationalen Datenbank]{Beispieltabelle in einer relationalen Datenbank. Jeder Index besitzt genau ein Element, das ihm zugeordnet ist. Bei einem Zugriff auf den Index wird das Element als Rückgabewert ausgegeben.}\label{cap:database}
 \vspace{2ex}\end{table}\label{table:database}
 
 
-Vorteil dieser Methode ist es, die kurze Lesezeit von der Datenbank ($WCET_{read}$) auszunutzen, da diese kleiner ist als die Berechnung zur Laufzeit ($WCET_{berechnung}$). In der Trainingsphase werden $z$ Epochs durchlaufen. Dadurch werden statt  $WCET_{berechnung} * z$ nur $WCET_{read} * z$ Zeiteinheiten benötigt, wobei gilt $WCET_{berechnung} > WCET_{read}$. Dadurch kann die Trainingsphase schneller beendet werden.
+Vorteil dieser Methode ist es, die kurze Lesezeit von der Datenbank ($WCET_{read}$) auszunutzen. Diese ist wesentlich kleiner ist als die Berechnung der Landmarks und das Einteilen der Regionen zur Laufzeit ($WCET_{berechnung}$). In der Trainingsphase werden $z$ Epochs durchlaufen. Dadurch werden statt  $WCET_{berechnung} * z$ nur $WCET_{read} * z$ Zeiteinheiten benötigt, wobei gilt $WCET_{berechnung} > WCET_{read}$. Dadurch kann die Trainingsphase schneller beendet werden oder auch ermöglicht in der selben Laufzeit, mehr Epochs unterzubringen.
 
 
 

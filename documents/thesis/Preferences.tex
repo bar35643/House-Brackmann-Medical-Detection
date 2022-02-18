@@ -1,5 +1,4 @@
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Allgemeines
 \usepackage[automark]{scrlayer-scrpage}	% Kopf- und Fusszeilen
@@ -98,7 +97,7 @@
 \usepackage{tikz}							% tikz picture
 \usepackage{tikz-qtree,tikz-qtree-compat}	% Bäume
 \usepackage{dirtree}						% Dateistrukutr
-\usetikzlibrary{arrows,automata,matrix,fit} % Matrizen zeichnen, Automaten
+\usetikzlibrary{arrows,automata,matrix,fit, calc, shapes.geometric} % Matrizen zeichnen, Automaten
 
 \pgfplotsset{compat=1.15}
 
@@ -106,6 +105,7 @@
 % Sonstiges:
 % Durchgehende Nummerierung. Ohne Chapter
 \usepackage{chngcntr}
+\usepackage{ifthen}
 \counterwithout{equation}{chapter}
 \counterwithout{figure}{chapter}
 \counterwithout{table}{chapter}
