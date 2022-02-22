@@ -169,7 +169,7 @@ Ein \ac{dea} ist formal komplett durch ein 5-Tupel $M = (Q, \Sigma, \delta, q_0,
 \end{itemize}
 
 
-Ein \ac{nea} ist formal durch ein 5-Tupel $M = (Q, \Sigma, \delta, E, F)$ definiert. Der Unterschied zwischen \ac{dea} und \ac{nea}, ist, dass mehrere Startzustände vorhanden sein können und die Übergangsfunktionen nicht alle Formal definiert sein müssen. Das 5-Tupel für den \ac{nea} enthält folgende Komponenten:
+Ein \ac{nea} ist formal durch ein 5-Tupel $M = (Q, \Sigma, \delta, E, F)$ definiert. Der Unterschied zwischen \ac{dea} und \ac{nea}, ist, dass mehrere Startzustände vorhanden sein können und die Übergangsfunktionen nicht alle Formal definiert sein müssen. Ein \ac{nea} kann in einen \ac{dea} umgewandelt werden. Das 5-Tupel für den \ac{nea} enthält folgende Komponenten:
 
 \begin{itemize}
   \setlength\itemsep{-0.6em}
@@ -250,7 +250,7 @@ Um die verschiedenen Experimente statistisch vergleichen zu können, wird eine W
 \coordinate (yaxis) at (-0.3,0.5-\numClasses/2);  %must adapt if class labels are wider!
 \coordinate (xaxis) at (0.5+\numClasses/2, -\numClasses-1.25); %id. for non horizontal labels!
 \node [vertical label] at (yaxis) {Reale Klasse ($r$)};
-\node []               at (xaxis) {Berechnete Klasse aus einem Neuronalen Netz ($p$)};
+\node []               at (xaxis) {Prediction aus den Neuronalen Netz ($p$)};
 \end{tikzpicture}
 \caption[Beispiel einer Warheitsmatrix $W$]{Beispiel einer Wahrheitsmatrix. Das Ergebnis aus den Neuronalen Netzen wird einzeln mit den richtigen Ausgabewert verglichen und in die Zeile mit +1 eingetragen.}\label{cap:conv_matrix}
 \end{center}
