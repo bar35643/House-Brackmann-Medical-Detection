@@ -48,20 +48,95 @@ R[P(0), P(8)] = \begin{cases*}
 
 \clearpage
 \section{Hyperparameter}\label{hyper}
-\textbf{TODO}
+Hier sollen kurz die grundlegenden Hyperparameter für die durchgeführten Experimente erläutert werden. Dazu zählen die Teilung des Datensatzes, Augmentierung der Bilder, die verwendete Lernrate und die Berechnung des Losses. Diese sind im späteren Verlauf für alle Exerimente itentisch, damit diese vergleichbar in ihrem jewelichen Verhalten sind. Auch zu den Hyperparameter zählen die Anzahl an Epochs, die jedes Neuronale Netz zum optimieren und ausführen bekommt und die Anzahl der Batchsize, die es den Netzen ermöglicht parrallel zu rechnen. Die Epochs sind auf 150 eingestellt und die Batchsize auf 16.
 
-\subsection{Teilung in Training und Validation}\label{split}
-\textbf{TODO}
-
-\subsection{Augmentierung}\label{augmentation}
-\textbf{TODO}
-
-\subsection{? Lernrate Scheduler Optimizer, lossfn}\label{lrate}
-\textbf{TODO}
+\paragraph{Teilung des Datensatzes in zewi dusjunkte Hälften} Die Teilung ist ein zwingendes Mitel, damit die Neuronalen Netze nicht den Datensatz auswendig Lernen und in der realen Anwendung, die Detektion der Klassen, ohne das die Zielklasse bekannt ist, die Eingabedaten falsche, unwahre Ergebnisse zurückliefern. Dazu werden Mengen (Abb. \ref{cap:disjunct}) aus dem vorhandenen Datensatz $D$ ausgeschnitten. Trainingsdatensatz $T$ und Validierungsdatensatz $V$ sind echte disjunkte Teilmengen (\ref{eg:disjunct}). Somit haben sie keine Schnittmenge, das wiederum bedeutet, dass der Trainings- und Validierungsdatensatz keine gleichen Patient*innen haben. Der Trainingsdatensatz sollte dabei den größeren Gesamtanteil ausmachen. 0.75 hat sich  dabei als besten Teilungsfaktor bewiesen. Randomisiert werden so aus dem gegebenen 86 Patient*innen 75\% also aufgerundet 65 Patient*innen zugeordnet. Die anderen 25\% (21 Patient*innen) werden dem Validierungsdatensatz hinzugefügt.
 
 \begin{equation}
- loss(y, class) = - y[class] + log( \sum_{j}^{} e^{x[j]} )
+\begin{split}
+  T \subset D \\
+  V \subset D \\
+  T \cap V  = \varnothing
+\end{split}
+\label{eg:disjunct}
 \end{equation}
+
+\begin{figure}[!b]\centering
+\begin{tikzpicture}
+    \begin{scope}[shift={(3cm,-5cm)}, fill opacity=0.5]
+      \node[ellipse,
+      draw = black,
+      fill = red,
+      minimum width = 10cm,
+      minimum height = 6cm] (e) at (0,0) {};
+    \draw[fill=green, draw = black] (-2.5,0) circle (2);
+    \draw[fill=blue, draw = black] (2.5,0) circle (2);
+    \node at (0,2) (A) {\large\textbf{Datensatz}};
+
+    \node at (-2.5,0) (B) {\large\textbf{Training $T$}};
+    \node at (2.5,0) (C) {\large\textbf{Validierung $V$}};
+    \end{scope}
+
+\end{tikzpicture}
+\caption[Disjunkte Mengen des Datensatzes]{Disjunkte Mengen des Datensatzes Training T und Validierung V haben nicht die gleichen Patient*innen in ihren Mengen.}\label{cap:disjunct}
+\end{figure}\label{fig:disjunct}
+
+Problematisch an der Teilung des Datensatzes ist, durch die zu kleine Anzahl an Patient*innen und ihren zugeordneten Graden, das Ungleichgewicht der Verteilung dieser, dafür sorgt, dass nicht immer alle Grade in beiden Datensätzen zu verfügung steht. Die einzige Lösung dafür ist es, falls zu wenige Grade des House-Brackmann Skalas im Trainings- oder Validierungsdatensatzes auftauchen diese nichtmehr zu berücksichtigen.
+
+
+
+\paragraph{Augmentierung} Damit eine Vielfalt an verschiedensten Trainingsdaten zu erzielen sind, wird Augmentierung angewentet. Jeden Epoch, wenn die Neuronalen Netze ihr training vollziehen, werden eine Reihe von Transformationen auf die 9 Bilder jedes Patient*innen durchgeführt. Es werden eine Farbraumverschiebung der Pixelschichten Rot, Grün, Blau angewendet. Auch wird der Kontrast und die Helligkeit Bilder minimal verändert. So werden verschiedenste Hautfarben dargestellt. Der Zweck ist dem Neuronalen Netz beuzubringen, dass die Farbe nur im hintergrund eine Rolle spielt für die Detektion des House-Brakckmann Grades. Desweiteren werden die Bilder gekippt, verschoben und um die Vertikalachse (Nasenrücken) gespiegelt, damit die ausgeprägte Seite der Fazialisparese prizipiell Egal ist. Das geschieht mit einer vordefinierten Wahrscheinlichkeit von 50\% Die Verschiebung und die Rotation simulierten, dass die Ausschnitte der Bilder nicht immer an der optimalen Stelle passieren. Auch wird der Schärfefaktor anhand eines Gauß Filters leich unscharf gemacht. Damit werden fokussierte und unfokussierte Bilder erstellt, die einen Ungenauigkeitsfaktor erzeugen, der einen Fehler von Menschenhand nachstellen soll. Jedes der Module benötigt auch noch für ihre zugeschnittenen Ausschnitte aus den Bildern eine fixe Pixelgröße, an dessen die Bilder verkleinert oder vergrößert werden (Tabelle \ref{cap:new_size}). Die neue Größe hat den Zewck, dass bei einer Batchsize, die größe der parallelen Rechnungen der Neuronalen Nezte ein einheitliches Format haben. Die Bilder werden auch noch zum schluss normaliseirt und in einen Tensor verwandelt. Das drückt die Werte der einzelnen Pixelschichten von 0-255 in den Bereich zwischen -1 und 1. Dieser Schritt wird benötigt, damit die Faltungslayer im Neuronalen Netz besser funktionieren und performt.
+Die verschiedenen transformationen werden nicht an den Vailderungsdatensatz verwendet. Dieser bleibt unangetastet.
+
+\begin{table}[h]\vspace{1ex}\centering
+\begin{tabular}{c|c}
+Modul      & \begin{tabular}[c]{@{}c@{}}neue Pixelgröße\\ der Bilder\end{tabular} \\ \hline\hline
+Symmetrie  & 640x640                                                              \\ \hline
+Lidschluss & 420x500                                                              \\ \hline
+Mund       & 640x420                                                              \\ \hline
+Strin      & 640x300                                                              \\ \hline
+Direkt     & 640x640                                                              \\ \hline
+\end{tabular}
+\caption[Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern]{Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern.}\label{cap:new_size}
+\vspace{1ex}\end{table}\label{table:new_size}
+
+\clearpage
+\paragraph{Lernrate} Die Lernrate ist eine der wichtigsten Hyperparameter. Diese Größe bestimmt die Strittveränderung an den Kanten der Neuronalen Netze. Dieser Wert soll dabei helfen, dass die Netze schneller konvergieren. Es skaliert die Größe der Gewichksaktualisierungen anhand des ausgerechneten Losses zwischen realer Klasse und der Prediction. Die Wahl der richtigen Größe der Lernnate kann schwierig sein. Ein zu kleiner Werk sorgt dafür, dass ein langer Trainingsprozess dazu führt oder schlimmer das System stecken bleibt und keinen Fortschritt mehr erzielt. Zu große werte hingenen sorgen dafür, dass der Trainingsprozess instabil wird. Für die angestrebten Exterimente wird eine Exponentialfunktion, die mit einer Cosinusfunktion überlagert wird genutzt (Abb. \ref{cap:lrrate}). Die so ausgewählte Lernnrate pro Epoch hat so den besten Erfolg erzielt.
+
+\begin{figure}[h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.8\textwidth]{./images/lernrate}}
+\caption[Lernrate in ahbängigkeit des jeweiligen Epochs]{Lernrate in Ahbängigkeit des jeweiligen Epochs. Dabei werden eine Exponentialfunktion mit einer Cosinusfunktion miteinander verschmolzen.}\label{cap:lrrate}
+\end{figure}\label{fig:lrrate}
+
+\vspace{-0.3cm}
+
+\paragraph{Ausrechnen des Losses} Anhand der Gleichung (\ref{eq:loss}) kann der Cross Entropy Loss zwischen der real zu ermittelnden Klasse und der ausgrechechneten Klasse, auch bekannt als Prediction, ausgerechnet werden. Dazu werden sie als Tensor in die Formel eingesetzt. Dieser liefert so einen Wert zurück, anhand dessen die Rückwärtsrechnung (eng. Backpropagation) ausgeführt wird und die Netze so optimerit wird, die Ricktige Klasse zu finden. Für die Modulform und der direkten Ermittlung des Grades ist die Größe $C$ an die Anzahl der möglichen Klassen für das jeweilige Modul gekoppelt \cite{pytorch}.
+
+
+\begin{itemize}
+  \setlength\itemsep{-0.5em}
+\item $C$ ist die Anzahl der Klassen, indiziert von $[0, ..., C-1]$
+\item $N = 16$ ist die Größe der Batchsize
+\item $r$ sind die realen, vorgegebenen Klassen als Tensor mit $C$ Einträgen
+\item $p$ ist die Prediction aus den Neuronalen Netzen als Tensor mit $C$ Einträgen
+\end{itemize}
+
+\begin{equation}\centering
+loss(p, r) = \{l_1, ... ,l_N\}^T = \sum_{n=1}^N {- \log \frac{\exp(p_{n,r_n})}{\sum_{c=1}^C \exp(p_{n,c})}}
+\label{eq:loss}
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
+
 
 \clearpage
 \section{Nachweis der Funktionalität von Oversampling}\label{oversampling}
