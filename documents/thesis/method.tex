@@ -1,9 +1,6 @@
-
 \chapter{Material und Methoden}\label{mat_and_method}
-
-
 \section{Material}\label{material}
-Als Material zu Verfügung stehen insgesamt 86 Patient*innen als Datensatz. Bereitgestellt worden ist dieser Datensatz an Patient*innen vom \textbf{Universitätsklinikum Regensburg}. Die dazugehörigen Grade der House-Brackmann Skala, sind hierbei nicht gleichverteilt vorhanden. Der Grad VI ist prozentual ungefähr im gleichen Maße vorhanden wie die Grade I-V zusammen (Abb. \ref{cap:pie_grade}). Der Grad I ist nur mit einem Patient*in vertreten.
+Als Stichprobe stehen die Datensätze von insgesamt 86 Patient*innen zur Verfügung. Bereitgestellt worden sind die Datensätze an Patient*innen vom \textbf{Universitätsklinikum Regensburg}. Die dazugehörigen Grade der House-Brackmann Skala, sind hierbei inderhalb der Stichprobe allerdings nicht gleichverteilt vorhanden. Der Grad VI ist prozentual ungefähr im gleichen Maße vorhanden wie die Grade I-V zusammen (siehe Abb. \ref{cap:pie_grade}). Der Grad I ist nur mit eine*r Patient*in vertreten. Diese ungleiche Verweilung wird bei der späteren Auswirkung berücksichtigt werden.
 
 \begin{figure}[!b]\centering
 \begin{tikzpicture}
@@ -14,7 +11,7 @@ Als Material zu Verfügung stehen insgesamt 86 Patient*innen als Datensatz. Bere
 \end{figure}\label{fig:pie_grade}
 
 
- Jeder Patient*in inkludiert 9 verschiedene Bilder, die verschiedenste Posen darstellen. Die Gesichtsausdrücke in den Einzelbilder können jeweils einen konkreten Teil des House-Brackmann Scores zugeordnet werden. Zudem werden die normalerweise in Bewegung stattfindenden Ausdrücke statisch im Bild eingefangen. Die Bildcoderung (Posendarstellung) dieser 9 Bilder lautet:
+ Jeder Datensatz jede*r Patient*in besteht aus 9 verschiedenen Bilder, die verschiedenste Posen darstellen. Die Gesichtsausdrücke in den Einzelbilder können jeweils einen konkreten Teil des House-Brackmann Scores zugeordnet werden. Zudem werden die normalerweise in Bewegung stattfindenden Ausdrücke statisch im Bild eingefangen. Die Bildcodierung (Posendarstellung) dieser 9 Bilder lautet:
 
 \begin{enumerate}
   \setlength\itemsep{-0.6em}
@@ -29,9 +26,9 @@ Als Material zu Verfügung stehen insgesamt 86 Patient*innen als Datensatz. Bere
 \item Depression Unterlippe
 \end{enumerate}
 
-Das Bild mit der Codierung 1 fokussiert sich dabei auf die Symmetrie in Ruhe. Die 2 bildet die Stirn ab. Dadurch sollen die Auswirkungen und die Beweglichkeit der Muskeln rund um die Stirnpartie bildlich festgehalten werden (absichtliche Faltenbildung). Der Lidschluss wird mit den Bildern 6 und 7 statisch eingefangen. Ein nicht geschlossenes Auge durch das Weiße im Augenball erkennbar. 3, 4, 5, 8 und 9 zeigen den Mund in unterschiedlichsten Positionen. So sollen die Unterschiede zwischen den beiden Gesichtshälften am besten Aufzeigen. Die Posen für den Mund sind von außen gesehen einer der Hauptmerkmale, der einfach auch schon für Laien Erkennbar ist.
+Das Bild mit der Codierung 1 fokussiert sich dabei auf die Symmetrie in Ruhe. Die zweite Pose (2) bildet die Stirn ab. Dadurch sollen die Auswirkungen und die Beweglichkeit der Muskeln rund um die Stirnpartie bildlich festgehalten werden (absichtliche Faltenbildung). Der Lidschluss wird mit den Bildern 6 und 7 statisch eingefangen. Ein nicht geschlossenes Auge wird durch das Weiße im Augenball für das System erkennbar. Die Gesichtsausdrücke auf den Bildern 3, 4, 5, 8 und 9 zeigen den Mund in unterschiedlichsten Positionen. So sollen die Unterschiede zwischen den beiden Gesichtshälften am besten aufgezeigt werden. Die Posen für den Mund sind von außen betrachtet einer der Hauptmerkmale für eine Fazialisparese, welche auch schon für einen Laien erkennbar ist.
 
-Problematisch dabei ist, dass nicht für jeden Patient*in alle 9 korrespondierenden Bilder vorhanden sind (Abb. \ref{cap:bar_code}). Beim Trainieren der Neuronalen Netze muss Rücksicht darauf genommen werden.
+Problematisch dabei ist, dass nicht für jede*n Patient*in alle 9 korrespondierenden Bilder vorhanden sind. Besonders ist dies bei den Bildcodierungen 5, 7, 8 und 9 der Fall (siehe Abb. \ref{cap:bar_code}). Beim Trainieren der Neuronalen Netze muss Rücksicht darauf genommen werden.
 
 
 \begin{figure}[!tb]\centering
@@ -63,7 +60,7 @@ Problematisch dabei ist, dass nicht für jeden Patient*in alle 9 korrespondieren
 \clearpage
 \section{Methode}\label{method}
 \subsection{Module}\label{module} %Modulverarbeitung
-Für die Detektion des Grades nach House-Brackmann, werden die einzelnen Merkmale der Skala in Module eingeteilt (Abb. \ref{cap:module_graph}). Ziel dieser Aufteilung ist es Expertensysteme für die Teilbereiche der House-Brackmann Skala zu bilden. Diese muss für die Detektion angepasst werden. Die dynamischen Eigenschaften Stirn, Lidschluss und Mund können so nicht als ein Label interpretiert werden. Die 9 Eingabebilder in das System stellen die Posen statisch dar. So können alle Eigenschaften bis auf Lidschluss nach der House-Brackmann Skala auf die Grundlabel Normal, minimale Asymmetrie, Asymmetrie und Keine reduziert werden. Lidschluss besitzt nur noch die zwei Möglichkeiten, vollständig geschlossen oder geöffnet zu sein (Tabelle \ref{cap:housebrackmannnew}).
+Für die Detektion des Grades nach House-Brackmann, werden die einzelnen Merkmale der Skala in Module eingeteilt (siehe Abb. \ref{cap:module_graph}). Ziel dieser Aufteilung ist es, Expertensysteme für die Teilbereiche der House-Brackmann Skala zu bilden. Diese muss für die Detektion angepasst werden. Die dynamischen Eigenschaften Stirn, Lidschluss und Mund können so nicht als ein Label interpretiert werden. Die 9 Eingabebilder in das System stellen die Posen statisch dar. So können alle Eigenschaften bis auf Lidschluss nach der House-Brackmann Skala auf die Grundlabel \glqq Normal\grqq{}, \glqq minimale Asymmetrie\grqq{}, \glqq Asymmetrie\grqq{} und \glqq Keine\grqq{} aufgeteilt werden. Bei Lidschluss besitzt nur noch die zwei Möglichkeiten, \glqq vollständig geschlossen\grqq{} oder \glqq geöffnet\grqq{} zu sein (siehe Tabelle \ref{cap:housebrackmannnew}).
 Nach dieser Tabelle werden so für die einzelnen Module die passenden Label bestimmt. Die Spalten sind dabei die einzelnen Module. Die Überschrift der Spalte bezeichnet das einzelne Modul. Der Inhalt dieser sind die zu ermittelnden Klassen für das Modul.
 
 \begin{table}[h]\vspace{1ex}\centering
@@ -76,7 +73,7 @@ Nach dieser Tabelle werden so für die einzelnen Module die passenden Label best
   V    & Asymmetrisch & Keine  & Unvollständig & Asymmetrisch \\ \hline
   VI   & Keine        & Keine  & Unvollständig & Keine        \\ \hline
   \end{tabular}
-  \caption[Angepasste House-Brackmann Tabelle zur Bestimmung der Label]{Angepasste House-Brackmann Tabelle zur Bestimmung der Label}\label{cap:housebrackmannnew}
+  \caption[Angepasste House-Brackmann Tabelle zur Bestimmung der Label/Klassen]{Angepasste House-Brackmann Tabelle zur Bestimmung der Label/Klassen aus der Originaltabelle \ref{cap:housebrackmann} (eigene entwicklete Interpretation)}\label{cap:housebrackmannnew}
 \vspace{2ex}\end{table}\label{table:housebrackmannnew}
 
 
@@ -122,7 +119,7 @@ Nach dieser Tabelle werden so für die einzelnen Module die passenden Label best
 \caption[Darstellung der Modulbauweise]{{Schematische Darstellung der Module. Die Eingabebilder $x_1, ..., x_9$ werden für jedes Bild in die Regions of Interest zerschnitten. Diese wandern als Stack $x_s, x_l, x_m, x_f$ (zerschnittenes Bildmaterial) in die einzelnen vorgesehenen Module. Danach werden diese zum \ac{hb_grade} fusioniert.}\label{cap:module_graph}}
 \end{figure}\label{fig:module_graph}
 
-Anhand von Markerpunkten im Gesicht der Patient*innen sollen die 9 Bilder jeder Patient*in in die Bestandteile der Skala, in die Regions of Interest, zerschnitten werden, dabei werden nur die relevanten Teile betrachtet, um proaktiv zu verhindern, dass die Neuronalen Netze nicht notwendige Eigenschaften als relevante Merkmale interpretieren. Zu den nicht notwendigen Bestandteilen der Bilder zählen Hintergrund, welches verschiedenste Farben und Helligkeitsstufen annehmen kann und der Körper, ab Kinn abwärts der Patient*innen. Nur der Kopf ist für die Feststellung der Parese nötig. Die Landmarks, die für die Einteilung in die Regionen müssen dazu immer an derselben Position $P$ im generierten Array sein (Abb. \ref{cap:r_of_interest}). jeweils zugeordneten Punkte (Tabelle \ref{cap:rel_landmarks}), können die Eingabebilder für die Module definiert werden:
+Anhand von Markerpunkten im Gesicht der Patient*innen sollen die 9 Bilder jede*r Patient*in in die Bestandteile der Skala, die Regions of Interest, zerschnitten. Dabei werden nur die relevanten Teile betrachtet, um proaktiv zu verhindern, dass die Neuronalen Netze nicht notwendige Eigenschaften als relevante Merkmale interpretieren. Zu den nicht notwendigen Bestandteilen der Bilder zählen Hintergrund, welches verschiedenste Farben und Helligkeitsstufen annehmen kann und der Körper, ab dem Kinn abwärts der Patient*innen. Nur der Kopf wird für die Feststellung der Parese benötigt. Die Landmarks, die für die Einteilung in die Regionen verantwortlich sind, müssen hierfür immer an derselben Position $P$ im generierten Array sein (siehe Abb. \ref{cap:r_of_interest}). Jedem Modul können so die relevanten Punkte (siehe Tabelle \ref{cap:rel_landmarks}) für ihr Modul zugeordnet werden und das Ausgabearray, welches die 9 Bildausschnitte beinhaltet. Für die Berechnung der neuen Eckpunke für den Bildausschnitt werden die zugeordneten Landmarks $P$ in die nachfolgenden Formeln eingesetzt \cite{s151026756}:
 
 \noindent\begin{minipage}{.5\linewidth}
 \begin{alignat*}{3}
@@ -144,25 +141,26 @@ Anhand von Markerpunkten im Gesicht der Patient*innen sollen die 9 Bilder jeder 
   \end{equation}
 \end{minipage}
 
+\vspace{0.3cm}
 
 \begin{table}[b]\vspace{1ex}\centering
-\begin{tabular}{c||c|c}
+\begin{tabular}{c||c|c|}
 Modul & \begin{tabular}[c]{@{}c@{}}zugeschnittene\\ Eingabebilder als\\ Stack\end{tabular} & \begin{tabular}[c]{@{}c@{}}Betrachtete\\ Landmarks\end{tabular} \\ \hline\hline
-Symmetrie  & $x_s$  & P(00) - P(68)  \\ \hline
-Lidschluss & $x_l$  & P(38) - P(47) \\ \hline
-Mund       & $x_m$  & P(48) - P(68) \\ \hline
+Symmetrie  & $x_s$  & P(00) - P(68)  \\ %\hline
+Lidschluss & $x_l$  & P(38) - P(47) \\ %\hline
+Mund       & $x_m$  & P(48) - P(68) \\ %\hline
 Stirn      & $x_f$  & P(17) - P(27) \\ \hline
 \end{tabular}
 \caption[Zuordnung der Module zu dem relevanten Punkten der Landmarks und das Eingabebild in die Module nach dem Ausschneiden vom Originalbild $x$]{Zuordnung der Module zu den relevanten Punkten der Landmarks und die Eingabebilder in die Module nach dem Ausschneiden vom Originalbild $x$}\label{cap:rel_landmarks}
 \vspace{1ex}\end{table}\label{fig:rel_landmarks}
 
 
-Dabei sind ($a_{min}, b_{min}$) und ($a_{max}, b_{max}$) die beiden neuen Ecken des benötigten Bildfragments. Die Ecken spannen einen Raum auf, dessen Inhalt das Eingabebild für eines der Module (z.B. Lidschluss nur Punkte $P(36)$ bis $P(47)$) relevant ist. Alles was sich nicht innerhalb des Rechteckes befindet wird weggeschnitten. Ein Offset wird dazu noch in alle Richtungen addiert bzw. subtrahiert, um Ungleichheiten in der Landmarkberechnung auszugleichen, falls die Kontur nicht korrekt getroffen wurde. Wenn 9 Bildfragmente für eines der Module berechnet worden sind, werden diese als Stack in die nächsttiefere Schicht weitertransportiert.
-
+Dabei sind ($a_{min}, b_{min}$), ($a_{min}, b_{max}$), ($a_{max}, b_{min}$) und ($a_{max}, b_{max}$) die vier neuen Ecken des benötigten Bildfragments. Die Ecken spannen ein Rechteck auf, dessen Inhalt das Eingabebild für eines der Module (z.B. Lidschluss nur Punkte $P(36)$ bis $P(47)$) relevant ist. Alles was sich nicht innerhalb des Rechteckes befindet, wird weggeschnitten. Ein Offset wird dazu noch in alle Richtungen addiert bzw. subtrahiert, um Ungleichheiten in der Landmarkberechnung auszugleichen, falls die Kontur nicht korrekt getroffen wurde. Wenn 9 Bildfragmente für eines der Module berechnet worden sind, werden diese als Stack in die nächsttiefere Schicht weitertransportiert.
 
 \begin{figure}[!t]\centering
 %\resizebox{1.2\textwidth}{!}{
   %width=0.98\textwidth
+\vspace{-1cm}
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=30cm]{./images/landmarks}}
 %}
 \vspace{-1cm}
@@ -170,67 +168,51 @@ Dabei sind ($a_{min}, b_{min}$) und ($a_{max}, b_{max}$) die beiden neuen Ecken 
 \end{figure}\label{fig:r_of_interest}
 
 
-Die einzelnen Module Symmetrie, Lidschluss, Mund und Stirn (Abb. \ref{cap:module_graph}) sind vortrainierte ResNet18 Netze vom ImageNet Contest. Benutzen von vortrainierten Netzen spart wertvolle Trainingszeit durch die an den Layern und schon vorhandenen Parameter. Diese einzelnen Gewichte an den Kanten müssen so nur noch verfeinert werden, um damit das gewünschte Ergebnis zu erzielen. Für alle Experimente (siehe Kapitel \ref{experiment} Experimente) ist das gewählte Netz identisch, damit die Ergebnisse vergleichbar sind. Die Abbildungsvorschrift für die Relation Eingabebild $x$ mit der Pixelgröße $a, b$ und drei Schichten für den Farbraum RGB (bei Konkatenation vielfaches von 3) zu auszugebenden Wahrscheinlichkeiten der Klassen $y$ mit der Klassenlänge $k$ ist:
+Die einzelnen Module Symmetrie, Lidschluss, Mund und Stirn (siehe Abb. \ref{cap:module_graph}) sind vortrainierte ResNet18 Netze vom ImageNet Contest. Benutzen von vortrainierten Netzen spart Trainingszeit an den Layern durch die schon vorhandenen angepassent Parametern vom ImageNet Contest. Die einzelnen Gewichte an den Kanten müssen so nur noch verfeinert werden, um damit das gewünschte Ergebnis zu erzielen. Für alle Experimente (siehe Kapitel \ref{experiment}) ist das gewählte Netz identisch, damit die Ergebnisse vergleichbar sind. Die Abbildungsvorschrift für die Relation Eingabebild $x$ mit der Pixelgröße $a, b$ und drei Schichten für den Farbraum RGB (bei Konkatenation vielfaches von 3) zu auszugebenden Wahrscheinlichkeiten der Klassen $y$ mit der Klassenlänge $k$ ist:
 
 \begin{equation}
 y: \mathbb{R}^{3 \times a \times b} \to \mathbb{R}^{k}, y(x) = resnet18(x)
+\label{eq:resnet}
 \end{equation}
 
-Jedem Eingabebild ist so genau eine natürliche Zahl zugeordnet. Diese Zahl ist letzenendes eine Nummer, die ein Label/Klasse repräsentiert nach der oben genannten Tabelle. Die Operation liefert Wahrscheinlichkeiten für alle Label eines Modules.
+Jedem Eingabebild ist eine natürliche Zahl zugeordnet, die innerhalb der Trainingsphase und der Evaluierungsphase zu erimitteln ist. Diese Zahl ist letztendlich eine Nummer, die ein Label/Klasse nach der oben genannten Tabelle repräsentiert. Nummeriert werden diese von 0 beginnend. Für das Modul Symmetire und Stirn 0-2, Lidschluss 0 und 1, Mund 0-3. Die Operation \ref{eq:resnet} liefert Wahrscheinlichkeiten für alle Klassen eines Moduls. Das Ziel ist diese Zahl zu treffen. Wird die Nummer vom Modell getroffen, ist das somit eine korrekte Klassifizierung. Innerhalb der Trainingsphase werden diese Modelle anhand des Losses, die Abweichung zwischen den ermittelten aus dem Modul und der realen Klasse, das Neuronale Netz pro Modul optimiert.
 
-Im Anschluss, nachdem alle Label der separaten Module ausgerechnet wurden, können diese fusioniert werden, um den Grad nach House-Brackmann zu bestimmen. Dabei gibt es zwei Vorgehensweisen, die methodisch zu bestätigen sind (siehe Kapitel \ref{fusion}), dass sie den Grad Ordnungsgemäß ermitteln. Dabei können einmal alle Wahrscheinlichkeiten direkt als Zeilensumme gebildet werden. So kann direkt m höchsten befindlichen Wert der Zeilensumme der Tabelleneinträge den an der linken Seite befindlichen Grad für einen Patient*in angenommen werden. Eine andere Herangehensweise ist das Heranziehen eines Automaten. Dazu werden zuerst die Wahrscheinlichkeiten in die jeweils den Modulen zugeordneten Label umgemünzt. Die Position des höchsten Wertes im zurückgelieferten Array des Ausgabewertes der Neuronalen Netze ist gleich der Position des Labels nach der Tabellenspalte von der angepassten House-Brackmann Tabelle. Danach durchlaufen alle 4 finalen Klassen jedes Modules den Automaten. Der Endzustand des Automaten repräsentiert den zu ermittelnden Grad nach House-Brackmann.
+Im Anschluss, nachdem alle Klassen der separaten Module ausgerechnet wurden, können diese fusioniert werden, um den Grad nach House-Brackmann zu bestimmen. Dabei gibt es zwei Vorgehensweisen, die methodisch zu bestätigen sind (siehe Kapitel \ref{fusion}), dass sie den Grad Ordnungsgemäß ermitteln. Dabei können einmal alle Wahrscheinlichkeiten direkt als Zeilensumme gebildet werden. So kann direkt, der am höchsten befindlichen Wert der Zeilensumme der Tabelleneinträge, den an der linken Seite befindlichen Grad für eine*n Patient*in angenommen werden. Eine andere Herangehensweise ist das hinzuziehen eines Automaten. Dazu werden zuerst die Wahrscheinlichkeiten in die jeweils den Modulen zugeordneten Label umgemünzt. Die Position des höchsten Wertes im zurückgelieferten Array des Ausgabewertes der Neuronalen Netze ist gleich der Position des Labels nach der Tabellenspalte von der angepassten House-Brackmann Tabelle. Danach durchlaufen alle 4 finalen Klassen jedes Moduls den Automaten. Der Endzustand des Automaten repräsentiert den zu ermittelnden Grad nach House-Brackmann.
 
 
 \subsection{Direkte Gradermittlung}\label{di_module}
- Zum Vergleich wird auch noch der House-Brackmann Grad der Fazialisparese auf dem direkten Wege, ohne die Skala in Module zu zerlegen, ermittelt. So soll festgestellt werden, ob die Zerlegung in Module sinnvoll ist und inwiefern die Ermittlungsgenauigkeit und Präzision sich unterscheiden. Auch soll so eine Richtung erkennbar ist ob sich überhaupt aus den 9 gegebenen Bildern pro Patient*in der Grad ermitteln lässt.
+\begin{figure}[b]\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+  \tikzstyle{every state}=[fill=cyan,draw=black,text=black]
 
-\vspace{1cm}
+  \tikzstyle{level1} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
+  \tikzstyle{level2} = [rectangle, draw, fill=blue!20,          text width=2.4cm, text centered, rounded corners, minimum height=4cm]
+  \tikzstyle{level3} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
+  \tikzstyle{level4} = [rectangle, draw=white, fill=white, text width=1cm, text centered, minimum height=0.1cm, minimum width=0.1cm]
 
- Der Aufbau unterscheidet sich minimal von der Modulbauweise. Dabei wird derselbe Stack an Eingabebebildern ($x_s$) von dem Modul für die Symmetrie genutzt. Diese stellt, wie bekannt, das komplette Gesicht der Patient*innen dar. Einzig allein die Klassifikationslabel sind unterschiedlich. Anstelle der Klassen für das Modul der Symmetrie $[normal, asymm, keine]$, werden die Label $[I, II, III, IV, V, VI]$ der House-Brackmann Skala, als die zu ermittelnde Klassen verwendet (Abb. \ref{cap:di_graph}). Eingespart werden alle Berechnungen zu den anderen Modulen und die im Nachhinein stattfindende Fusionierung der Ergebnisse zur Einordnung des Grades nach House-Brackmann.
+  \tikzstyle{container} = [draw, rectangle, dashed, inner sep=8pt, minimum width=15cm]
 
+  \node[level4]         (Z1)                          {};
 
- \begin{figure}[b]\centering
- \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
-   \tikzstyle{every state}=[fill=cyan,draw=black,text=black]
+  \node[level1]         (A) [left of=Z1, xshift=8cm]  {Regions of Interest};
+  \node[level3]         (F) [below of=A]              {ResNet18 Klassifizierer};
 
-   \tikzstyle{level1} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
-   \tikzstyle{level2} = [rectangle, draw, fill=blue!20,          text width=2.4cm, text centered, rounded corners, minimum height=4cm]
-   \tikzstyle{level3} = [rectangle, draw, fill=green!40!blue!20, text width=8cm, text centered, inner sep=1pt  , minimum height=1.3cm]
-   \tikzstyle{level4} = [rectangle, draw=white, fill=white, text width=1cm, text centered, minimum height=0.1cm, minimum width=0.1cm]
+  \node[level4]         (Z2) [right of=F, xshift=3cm] {};
 
-   \tikzstyle{container} = [draw, rectangle, dashed, inner sep=8pt, minimum width=15cm]
+  \path (Z1)edge [out=0  , in=180] node [left, xshift=-0.3cm, align=right]{Input \\ Bilder $x_1 ... x_9$} (A)
+        (A) edge [out=270, in=90 ] node [right, yshift=-0.1cm, xshift=0cm] {$x_{s}$} (F)
+        (F) edge [out=0  , in=180] node [right, xshift=0.3cm, align=left]  {Output \\ H-B Grad $[I, ..., VI]$} (Z2);
 
-   \node[level4]         (Z1)                          {};
-
-   \node[level1]         (A) [left of=Z1, xshift=8cm]  {Regions of Interest};
-   \node[level3]         (F) [below of=A]              {ResNet18 Klassifizierer};
-
-   \node[level4]         (Z2) [right of=F, xshift=3cm] {};
-
-   \path (Z1)edge [out=0  , in=180] node [left, xshift=-0.3cm, align=right]{Input \\ Bilder $x_1 ... x_9$} (A)
-         (A) edge [out=270, in=90 ] node [right, yshift=-0.1cm, xshift=0cm] {$x_{s}$} (F)
-         (F) edge [out=0  , in=180] node [right, xshift=0.3cm, align=left]  {Output \\ H-B Grad $[I, ..., VI]$} (Z2);
-
- \end{tikzpicture}
- \caption[Direkte Ermittlung des \ac{hb_grade}]{Direkte Ermittlung des \ac{hb_grade}. Die Bildfragmente $x_s$ die als Eingabe in den Klassifizierer dienen sind dieselben wie bei der Modulform (siehe \ref{module}) für die Symmetrie.}\label{cap:di_graph}
+\end{tikzpicture}
+\caption[Direkte Ermittlung des \ac{hb_grade}]{Direkte Ermittlung des \ac{hb_grade}. Die Bildfragmente $x_s$ die als Eingabe in den Klassifizierer dienen sind dieselben wie bei der Modulform (siehe \ref{module}) für die Symmetrie.}\label{cap:di_graph}
 \end{figure}\label{fig:di_graph}
 
+Zum Vergleich wird auch noch der House-Brackmann Skala der Grad der Fazialisparese auf dem direkten Weg, ohne die Skala in Module zu zerlegen, ermittelt. So soll festgestellt werden, ob die Zerlegung in Module sinnvoll ist und inwiefern die Ermittlungsgenauigkeit und Präzision sich unterscheiden. Auch soll so eine Richtung erkennbar sein ob sich überhaupt aus den 9 gegebenen Bildern pro Patient*in der Grad ermitteln lässt. Der Aufbau unterscheidet sich minimal von der Modulbauweise. Dabei wird derselbe Stack an Eingabebebildern ($x_s$) von dem Modul für die Symmetrie genutzt. Diese stellt, wie bekannt, das komplette Gesicht der/die Patient*innen dar. Einzig allein die Klassifikationslabel sind unterschiedlich. Anstelle der Klassen für das Modul der Symmetrie $[normal, asymm, keine]$, werden die Label $[I, II, III, IV, V, VI]$ der House-Brackmann Skala als die zu ermittelnde Klassen verwendet (siehe Abb. \ref{cap:di_graph}). Eingespart werden alle Berechnungen zu den anderen Modulen und die im Nachhinein stattfindende Fusionierung der Ergebnisse zur Einordnung des Grades nach House-Brackmann.
 
 
 
 
-
-
-
-
-
-
-
-
-
-\clearpage
 \subsection{Oversampling zum Klassenausgleich}\label{oversamplingmethod}
-
 \begin{figure}[!b]\centering
     \begin{minipage}{0.5\textwidth}
         %\centering
@@ -271,39 +253,39 @@ Im Anschluss, nachdem alle Label der separaten Module ausgerechnet wurden, könn
 \end{figure}\label{fig:vert_pie}
 
 
-Der gegebene Datensatz von Patient*innen mit ihren House-Brackmann Graden ist unausgewogen (siehe Kapitel \ref{material}). Somit sind auch für jedes der Module, deren Klassen nicht gleichverteilt (Abb. \ref{cap:vert_pie}). Die Gewichte $\omega$ für jedes Label aus einem Modul werden ausgerechnet. Oversampling ist eine Methode zum Ausgleich von nicht in gleichen Teilen vorhandenen Klassen. Es ist letztenendes eine Überabtastung eines gegebenen Datensatzes. Dazu wird die Anzahl der Klasse $l$ in den Term (\ref{eq:weight}) hineingegeben. Die Gewichte müssen nicht $100\%$ ergeben.
+Die gegebenen Datensätze von Patient*innen mit ihren House-Brackmann Graden ist unausgewogen (siehe Kapitel \ref{material}). Somit sind auch die Klassen für jedes der Module nicht gleichverteilt (siehe Abb. \ref{cap:vert_pie}). Um eine Ausgewogenheit herzustellen, wird das Oversampling angewentet. Hierzu werden die Gewichte $\omega$ für jedes Label aus einem Modul ausgerechnet. Allgemein ist Oversampling eine Methode zum Ausgleich von nicht in gleichen Teilen vorhandenen Klassen. Es ist letztenendes eine Überabtastung eines gegebenen Datensatzes. Dazu wird die Anzahl der Klasse $l$ in den Term (\ref{eq:weight}) hineingegeben. Die einzelnen Gewichte müssen dabei addiert nicht $100\%$ ergeben.
 
 \begin{equation}
 \omega = 1 / l, \qquad l \in \mathbb{N} \quad \land \quad l \neq 0 \label{eq:weight}
 \end{equation}
 
-Ziel ist es einen ausgewogenen Datensatz zu generieren. Je höher die Anzahl einer Klasse ist, desto niedriger wird das Gewicht $\omega$. Ist eine Klasse eines spezifischen Modules niedrig, so ist ihr Gewicht dagegen hoch. Durch geschicktes Auswählen aus dem Datensatz, durch die zuvor berechneten Gewichte jeder Klasse, kann so eine gleiche Verteilung dieser erzeugt werden durch Duplizieren der mit höheren gewichteten Klassen. Problematisch ist jedoch, dass Bilder von Patient*innen so mehrfach vorkommen. Das kann sich negativ auf die Trainingsphase der Neuronalen Netze auswirken. Diese können durch die Mehrfachbenutzung, falsche Rückschlüsse zur Klassifikationsermitlung ziehen und so das Leistungsvermögen mindern. Oversampling wird ausschließlich auf den Trainingsdatensatz bezogen. Der Evaluierungsdatensatz bleibt unangetastet und wird nicht ausgeglichen.
+Ziel ist es einen ausgewogenen Datensatz zu generieren. Je höher die Anzahl einer Klasse ist, desto niedriger wird das Gewicht $\omega$. Ist eine Klasse eines spezifischen Modules niedrig, so ist ihr Gewicht dagegen hoch. Durch geschicktes Auswählen aus dem Datensatz, durch die zuvor berechneten Gewichte jeder Klasse, kann so eine gleiche Verteilung dieser erzeugt werden. Dies erfolgt durch das Duplizieren der mit höheren gewichteten Klassen. Problematisch ist jedoch, dass Bilder von Patient*innen so mehrfach vorkommen. Das kann sich negativ auf die Trainingsphase der Neuronalen Netze auswirken. Diese können durch die Mehrfachbenutzung, falsche Rückschlüsse zur Klassifikationsermittlung ziehen und so das Leistungsvermögen mindern. Oversampling wird ausschließlich auf den Trainingsdatensatz bezogen. Der Evaluierungsdatensatz bleibt unangetastet und wird nicht ausgeglichen.
 
-Im Folgenden werden verschiedenste Experimente mit unterschiedlichsten Vorgehensweisen der Datensatzpräparation diese Aussage überprüfen, ob Oversampling einen Vorteil oder ein Nachteil ist.
+Im Folgenden werden verschiedenste Experimente mit unterschiedlichsten Vorgehensweisen der Datensatzpräparation die Aussage überprüfen, ob Oversampling einen Vorteil oder ein Nachteil ist.
 
 
 
 \clearpage
 \section{Vorgehensweise}\label{process}
-In diesem Kapitel werden drei Vorgehensweisen für die Zusammensetzung der 9 verschiedenen Bilder jeder Patient*in, die währen der Trainings- und Evaluierungsphase zum Einsatz kommt. Zur Vereinfachung wird dies nur für die Modulform dargestellt. Analog gilt, dass diese Anwendungsformen auch für die direkte Gradermittlung (siehe Kapitel \ref{di_module}) genutzt werden kann. In den Sequenzdiagrammen werden anstelle der 4 Module Symmetrie, Lidschluss, Stirn und Mund der ersten Schleife nur das benötigte für die direkte Ermittlung nach House-Brackmann. Der dargestellte erste Schleifendurchlauf fällt prinzipiell weg.
+In diesem Kapitel werden drei Vorgehensweisen für die Zusammensetzung der 9 verschiedenen Bilder jede*r Patient*in, die während der Trainings- und Evaluierungsphase zum Einsatz kommt, erläutert. Zur Vereinfachung wird dies nur für die Modulform dargestellt. Analog gilt, dass diese Anwendungsformen auch für die direkte Gradermittlung (siehe Kapitel \ref{di_module}) genutzt wird. Für die direkte Ermittlung des Grades nach House-Brakckmann fällt der erste Schleifendurchgang, für die einzelnen Module Symmetrie, Lidschluss, Stirn und Mund, in den nachfolgenden Sequenzdiagrammen weg, da nur ein Neuronales Netz benötigt wird das direkt den Grad feststellt.
 
-\subsection{Sequenziell}\label{sequential_method}
+\subsection{Sequenzielles Verfahren}\label{sequential_method}
 \begin{figure}[!b]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=1.0\textwidth]{./images/Sequenziell}}
-\caption[Sequenzdiagramm des Ablaufprozess bei der sequenziellen Bearbeitung der 9 Bilder]{Sequenzdiagramm des Ablaufprozess bei der sequenziellen Bearbeitung der 9 Bilder. Diese durchlaufen hintereinander dasselbe Neuronale Netz.}\label{cap:seq}
+\caption[Sequenzdiagramm des Ablaufprozesses bei der sequenziellen Bearbeitung der 9 Bilder]{Sequenzdiagramm des Ablaufprozesses bei der sequenziellen Bearbeitung der 9 Bilder. Diese durchlaufen hintereinander dasselbe Neuronale Netz.}\label{cap:seq}
 \end{figure}\label{fig:seq}
 
-Die Anordnung der Bilder währen der Trainings- und Evaluierungschritte ist hierbei sequenziell. Das bedeutet im Trainingsprozess, dass jedes zugeschnittene Bild der 9 Posen jedes Patient*in für ein Modul, hintereinander das Neuronale Netz durchlaufen, bevor ein neuer Zyklus (Epoch) beginnt. Im dargestellten Sequenzdiagramm (Abb. \ref{cap:seq}) ist zu sehen, dass nach der Wahrscheinlichkeitsermittlung für die Klassifikation des einzelnen Modules die Rückwärtsrechnung anhand des Losses das Neuronale Netz optimiert wird. Eines der Probleme, die auftauchen können, ist, dass zum Beispiel der Trainingsvortschritt der durch das erste Bild erzielt wurde direkt vom nächsten zerstört werden kann. Vorstellbar ist, dass die Posen, die im jedem Bild unterschiedlich dargestellt werden, eine komplementäre Wirkung auf das Modell erzielt.
+Die Anordnung der Bilder während der Trainings- und Evaluierungschritte ist hierbei sequenziell. Das bedeutet im Trainingsprozess, dass jedes zugeschnittene Bild der 9 Posen jede*r Patient*in für ein Modul hintereinander das Neuronale Netz durchlaufen, bevor ein neuer Zyklus (Epoch) beginnt. Im dargestellten Sequenzdiagramm (siehe Abb. \ref{cap:seq}) ist zu sehen, dass nach der Wahrscheinlichkeitsermittlung für die Klassifikation des einzelnen Modules die Rückwärtsrechnung anhand des Losses das Neuronale Netz optimiert wird. Eines der Probleme, die auftauchen können, ist, dass zum Beispiel der Trainingsfortschritt, der durch das erste Bild erzielt wurde, direkt vom nächsten wieder zerstört werden kann. Vorstellbar ist, dass die Posen, die in jedem Bild unterschiedlich dargestellt werden, eine komplementäre Wirkung auf das Modell erzielt.
 
-Währenddessen im Evaluierungsprozess wird die beste Wahrscheinlichkeit der 9 durchgänge als das der wahren Klassifikation angesehen. So ist vermeidbar, dass die schlechteren Klassifikationswahrscheinlichkeiten eine zu starke negative Auswirkung haben.
+Währenddessen im Evaluierungsprozess wird die beste Wahrscheinlichkeit der 9 Durchgänge als das der wahren Klassifikation angesehen. So ist vermeidbar, dass die schlechteren Klassifikationswahrscheinlichkeiten eine zu starke negative Auswirkung haben.
 
-Falls von den 9 Bildposen der Patient*in fehlen und so während des Evaluierungs- und Trainingsprozesses nicht vorhanden sind werden nicht beachtet. Der Schleifendurchlauf wird einfach abgebrochen, sodass die nicht vorhandene Pose keine Auswirkungen auf die Neuronalen Netze der Module haben.
+Falls von den 9 Bildposen der/die Patient*in einzelne Posen fehlen und so während des Evaluierungs- und Trainingsprozesses nicht vorhanden sind, werden diese nicht beachtet. Der Schleifendurchlauf wird in einem solchen Fall abgebrochen, sodass die nicht vorhandene Pose keine Auswirkungen auf die Neuronalen Netze der Module haben.
 
 
 \subsection{Early Fusion}\label{earlyfusion_method}
-Eine andere Möglichkeit zur Eingabe in das Modell ist die Konkatenation der 9 Bilder vorab. Die Hintereinanderreihung der 3 Farbschichten RGB von den vorab zugeschnittenen Bildmaterialen ($x_1$ bis $x_9$) für ein spezifisches Modul erzeugt so einen Tensor mit der Größe $[27, a, b]$ mit $a, b$ als Pixelgröße (Abb. \ref{cap:ef_layer}). Die Architektur der Neuronalen Netze sind dabei jedoch identisch zu dem sequenziellen Vorgehen. Danach werden diese in das Modell zur Klassifikation der Klassen des jeweiligen gerade bearbeiteten Modules. Ziel ist es, das Neuronale Netz selbst entscheiden zu lassen, welche Regionen in den Bildern von Relevanz zur Bestimmung des Grades nach House-Brackmann ist.
+Eine andere Möglichkeit zur Eingabe in das Modell ist die Konkatenation der 9 Bilder vorab. Die Hintereinanderreihung der 3 Farbschichten RGB von den vorab zugeschnittenen Bildmaterialen ($x_1$ bis $x_9$) für ein spezifisches Modul erzeugt so einen Tensor mit der Größe $[27, a, b]$ mit $a, b$ als Pixelgröße (siehe Abb. \ref{cap:ef_layer}). Die Architektur der Neuronalen Netze sind dabei jedoch identisch zu dem sequenziellen Vorgehen. Danach werden diese in das Modell zur Klassifikation der Klassen des jeweiligen gerade bearbeiteten Modules. Ziel ist es, das Neuronale Netz selbst entscheiden zu lassen, welche Regionen in den Bildern von Relevanz zur Bestimmung des Grades nach House-Brackmann sind.
 
-Die nicht vorhandenen Bildcoderungen werden in dem Fall Schwarz (Tensor mit nur den Werten 0) dargestellt bzw. generiert. So soll verhindert werden, dass sich die Parameter an den Kanten der Knoten in den Neuronalen Netz verändern und der Fortschritt zunichte gemacht wird.
+Die nicht vorhandenen Bildcodierungen werden in dem Fall Schwarz (Tensor mit nur den Werten 0) dargestellt bzw. generiert. So soll verhindert werden, dass sich die Parameter an den Kanten der Knoten in den Neuronalen Netz verändern und der Fortschritt zunichte gemacht wird.
 
 
 \begin{figure}[!b]\centering
@@ -375,7 +357,7 @@ Die nicht vorhandenen Bildcoderungen werden in dem Fall Schwarz (Tensor mit nur 
 
 \begin{figure}[!t]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=1.0\textwidth]{./images/Early Fusion}}
-\caption[Sequenzdiagram des Ablaufprozess bei Benutzung von Early Fusion]{Sequenzdiagram des Ablaufprozess bei Benutzung von Early Fusion. Dabei werden die 9 zugeschnittenen Bilder für jedes Modul vorab konkateniert.}\label{cap:early}
+\caption[Sequenzdiagram des Ablaufprozesses bei Benutzung von Early Fusion]{Sequenzdiagram des Ablaufprozesses bei Benutzung von Early Fusion. Dabei werden die 9 zugeschnittenen Bilder für jedes Modul vorab konkateniert.}\label{cap:early}
 \end{figure}\label{fig:early}
 
 \vspace{5cm}
@@ -411,19 +393,19 @@ Die nicht vorhandenen Bildcoderungen werden in dem Fall Schwarz (Tensor mit nur 
         %(F) edge [out=0  , in=180] node [right, xshift=0.3cm, align=left]  {Output \\ H-B Grad $[I, ..., VI]$} (Z2);
 
 \end{tikzpicture}
-\caption[Darstellung eines Modules mit den 9 Neuronalen Netzen]{Darstellung eines Modules mit den 9 Neuronalen Netzen. Der Blaue Rahmen repräsentiert dabei ein Hauptmodul (Symmetrie, Lidschluss, Stirn, Mund) und die Grünen Rechtecke sind dabei die Sub-Netze für die Bilder $x_1$ - $x_9$. Das Ergebnis wird im Anschluss vor der Rückgabe fusioniert.}\label{cap:mod_lf}
+\caption[Darstellung eines Modules mit den 9 Neuronalen Netzen]{Darstellung eines Modules mit den 9 Neuronalen Netzen. Der hellblaue Rahmen repräsentiert dabei ein Hauptmodul (Symmetrie, Lidschluss, Stirn, Mund) und die grünen Rechtecke sind dabei die Sub-Netze für die Bilder $x_1$ - $x_9$. Das Ergebnis wird im Anschluss vor der Rückgabe fusioniert.}\label{cap:mod_lf}
 \end{figure}\label{fig:mod_lf}
 
 
-Late Fusion ist das komplette Gegenteil von Early Fusion. Jedes Bild enthält ein eigenes Neuronales Netz und das für alle Module. Das bedeutet, dass insgesamt bei 4 Modulen und 9 Bildcodierungen 36 separate Netze benötigt werden. All diese Netze müssen separat trainiert werden (Abb. \ref{cap:late}). Bei dem Evaluierungspozess werden zuerst alle Modelle, die demselben Modul zugeordnet sind fusioniert. Es gilt, die beste Klasse über alle 9 Netze (Abb. \ref{cap:mod_lf}), ist diejenige, die für die spätere Zusammenfügung zu dem House-Brackmann Grad genommen wird, da angenommen werden kann, dass diese am wahrscheinlichsten die Realität abbildet. Sinn dahinter ist die Posen als eine Gruppe zu interpretieren, die zusammengehören. Die Modelle sollen also spezifisch auf die eingegebene Pose in die Sub-Netze reagieren und den Loss minimieren.
+Late Fusion ist das exakte Gegenteil von Early Fusion. Jedes Bild enthält ein eigenes Neuronales Netz und das für alle Module. Das bedeutet, dass insgesamt bei 4 Modulen und 9 Bildcodierungen 36 separate Netze benötigt werden. All diese Netze müssen getrennt voneinander trainiert werden (siehe Abb. \ref{cap:late}). Bei dem Evaluierungspozess werden zuerst alle Modelle, die demselben Modul zugeordnet sind fusioniert. Es gilt, dass die beste Klasse über alle 9 Netze (siehe Abb. \ref{cap:mod_lf}) diejenige ist, die für die spätere Zusammenfügung zu dem House-Brackmann Grad genommen wird. Das resultiert daraus, da angenommen werden kann, dass diese am wahrscheinlichsten die Realität abbildet. Sinn dahinter ist, die Posen als eine Gruppe zu interpretieren, welche zusammengehören. Die Modelle sollen also spezifisch auf die eingegebene Pose in die Sub-Netze reagieren und den Loss minimieren.
 
-Dadurch dass nicht alle Bildcodierungen für alle Patient*innen vorhanden sind, ist es notwendig diese aus dem Trainingsprozess zu entfernen. Dazu kann, wenn eines der 9 Bilder nicht vorhanden ist, den Schleifendurchgang übersprungen werden.
+Dadurch dass nicht alle Bildcodierungen für alle Patient*innen vorhanden sind, ist es notwendig, diese aus dem Trainingsprozess zu entfernen. Dazu kann, wenn eines der 9 Bilder nicht vorhanden ist, der Schleifendurchgang übersprungen werden.
 
 
 
 \begin{figure}[!t]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=1.0\textwidth]{./images/Late Fusion}}
-\caption[Sequenzdiagram des Ablaufprozess bei Benutzung von Late Fusion]{Sequenzdiagram des Ablaufprozess bei Benutzung von Late Fusion. Hier existiert für jedes Bild ein separates Modell. Für jedes Modus sind so 9 Modelle im Einsatz, woraus insgesamt 36 unabhängige Neuronale Netze entstehen.}\label{cap:late}
+\caption[Sequenzdiagram des Ablaufprozesses bei Benutzung von Late Fusion]{Sequenzdiagram des Ablaufprozesses bei Benutzung von Late Fusion. Hier existiert für jedes Bild ein separates Modell. Für jedes Modus sind so 9 Modelle im Einsatz, woraus insgesamt 36 unabhängige Neuronale Netze entstehen.}\label{cap:late}
 \end{figure}\label{fig:late}
 
 
@@ -523,9 +505,9 @@ Das höchste Ergebnis der 6 Zeilensummen ist der für den Patient*in angenommene
     \multicolumn{1}{c|}{Klasse} &
     $y_m$ &
     \multirow{-2}{*}{$\Sigma$} \\ \hline\hline
-  I   & \multicolumn{1}{c|}{normal} & 0.10 & \multicolumn{1}{c|}{normal}   & 0.02 & \multicolumn{1}{c|}{vollständig}   & 0.30 & \multicolumn{1}{c|}{normal}   & 0.19 & 0.61 \\ \hline
-  II  & \multicolumn{1}{c|}{normal} & 0.20 & \multicolumn{1}{c|}{normal}   & 0.03 & \multicolumn{1}{c|}{vollständig}   & 0.21 & \multicolumn{1}{c|}{minasymm} & 0.18 & 0.62 \\ \hline
-  III & \multicolumn{1}{c|}{normal} & 0.30 & \multicolumn{1}{c|}{minasymm} & 0.04 & \multicolumn{1}{c|}{vollständig}   & 0.12 & \multicolumn{1}{c|}{minasymm} & 0.03 & 0.49 \\ \hline
+  I   & \multicolumn{1}{c|}{normal} & 0.10 & \multicolumn{1}{c|}{normal}   & 0.02 & \multicolumn{1}{c|}{vollständig}   & 0.30 & \multicolumn{1}{c|}{normal}   & 0.19 & 0.61 \\ %\hline
+  II  & \multicolumn{1}{c|}{normal} & 0.20 & \multicolumn{1}{c|}{normal}   & 0.03 & \multicolumn{1}{c|}{vollständig}   & 0.21 & \multicolumn{1}{c|}{minasymm} & 0.18 & 0.62 \\ %\hline
+  III & \multicolumn{1}{c|}{normal} & 0.30 & \multicolumn{1}{c|}{minasymm} & 0.04 & \multicolumn{1}{c|}{vollständig}   & 0.12 & \multicolumn{1}{c|}{minasymm} & 0.03 & 0.49 \\ %\hline
   \rowcolor[HTML]{9AFF99}
   IV &
     \multicolumn{1}{c|}{\cellcolor[HTML]{9AFF99}Normal} &
@@ -536,8 +518,8 @@ Das höchste Ergebnis der 6 Zeilensummen ist der für den Patient*in angenommene
     0.46 &
     \multicolumn{1}{c|}{\cellcolor[HTML]{9AFF99}asymm} &
     0.16 &
-    \textbf{1.07} \\ \hline
-  V   & \multicolumn{1}{c|}{asymm}  & 0.50 & \multicolumn{1}{c|}{keine}    & 0.10 & \multicolumn{1}{c|}{unvollständig} & 0.13 & \multicolumn{1}{c|}{asymm}    & 0.15 & 0.88 \\ \hline
+    \textbf{1.07} \\ %\hline
+  V   & \multicolumn{1}{c|}{asymm}  & 0.50 & \multicolumn{1}{c|}{keine}    & 0.10 & \multicolumn{1}{c|}{unvollständig} & 0.13 & \multicolumn{1}{c|}{asymm}    & 0.15 & 0.88 \\ %\hline
   VI  & \multicolumn{1}{c|}{keine}  & 0.60 & \multicolumn{1}{c|}{keine}    & 0.05 & \multicolumn{1}{c|}{unvollständig} & 0.22 & \multicolumn{1}{c|}{keine}    & 0.14 & 1.01 \\ \hline
   \end{tabular}%
   }
@@ -550,12 +532,12 @@ Das höchste Ergebnis der 6 Zeilensummen ist der für den Patient*in angenommene
 
 \clearpage
 \section{Caching}\label{caching}
-Problematisch ist, bei größer werdenden Datensätzen, dass die Laufzeit sehr schnell sehr groß werden kann. Dazu muss der Server, der die Trainingsphase der Neuronalen Netze betreut, für alle Epochs, bei allen Bildern die Berechnung der Punkte ausführen, die Bilder in die Regions of Interest zerlegen und die Augmentierung durchführen, die ResNet18 Modelle, Forwärtsrechnung ausführen und Rückwärtsoptimierung anhand des Losses optimieren. Die Schritte Punkteberechnung und Einteilung sind für alle Epochs identisch. Die Idee zur Beschleunigung der Trainingsschritte ist, diese fertigen zerschnittenen Bildfragmente in einem Cache vorab abzuspeichern, um diese Schritte einzusparen.
+Problematisch ist, bei größer werdenden Datensätzen, dass die Laufzeit sehr schnell sehr groß werden kann. Dazu muss der Server, der die Trainingsphase der Neuronalen Netze betreut, für alle Epochs, bei allen Bildern die Berechnung der Punkte ausführen, die Bilder in die Regions of Interest zerlegen und die Augmentierung durchführen. Ausserdem muss für die ganzen ResNet18 Netze der Module, die Forwärtsrechnung ausgeführt und Rückwärtsoptimierung anhand des Losses optimiert werden. Die Schritte Punkteberechnung und Einteilung sind für alle Epochs identisch. Die Idee zur Beschleunigung der Trainingsschritte ist, diese fertigen zerschnittenen Bildfragmente in einem Cache vorab abzuspeichern, um diese Schritte einzusparen.
 
-Zwei mögliche Lösungsansätze sind \ac{lru} (Kapitel \ref{lrucache}) und eine stationäre externe Datenbank (Kapitel \ref{database}) als, der als temporären Cache, währen der Trainingsphase agiert.
+Zwei mögliche Lösungsansätze sind \ac{lru} (Kapitel \ref{lrucache}) und eine stationäre externe Datenbank (Kapitel \ref{database}) als, der als temporären Cache, während der Trainingsphase agiert.
 
 \subsection{Least Recently Used Cache}\label{lrucache}
-\ac{lru}, bedeutet, der am längsten nicht zugegriffenen Eintrag wird aus dem Cache entfernt. Vergleichen lässt sich das mit einer Warteschlange mit begrenztem Platzinhalt. Aufgerufene Elemente reihen sich am Ende der Warteschlange ein (im dargestellten Array die linke Seite). Alle nachfolgenden wandern um eine Position nach vorne. Der Vorderste in der Warteschlange wird entfernt (Abb. \ref{cap:lrucache}), sobald ein noch nicht bekanntes Element sich in die Warteschlange einreiht. Dieses neue Element muss zur Laufzeit initial berechnet werden. Danach ist es so lange Verfügbar, bis es wieder herausgeschoben wurde.
+\ac{lru} bedeutet, der am längsten nicht zugegriffenen Eintrag wird aus dem Cache entfernt. Vergleichen lässt sich das mit einer Warteschlange mit begrenztem Platzinhalt. Aufgerufene Elemente reihen sich am Ende der Warteschlange ein (im dargestellten Array die linke Seite). Alle nachfolgenden wandern um eine Position nach vorne. Der Vorderste in der Warteschlange wird entfernt (siehe Abb. \ref{cap:lrucache}), sobald sich ein noch nicht bekanntes Element in die Warteschlange einreiht. Dieses neue Element muss zur Laufzeit initial berechnet werden. Danach ist es so lange verfügbar, bis es wieder herausgeschoben wurde.
 
 \begin{figure}[b]\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=4cm,semithick]
@@ -575,7 +557,7 @@ Zwei mögliche Lösungsansätze sind \ac{lru} (Kapitel \ref{lrucache}) und eine 
 \caption[Beispiel des \ac{lru}]{Hit sind Treffer. Diese Elemente sind bereits im Cache vorhanden. Miss hingegen sind dem Cache nicht bekannt, diese werden berechnet und reihen sich ein. Beispiel des \ac{lru} mit $l=5$ und dem $\Sigma=A-Z$. Wenn Z sich einreiht, fliegt D raus, da kein Platz mehr vorhanden ist.}\label{cap:lrucache}
 \end{figure}\label{fig:lrucache}
 
-Einträge im Cache haben einen Index. Über diesen werden auf die dahinter liegenden Elemente, das Bildmaterial des einzelnen Patient*innen, zugegriffen. Sei $l$ die Länge des Caches und $\Sigma$ Indizes (z.B. A-Z), so können insgesamt $l$ Elemente im Cache für das schnelle Aufrufen vorgehalten werden. Alle nicht vorgehaltene Einträge müssen berechnet werden. Die im Cache liegenden Elemente besitzen eine kürzere Aufrufdauer als diejenigen, die nicht im Cache sind. Die \ac{wcet}, die Zeit, welche benötigt wird, um ein Element aufrufen, beträgt für
+Einträge im Cache haben einen Index. Über diesen werden auf die dahinterliegenden Elemente, das Bildmaterial der/die einzelnen Patient*innen, zugegriffen. Sei $l$ die Länge des Caches und $\Sigma$ Indizes (z.B. A-Z), so können insgesamt $l$ Elemente im Cache für das schnelle Aufrufen vorgehalten werden. Alle nicht vorgehaltene Einträge müssen berechnet werden. Die im Cache liegenden Elemente besitzen eine kürzere Aufrufdauer als diejenigen, die nicht im Cache sind. Die \ac{wcet}, also die Zeit, welche benötigt wird, um ein Element aufzurufen, beträgt für
 
 \begin{itemize}
   \setlength\itemsep{-0.5em}
@@ -588,8 +570,8 @@ Dabei ist $WCET_{cache}$ die Laufzeit, die für das Nachschauen der Elemente im 
 
 
 
-\subsection{Datenbank}\label{database}
-Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu speichern (Tabelle \ref{cap:database}). Der Aufbau ist dabei relativ identisch zu dem \ac{lru}. Über einen Index wird auf das benötigte Element zugegriffen, jedoch sind \textbf{alle Elemente} in der Datenbank gespeichert. Die \ac{wcet} beträgt schlussfolglich immer die Zeit, welche zum Zugriff auf die Datenbank benötigt wird. Zusätzlich kommt global auf die globale Laufzeit, einmal die Rechenzeit hinzu, welche benötigt wird, um alle Elemente zu berechnen und in die Datenbank einzutragen. Solange nicht auf den selben Index geschrieben wird, ist es ratsam die Einträge parallel in die Datenbank zu schreiben und zu berechnen. Das hat den Vorteil, dass das komplette Potential des Servers/Computer ausgenutzt werden kann. Die Indexe Repräsentieren dabei eine Nummer, die jeden einzelnen Patient*in zugeordnet ist. Indexe müssen als Primärschlüssel eineindeutig sein, damit keine Konflikte beim Schreiben und Lesen auftreten!
+\subsection{Externe Datenbank}\label{database}
+Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu speichern (siehe Tabelle \ref{cap:database}). Der Aufbau ist dabei relativ identisch zu dem \ac{lru}. Über einen Index wird auf das benötigte Element zugegriffen. Jedoch sind \textbf{alle Elemente} in der Datenbank gespeichert. Die \ac{wcet} beträgt schlussendlich immer die Zeit, welche zum Zugriff auf die Datenbank benötigt wird. Zusätzlich kommt auf die globale Laufzeit einmal die Rechenzeit hinzu, welche benötigt wird, um alle Elemente zu berechnen und in die Datenbank einzutragen. Solange nicht auf den selben Index geschrieben wird, ist es ratsam, die Einträge parallel in die Datenbank zu schreiben und zu berechnen. Das hat den Vorteil, dass das komplette Potential des Servers/Computer ausgenutzt werden kann. Die Indexe repräsentieren dabei eine Nummer, die jeden einzelnen Patient*in zugeordnet ist. Indexe müssen als Primärschlüssel eineindeutig sein, damit keine Konflikte beim Schreiben und Lesen auftreten.
 
 \begin{table}[h]\vspace{1ex}\centering
   \begin{tabular*}{9cm}{c|c}
@@ -608,7 +590,7 @@ Eine weitere Möglichkeit ist es, Elemente in eine relationale Datenbank zu spei
 \vspace{2ex}\end{table}\label{table:database}
 
 
-Vorteil dieser Methode ist es, die kurze Lesezeit von der Datenbank ($WCET_{read}$) auszunutzen. Diese ist wesentlich kleiner ist als die Berechnung der Landmarks und das Einteilen der Regionen zur Laufzeit ($WCET_{berechnung}$). In der Trainingsphase werden $z$ Epochs durchlaufen. Dadurch werden statt  $WCET_{berechnung} * z$ nur $WCET_{read} * z$ Zeiteinheiten benötigt, wobei gilt $WCET_{berechnung} > WCET_{read}$. Dadurch kann die Trainingsphase schneller beendet werden oder auch ermöglicht in der selben Laufzeit, mehr Epochs unterzubringen.
+Vorteil dieser Methode ist es, die kurze Lesezeit von der Datenbank ($WCET_{read}$) auszunutzen. Diese ist wesentlich kleiner als die Berechnung der Landmarks und das Einteilen der Regionen zur Laufzeit ($WCET_{berechnung}$). In der Trainingsphase werden $z$ Epochs durchlaufen. Dadurch werden statt  $WCET_{berechnung} * z$ nur $WCET_{read} * z$ Zeiteinheiten benötigt, wobei gilt $WCET_{berechnung} > WCET_{read}$. Dadurch kann die Trainingsphase schneller beendet werden oder auch ermöglicht werden, in der selben Laufzeit, mehr Epochs unterzubringen.
 
 
 

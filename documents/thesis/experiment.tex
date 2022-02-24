@@ -1,10 +1,12 @@
+%\emph{Methode} Kursiv
+
 \chapter{Experimente und Ergebnisse}\label{experiment}
 
 \section{Evaluation der Gesichtserkennung}\label{evalfa}
-Die Genauigkeit der Position der Landmarks, im Verhältnis zu der Gesamtheit aller verfügbaren Patient*innen, werden für die 9 Bilder jedes einzelnen Patienten, zu allererst die Ausrechnung dieser vollzogen. Festgestellt wurde, dass die Seitenverhältnisse und Größe der einzelnen Bilder des Datensatzes für das verwendete Framework \glqq Face-Alignment\grqq{} von Adrian Bulat und Georgios Tzimiropoulos, eine zu hohe Auflösung aufweisen und so die Landmarks nicht korrekt positioniert sind (Tabelle \ref{cap:fa_factor}). Durch Reverse Engineering des Sourcecodes wurde festgestellt, dass die verwendeten Bildmaterialen zum Trainieren der Neuronalen-Netze des Frameworks, indirekt eine Standartauflösung von maximal 1920x1080px (HD) haben \cite{fa_framework}.
+Die Genauigkeit der Position der Landmarks, im Verhältnis zu der Gesamtheit aller verfügbaren Patient*innen, werden für die 9 Bilder jedes einzelnen Patienten, zu allererst die Ausrechnung dieser vollzogen. Festgestellt wurde, dass die Seitenverhältnisse und Größe der einzelnen Bilder des Datensatzes für das verwendete Framework \glqq Face-Alignment\grqq{} von Adrian Bulat und Georgios Tzimiropoulos, eine zu hohe Auflösung aufweisen und so die Landmarks nicht korrekt positioniert sind (siehe Tabelle \ref{cap:fa_factor}). Durch Reverse Engineering des Sourcecodes wurde festgestellt, dass die verwendeten Bildmaterialen zum Trainieren der Neuronalen-Netze des Frameworks indirekt eine Standartauflösung von maximal 1920x1080px (HD) haben \cite{fa_framework}.
 
 
-Die Lösung für das Problem ist eine geschickte Verkleinerung der Größenverhältnisse in Abhängigkeit der tatsächlichen Bildgröße $(a, b)$. Dabei ist $a$ die Pixelanzahl in horizontaler und $b$ in vertikaler Richtung. Die Größe der Bilder wird dazu in den Bereich für die optimale Ausführung zur Generierung der Landmarks verkleinert. Der Faktor $F_{ab}$ für die Änderung der Bildgröße lässt sich wie folgt berechnen:
+Die Lösung für das Problem ist eine Verkleinerung der Größenverhältnisse in Abhängigkeit der tatsächlichen Bildgröße $(a, b)$. Dabei ist $a$ die Pixelanzahl in horizontaler und $b$ in vertikaler Richtung. Die Größe der Bilder wird dazu in den Bereich für die optimale Ausführung zur Generierung der Landmarks verkleinert. Der Faktor $F_{ab}$ für die Änderung der Bildgröße lässt sich wie folgt berechnen:
 
 \begin{equation}
 F(a, b) = \begin{cases*}
@@ -13,7 +15,7 @@ F(a, b) = \begin{cases*}
 \end{cases*}
 \end{equation}
 
-Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origialbild mit der vollen Größe angewendet. Dazu werden alle Punkte mit $F_{ab}$ multipliziert. Für die spätere Anwendung in den Neuronalen-Netzen und der Ausschneidung der Regionen, werden so die hochauflösenden Bilder verwendet. Damit auch die Patienenbilder, deren Landmarks teilweise von der Ideallinie abweichen, verwendet werden können, muss beim Ausscheiden ein Offset hinzugerechnet werden.
+Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Originalbild mit der vollen Größe angewendet. Dazu werden alle Punkte mit $F_{ab}$ multipliziert. Für die spätere Anwendung in den Neuronalen-Netzen und der Ausschneidung der Regionen, werden so die hochauflösenden Bilder verwendet. Damit auch die Patientenbilder, deren Landmarks teilweise von der Ideallinie abweichen, verwendet werden können, muss beim Ausscheiden ein Offset hinzugerechnet werden.
 
 
 
@@ -23,16 +25,16 @@ Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origi
   \cline{3-5}
   \multirow{2}{*}{}      &       & \multicolumn{3}{c|}{Platzierung der Landmarks}                                               \\ \cline{3-5}
                          &       & \multicolumn{1}{c|}{korrekt} & \multicolumn{1}{c|}{teilweise} & falsch \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}vor Anpassung\\ der Bildgröße\end{tabular}}}  & \# & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{12} & 639 \\ \cline{2-5}
-  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{0}       & \multicolumn{1}{c|}{1.84}                 & 98.16      \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}nach Anpassung\\ der Bildgröße\end{tabular}}} & \# & \multicolumn{1}{c|}{572} & \multicolumn{1}{c|}{78} & 1 \\ \cline{2-5}
-  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{87.87}       & \multicolumn{1}{c|}{11.98}                 & 0.15      \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}vor Anpassung\\ der Bildgröße\end{tabular}}}  & \# & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{12} & 639 \\ %\cline{2-5}
+  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{0}       & \multicolumn{1}{c|}{1.84}                 & \textbf{98.16}      \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}nach Anpassung\\ der Bildgröße\end{tabular}}} & \# & \multicolumn{1}{c|}{572} & \multicolumn{1}{c|}{78} & 1 \\ %\cline{2-5}
+  \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{\textbf{87.87}}       & \multicolumn{1}{c|}{11.98}                 & 0.15      \\ \hline
   \end{tabular}
   \caption[Platzierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor]{Plazierung der Landmarks vor und nach der Anpassung der Bildgröße durch den Faktor $F_{ab}$ bezogen auf die 86 Patient*innen des Datensatzes und deren vorhandenen Bilder}\label{cap:fa_factor}
 \vspace{2ex}\end{table}\label{table:fa_factor}
 
 
-Auch die Rotation der Bilder kann Mithilfe der Landmarks heraufgefunden und falls nötig korrigiert werden. Dazu werden die absoluten Positionen von zwei Marker miteinander verglichen. Experimental lässt sich der Rotationswinkel $R$ gegen den Uhrzeigersinn durch einfaches Ausprobieren mit den Punkt 0 (linkes Ohr) und 8 (Kinn) so definieren:
+Auch die Rotation der Bilder kann Mithilfe der Landmarks heraufgefunden und falls nötig korrigiert werden. Dazu werden die absoluten Positionen von zwei Markern miteinander verglichen. Experimental lässt sich der Rotationswinkel $R$ gegen den Uhrzeigersinn durch einfaches Ausprobieren mit den Punkt 0 (linkes Ohr) und 8 (Kinn) so definieren:
 
 \begin{equation}
 R[P(0), P(8)] = \begin{cases*}
@@ -91,10 +93,10 @@ Die verschiedenen transformationen werden nicht an den Vailderungsdatensatz verw
 \begin{table}[h]\vspace{1ex}\centering
 \begin{tabular}{c|c}
 Modul      & \begin{tabular}[c]{@{}c@{}}neue Pixelgröße\\ der Bilder\end{tabular} \\ \hline\hline
-Symmetrie  & 640x640                                                              \\ \hline
-Lidschluss & 420x500                                                              \\ \hline
-Mund       & 640x420                                                              \\ \hline
-Strin      & 640x300                                                              \\ \hline
+Symmetrie  & 640x640                                                              \\ %\hline
+Lidschluss & 420x500                                                              \\ %\hline
+Mund       & 640x420                                                              \\ %\hline
+Strin      & 640x300                                                              \\ %\hline
 Direkt     & 640x640                                                              \\ \hline
 \end{tabular}
 \caption[Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern]{Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern.}\label{cap:new_size}
@@ -296,59 +298,113 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
 
 
 \clearpage
-\section{Sequentiell}\label{sequent}
-\begin{table}[h]
+\section{Sequenziell}\label{sequent}
+\textbf{TODO}
+\begin{table}[h]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
-  \begin{tabular}{c|l||c|c|c|c|c|}
+  \begin{tabular}{c|c||c|c|c|c|c|}
    &
     Oversampling &
     \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
-    F1 \\ \hline\hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{Sequentiell}}  & nein & 0.39 / 0.33 & 0.65 / 0.67  & 0.32 / 0.28 & 0.60 / 0.63 & 0.33 / 0.30 \\ \cline{2-7}
-  \multicolumn{1}{c|}{}                              & ja   & 0.53 / 0.32 & 0.83 / 0.61  & 0.55 / 0.29 & 0.70 / 0.63 & 0.51 / 0.26 \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{Early Fusion}} & nein & 0.93 / 0.95 & 0.97 / 0.97  & 0.88 / 0.91 & 0.95 / 0.96 & 0.95 / 0.97 \\ \cline{2-7}
-  \multicolumn{1}{c|}{}                              & ja   & 0.91 / 0.85 & 0.95 / 0.90  & 0.83 / 0.85 & 0.89 / 0.80 & 0.93 / 0.88 \\ \hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{Late Fusion}}  & nein & 0.33 / 0.21 & 0.77 /  0.75 & 0.29 / 0.29 & 0.76 / 0.79 & 0.35 / 0.32 \\ \cline{2-7}
-  \multicolumn{1}{c|}{}                              & ja   & 0.50 / 0.23 & 0.88 / 0.72  & 0.45 / 0.27 & 0.81 / 0.89 & 0.31 / 0.34 \\ \hline
-  \end{tabular}%
-}
-  \end{table}
-
-  \begin{table}[h]
-  \resizebox{\textwidth}{!}{%
-  \begin{tabular}{c|l||c|c|c|c|c|}
-   &
-    Oversampling &
-    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
-    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
-    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
-    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
-    F1 \\ \hline\hline
-  \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Early Fusion\\ Direkt\end{tabular}}} &
-    nein &
-    0.99 / 0.95 &
-    0.99 / 0.97 &
-    0.98 / 0.93 &
-    0.99 / 0.96 &
-    0.98 / 0.94 \\ \cline{2-7}
-  \multicolumn{1}{c|}{} &
-    ja &
-    0.98 / 0.93 &
-    0.95 / 0.98 &
-    0.99 / 0.96 &
-    0.96 / 0.97 &
-    0.97 / 0.95 \\ \hline
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.424 & 0.682 & 0.436 & 0.752 & 0.414 \\ %\cline{2-7}
+                             & ja   & 0.625 & 0.806 & 0.631 & 0.817 & 0.607  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 0.810 & 0.963 & 0.924 & 0.973 & 0.854 \\ %\cline{2-7}
+                             & ja   & 0.912 & 0.983 & 0.930 & 0.983 & \cellcolor[HTML]{9AFF99}0.916 \\ \hline
   \end{tabular}%
   }
-  \end{table}
-\textbf{TODO}
+  \caption[training]{training}\label{cap:tmp}
+\vspace{2ex}\end{table}\label{table:tmp}
 
+\begin{table}[h]\vspace{1ex}\centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|c||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.393 & 0.678 & 0.447 & 0.759 & 0.355 \\ %\cline{2-7}
+                             & ja   & 0.368 & 0.653 & 0.422 & 0.767 & 0.330  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 0.843 & 0.970 & 0.949 & 0.980 & 0.884 \\ %\cline{2-7}
+                             & ja   & 0.870 & 0.977 & 0.977 & 0.986 & \cellcolor[HTML]{9AFF99}0.914 \\ \hline
+  \end{tabular}%
+  }
+  \caption[validierung]{validierung}\label{cap:tmp}
+\vspace{2ex}\end{table}\label{table:tmp}
+
+
+\begin{figure}[!h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_sequential}}
+\caption[tmp]{TODO sequenziell kein oversampling validierung}\label{cap:f1_sequential_non_osersampling}
+\end{figure}\label{fig:f1_sequential_non_osersampling}
+
+\begin{figure}[!h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_sequential_oversampling}}
+\caption[tmp]{TODO sequenziell oversampling validierung}\label{cap:f1_sequential_oversampling}
+\end{figure}\label{fig:f1_sequential_oversampling}
+
+
+
+
+
+\clearpage
 \section{Early Fusion}\label{earlyfusion}
-\textbf{TODO}
 
+\begin{table}[h]\vspace{1ex}\centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|c||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.975 & 0.968 & 0.931 & 0.997 & 0.977 \\ %\cline{2-7}
+                             & ja   & 0.978 & 0.993 & 0.980 & 0.994 & 0.978  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ %\cline{2-7}
+                             & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
+  \end{tabular}%
+  }
+  \caption[training]{training}\label{cap:tmp}
+\vspace{2ex}\end{table}\label{table:tmp}
+
+\begin{table}[h]\vspace{1ex}\centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|c||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.979 & 0.998 & 0.989 & 0.987 & 0.980 \\ %\cline{2-7}
+                             & ja   & 0.974 & 0.986 & 0.966 & 0.984 & 0.967  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ %\cline{2-7}
+                             & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
+  \end{tabular}%
+  }
+  \caption[validierung]{validierung}\label{cap:tmp}
+\vspace{2ex}\end{table}\label{table:tmp}
+
+\begin{figure}[!h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_early_fusion}}
+\caption[tmp]{TODO Early Fusion kein oversampling validierung}\label{cap:f1_ef_non_osersampling}
+\end{figure}\label{fig:f1_ef_non_osersampling}
+
+\begin{figure}[!h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_early_fusion_oversampling}}
+\caption[tmp]{TODO Early Fusion oversampling validierung}\label{cap:f1_ef_oversampling}
+\end{figure}\label{fig:f1_ef_oversampling}
+
+\clearpage
 \section{Late Fusion}\label{latefusion}
 \textbf{TODO}
 
@@ -375,9 +431,9 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
 
 \clearpage
 \section{Laufzeitanalyse des Caches}\label{analyze}
-Analysiert wurde die Laufzeiten des Systems bezogen auf 5 Epochs und einer Anzahl von 53 Patient*innen in einem verkleinerten Datensatz. Die Größe des \ac{lru} wurde Stückweise von $47$ bis $55$ jeweils um eins inkrementiert. Wenn die maximale Anzahl der im \ac{lru} platzhabenden Elemente größer ist als die Anzahl der Datensätze, wird die Laufzeit stabil um einen Fixwert gehalten. Dises Verhalten ist erklärbar dadurch, dasss jedes Element des Datensatzes einen Platz im \ac{lru} bekommen kann. Damit wird keine Rechenzeit für die Berechnung verschwendet. Auch signifikant Feststellbar ist der rapide Zuwachs an Zeiteinheiten, wenn die Größe des \ac{lru} abnimmt. Der Zeitzuwachs nicht linear und ähneld einer Sigmoidfunktion. Die Hitrate (Trefferrate für im Cache liegende Elemente) nimmt mit vermindeter Größe ab. Mehr Elemente müssen zur Laufzeit zuerst berechnet werden. Ab einen Punkt ist kein Zeitzuwachs mehr erwarten. Die Missrate ist so hoch, dass der \ac{lru} keine signifikante Auswirkung auf die Laufzeit hat (Abb. \ref{cap:analyze}).
+Analysiert wurde die Laufzeiten des Systems bezogen auf 5 Epochs und einer Anzahl von 53 Patient*innen in einem verkleinerten Datensatz. Die Größe des \ac{lru} wurde Stückweise von $47$ bis $55$ jeweils um eins inkrementiert. Wenn die maximale Anzahl der im \ac{lru} platzhabenden Elemente größer ist als die Anzahl der Datensätze, wird die Laufzeit stabil um einen Fixwert gehalten. Dises Verhalten ist erklärbar dadurch, dasss jedes Element des Datensatzes einen Platz im \ac{lru} bekommen kann. Damit wird keine Rechenzeit für die Berechnung verschwendet. Auch signifikant Feststellbar ist der rapide Zuwachs an Zeiteinheiten, wenn die Größe des \ac{lru} abnimmt. Der Zeitzuwachs nicht linear und ähneld einer Sigmoidfunktion. Die Hitrate (Trefferrate für im Cache liegende Elemente) nimmt mit vermindeter Größe ab. Mehr Elemente müssen zur Laufzeit zuerst berechnet werden. Ab einen Punkt ist kein Zeitzuwachs mehr erwarten. Die Missrate ist so hoch, dass der \ac{lru} keine signifikante Auswirkung auf die Laufzeit hat (siehe Abb. \ref{cap:analyze}).
 
-Wenn zusätzlich zu dem \ac{lru} die Datenbank als externen Cache zugeschalten wird, ist die Laufzeit, bis auf eine minimale Ungenauigkeit, für genau dieselbe Anzahl an Epochs identisch. Diese kleinen Schwankungen in der Laufzeit beruhen auf die Auslastunen der CPU und der Grafikkarte und sind für die Betrachtung vernachlässigbar.
+Wenn zusätzlich zu dem \ac{lru} die Datenbank als externen Cache zugeschalten wird, ist die Laufzeit, bis auf eine minimale Ungenauigkeit, für genau dieselbe Anzahl an Epochs identisch. Diese kleinen Schwankungen in der Laufzeit beruhen auf die Auslastung der CPU sowie der Grafikkarte und können für die Betrachtung vernachlässigt werden.
 
 \begin{figure}[!htb]
 \begin{center}
