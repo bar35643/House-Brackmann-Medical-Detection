@@ -3,7 +3,7 @@
 \chapter{Experimente und Ergebnisse}\label{experiment}
 
 \section{Evaluation der Gesichtserkennung}\label{evalfa}
-Die Genauigkeit der Position der Landmarks, im Verhältnis zu der Gesamtheit aller verfügbaren Patient*innen, werden für die 9 Bilder jedes einzelnen Patienten, zu allererst die Ausrechnung dieser vollzogen. Festgestellt wurde, dass die Seitenverhältnisse und Größe der einzelnen Bilder des Datensatzes für das verwendete Framework \glqq Face-Alignment\grqq{} von Adrian Bulat und Georgios Tzimiropoulos, eine zu hohe Auflösung aufweisen und so die Landmarks nicht korrekt positioniert sind (siehe Tabelle \ref{cap:fa_factor}). Durch Reverse Engineering des Sourcecodes wurde festgestellt, dass die verwendeten Bildmaterialen zum Trainieren der Neuronalen-Netze des Frameworks indirekt eine Standartauflösung von maximal 1920x1080px (HD) haben \cite{fa_framework}.
+Die Genauigkeit der Position der Landmarks, im Verhältnis zu der Gesamtheit aller verfügbaren Patient*innen, werden für die 9 Bilder jedes einzelnen Patienten, zu allererst die Ausrechnung dieser vollzogen. Festgestellt wurde, dass die Seitenverhältnisse und Größe der einzelnen Bilder des Datensatzes für das verwendete Framework \glqq Face-Alignment\grqq{} von Adrian Bulat und Georgios Tzimiropoulos, eine zu hohe Auflösung aufweisen und so die Landmarks nicht korrekt positioniert sind (siehe Tabelle \ref{cap:fa_factor}). Durch Reverse Engineering des Sourcecodes wurde festgestellt, dass die verwendeten Bildmaterialen zum Trainieren ders Neuronalen-Netzes des Frameworks indirekt eine Standartauflösung von maximal 1920x1080px (HD) verwendet wurden \cite{fa_framework}.
 
 
 Die Lösung für das Problem ist eine Verkleinerung der Größenverhältnisse in Abhängigkeit der tatsächlichen Bildgröße $(a, b)$. Dabei ist $a$ die Pixelanzahl in horizontaler und $b$ in vertikaler Richtung. Die Größe der Bilder wird dazu in den Bereich für die optimale Ausführung zur Generierung der Landmarks verkleinert. Der Faktor $F_{ab}$ für die Änderung der Bildgröße lässt sich wie folgt berechnen:
@@ -17,13 +17,10 @@ F(a, b) = \begin{cases*}
 
 Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Originalbild mit der vollen Größe angewendet. Dazu werden alle Punkte mit $F_{ab}$ multipliziert. Für die spätere Anwendung in den Neuronalen-Netzen und der Ausschneidung der Regionen, werden so die hochauflösenden Bilder verwendet. Damit auch die Patientenbilder, deren Landmarks teilweise von der Ideallinie abweichen, verwendet werden können, muss beim Ausscheiden ein Offset hinzugerechnet werden.
 
-
-
-
 \begin{table}[!htb]\vspace{1ex}\centering
   \begin{tabular}{cc|ccc|}
-  \cline{3-5}
-  \multirow{2}{*}{}      &       & \multicolumn{3}{c|}{Platzierung der Landmarks}                                               \\ \cline{3-5}
+  %\cline{3-5}
+  \multirow{2}{*}{}      &       & \multicolumn{3}{c|}{Platzierung der Landmarks}                                               \\ %\cline{3-5}
                          &       & \multicolumn{1}{c|}{korrekt} & \multicolumn{1}{c|}{teilweise} & falsch \\ \hline
   \multicolumn{1}{c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}vor Anpassung\\ der Bildgröße\end{tabular}}}  & \# & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{12} & 639 \\ %\cline{2-5}
   \multicolumn{1}{c|}{} & in \% & \multicolumn{1}{c|}{0}       & \multicolumn{1}{c|}{1.84}                 & \textbf{98.16}      \\ \hline
@@ -34,7 +31,7 @@ Nachdem die Landmarks vom System ausgerechnet wurden, werden diese auf das Origi
 \vspace{2ex}\end{table}\label{table:fa_factor}
 
 
-Auch die Rotation der Bilder kann Mithilfe der Landmarks heraufgefunden und falls nötig korrigiert werden. Dazu werden die absoluten Positionen von zwei Markern miteinander verglichen. Experimental lässt sich der Rotationswinkel $R$ gegen den Uhrzeigersinn durch einfaches Ausprobieren mit den Punkt 0 (linkes Ohr) und 8 (Kinn) so definieren:
+Desweiteren kann die Rotation der Bilder mithilfe der Landmarks heraufgefunden werden und falls nötig korrigiert werden. Dazu werden die absoluten Positionen von zwei Markern miteinander verglichen. Experimental lässt sich der Rotationswinkel $R$ gegen den Uhrzeigersinn durch einfaches Ausprobieren mit den Punkt 0 (linkes Ohr) und 8 (Kinn) so definieren:
 
 \begin{equation}
 R[P(0), P(8)] = \begin{cases*}
@@ -45,14 +42,12 @@ R[P(0), P(8)] = \begin{cases*}
 \end{cases*}
 \end{equation}
 
-\textbf{TODO graphisch darstellen anhand der Punkte}
 
-
-\clearpage
+%\clearpage
 \section{Hyperparameter}\label{hyper}
 Hier sollen kurz die grundlegenden Hyperparameter für die durchgeführten Experimente erläutert werden. Dazu zählen die Teilung des Datensatzes, Augmentierung der Bilder, die verwendete Lernrate und die Berechnung des Losses. Diese sind im späteren Verlauf für alle Exerimente itentisch, damit diese vergleichbar in ihrem jewelichen Verhalten sind. Auch zu den Hyperparameter zählen die Anzahl an Epochs, die jedes Neuronale Netz zum optimieren und ausführen bekommt und die Anzahl der Batchsize, die es den Netzen ermöglicht parrallel zu rechnen. Die Epochs sind auf 150 eingestellt und die Batchsize auf 16.
 
-\paragraph{Teilung des Datensatzes in zewi dusjunkte Hälften} Die Teilung ist ein zwingendes Mitel, damit die Neuronalen Netze nicht den Datensatz auswendig Lernen und in der realen Anwendung, die Detektion der Klassen, ohne das die Zielklasse bekannt ist, die Eingabedaten falsche, unwahre Ergebnisse zurückliefern. Dazu werden Mengen (Abb. \ref{cap:disjunct}) aus dem vorhandenen Datensatz $D$ ausgeschnitten. Trainingsdatensatz $T$ und Validierungsdatensatz $V$ sind echte disjunkte Teilmengen (\ref{eg:disjunct}). Somit haben sie keine Schnittmenge, das wiederum bedeutet, dass der Trainings- und Validierungsdatensatz keine gleichen Patient*innen haben. Der Trainingsdatensatz sollte dabei den größeren Gesamtanteil ausmachen. 0.75 hat sich  dabei als besten Teilungsfaktor bewiesen. Randomisiert werden so aus dem gegebenen 86 Patient*innen 75\% also aufgerundet 65 Patient*innen zugeordnet. Die anderen 25\% (21 Patient*innen) werden dem Validierungsdatensatz hinzugefügt.
+\paragraph{Teilung des Datensatzes in zewi dusjunkte Hälften} Die Teilung ist ein zwingendes Mitel, damit die Neuronalen Netze nicht den Datensatz auswendig Lernen und in der realen Anwendung, die Detektion der Klassen, ohne das die Zielklasse bekannt ist, die Eingabedaten falsche, unwahre Ergebnisse zurückliefern. Dazu werden Mengen (Abb. \ref{cap:disjunct}) aus dem vorhandenen Datensatz $D$ ausgeschnitten. Trainingsdatensatz $T$ und Validierungsdatensatz $V$ sind echte disjunkte Teilmengen (\ref{eg:disjunct}). Somit haben sie keine Schnittmenge, das wiederum bedeutet, dass der Trainings- und Validierungsdatensatz keine gleichen Patient*innen haben. Der Trainingsdatensatz sollte dabei den größeren Gesamtanteil ausmachen. 0.75 hat sich  dabei als besten Teilungsfaktor bewiesen. Randomisiert werden so aus dem gegebenen 86 Patient*innen 75\% also aufgerundet 65 Patient*innen zugeordnet. Die anderen 25\% (21 Patient*innen) werden dem Validierungsdatensatz hinzugefügt. Problematisch an der Teilung des Datensatzes ist, durch die zu kleine Anzahl an Patient*innen und ihren zugeordneten Graden, das Ungleichgewicht der Verteilung dieser, dafür sorgt, dass nicht immer alle Grade in beiden Datensätzen zu verfügung steht. Die einzige Lösung dafür ist es, falls zu wenige Grade des House-Brackmann Skalas im Trainings- oder Validierungsdatensatzes auftauchen diese nichtmehr zu berücksichtigen.
 
 \begin{equation}
 \begin{split}
@@ -63,14 +58,16 @@ Hier sollen kurz die grundlegenden Hyperparameter für die durchgeführten Exper
 \label{eg:disjunct}
 \end{equation}
 
-\begin{figure}[!b]\centering
+
+\begin{figure}[!t]\centering
+\vspace{-0.5cm}
 \begin{tikzpicture}
     \begin{scope}[shift={(3cm,-5cm)}, fill opacity=0.5]
       \node[ellipse,
       draw = black,
       fill = red,
       minimum width = 10cm,
-      minimum height = 6cm] (e) at (0,0) {};
+      minimum height = 5.5cm] (e) at (0,0) {};
     \draw[fill=green, draw = black] (-2.5,0) circle (2);
     \draw[fill=blue, draw = black] (2.5,0) circle (2);
     \node at (0,2) (A) {\large\textbf{Datensatz}};
@@ -80,40 +77,23 @@ Hier sollen kurz die grundlegenden Hyperparameter für die durchgeführten Exper
     \end{scope}
 
 \end{tikzpicture}
-\caption[Disjunkte Mengen des Datensatzes]{Disjunkte Mengen des Datensatzes Training T und Validierung V haben nicht die gleichen Patient*innen in ihren Mengen.}\label{cap:disjunct}
+\caption[Disjunkte Mengen des Datensatzes]{Disjunkte Mengen des Datensatzes Training T und Validierung V haben nicht die gleichen Patient*innen in ihren Mengen. Formal Mathematisch durch die Formel (\ref{eg:disjunct}) definiert.}\label{cap:disjunct}
 \end{figure}\label{fig:disjunct}
 
-Problematisch an der Teilung des Datensatzes ist, durch die zu kleine Anzahl an Patient*innen und ihren zugeordneten Graden, das Ungleichgewicht der Verteilung dieser, dafür sorgt, dass nicht immer alle Grade in beiden Datensätzen zu verfügung steht. Die einzige Lösung dafür ist es, falls zu wenige Grade des House-Brackmann Skalas im Trainings- oder Validierungsdatensatzes auftauchen diese nichtmehr zu berücksichtigen.
-
-
-
-\paragraph{Augmentierung} Damit eine Vielfalt an verschiedensten Trainingsdaten zu erzielen sind, wird Augmentierung angewentet. Jeden Epoch, wenn die Neuronalen Netze ihr training vollziehen, werden eine Reihe von Transformationen auf die 9 Bilder jedes Patient*innen durchgeführt. Es werden eine Farbraumverschiebung der Pixelschichten Rot, Grün, Blau angewendet. Auch wird der Kontrast und die Helligkeit Bilder minimal verändert. So werden verschiedenste Hautfarben dargestellt. Der Zweck ist dem Neuronalen Netz beuzubringen, dass die Farbe nur im hintergrund eine Rolle spielt für die Detektion des House-Brakckmann Grades. Desweiteren werden die Bilder gekippt, verschoben und um die Vertikalachse (Nasenrücken) gespiegelt, damit die ausgeprägte Seite der Fazialisparese prizipiell Egal ist. Das geschieht mit einer vordefinierten Wahrscheinlichkeit von 50\% Die Verschiebung und die Rotation simulierten, dass die Ausschnitte der Bilder nicht immer an der optimalen Stelle passieren. Auch wird der Schärfefaktor anhand eines Gauß Filters leich unscharf gemacht. Damit werden fokussierte und unfokussierte Bilder erstellt, die einen Ungenauigkeitsfaktor erzeugen, der einen Fehler von Menschenhand nachstellen soll. Jedes der Module benötigt auch noch für ihre zugeschnittenen Ausschnitte aus den Bildern eine fixe Pixelgröße, an dessen die Bilder verkleinert oder vergrößert werden (Tabelle \ref{cap:new_size}). Die neue Größe hat den Zewck, dass bei einer Batchsize, die größe der parallelen Rechnungen der Neuronalen Nezte ein einheitliches Format haben. Die Bilder werden auch noch zum schluss normaliseirt und in einen Tensor verwandelt. Das drückt die Werte der einzelnen Pixelschichten von 0-255 in den Bereich zwischen -1 und 1. Dieser Schritt wird benötigt, damit die Faltungslayer im Neuronalen Netz besser funktionieren und performt.
-Die verschiedenen transformationen werden nicht an den Vailderungsdatensatz verwendet. Dieser bleibt unangetastet.
-
-\begin{table}[h]\vspace{1ex}\centering
-\begin{tabular}{c|c}
-Modul      & \begin{tabular}[c]{@{}c@{}}neue Pixelgröße\\ der Bilder\end{tabular} \\ \hline\hline
-Symmetrie  & 640x640                                                              \\ %\hline
-Lidschluss & 420x500                                                              \\ %\hline
-Mund       & 640x420                                                              \\ %\hline
-Strin      & 640x300                                                              \\ %\hline
-Direkt     & 640x640                                                              \\ \hline
-\end{tabular}
+\begin{table}[!b]\vspace{0.2ex}\centering
+  \begin{tabular}{c||c|c|c|c||c|}
+  Modul                         & Symmetrie & Lidschluss & Stirn   & Mund    & Direkt  \\ \hline\hline
+  \begin{tabular}[c]{@{}c@{}}neue Pixelgröße\\ der Bilder\end{tabular} & 640x640   & 420x500    & 640x420 & 640x300 & 640x640 \\ \hline
+  \end{tabular}
 \caption[Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern]{Neue Pixelgröße für die einzelnen Module nach dem verkleinern oder vergrößern.}\label{cap:new_size}
-\vspace{1ex}\end{table}\label{table:new_size}
+\vspace{0ex}\end{table}\label{table:new_size}
+
+\paragraph{Augmentierung} Damit eine Vielfalt an verschiedensten Trainingsdaten zu erzielen sind, wird Augmentierung angewentet. Jeden Epoch, wenn die Neuronalen Netze ihr training vollziehen, werden eine Reihe von Transformationen auf die 9 Bilder jedes Patient*innen durchgeführt. Es werden eine Farbraumverschiebung der Pixelschichten Rot, Grün, Blau angewendet. Auch wird der Kontrast und die Helligkeit Bilder minimal verändert. So werden verschiedenste Hautfarben dargestellt. Der Zweck ist dem Neuronalen Netz beuzubringen, dass die Farbe nur im hintergrund eine Rolle spielt für die Detektion des House-Brakckmann Grades. Desweiteren werden die Bilder gekippt, verschoben und um die Vertikalachse (Nasenrücken) gespiegelt, damit die ausgeprägte Seite der Fazialisparese prizipiell Egal ist. Das geschieht mit einer vordefinierten Wahrscheinlichkeit von 50\% Die Verschiebung und die Rotation simulierten, dass die Ausschnitte der Bilder nicht immer an der optimalen Stelle passieren. Auch wird der Schärfefaktor anhand eines Gauß Filters leich unscharf gemacht. Damit werden fokussierte und unfokussierte Bilder erstellt, die einen Ungenauigkeitsfaktor erzeugen, der einen Fehler von Menschenhand nachstellen soll. Jedes der Module benötigt auch noch für ihre zugeschnittenen Ausschnitte aus den Bildern eine fixe Pixelgröße, an dessen die Bilder verkleinert oder vergrößert werden (Tabelle \ref{cap:new_size}). Die neue Größe hat den Zewck, dass bei einer Batchsize, die größe der parallelen Rechnungen der Neuronalen Nezte ein einheitliches Format haben. Die Bilder werden auch noch zum schluss normaliseirt und in einen Tensor verwandelt. Das drückt die Werte der einzelnen Pixelschichten von 0-255 in den Bereich zwischen -1 und 1. Dieser Schritt wird benötigt, damit die Faltungslayer im Neuronalen Netz besser funktionieren und performt. Die verschiedenen transformationen werden nicht an den Vailderungsdatensatz verwendet. Dieser bleibt unangetastet.
 
 \clearpage
-\paragraph{Lernrate} Die Lernrate ist eine der wichtigsten Hyperparameter. Diese Größe bestimmt die Strittveränderung an den Kanten der Neuronalen Netze. Dieser Wert soll dabei helfen, dass die Netze schneller konvergieren. Es skaliert die Größe der Gewichksaktualisierungen anhand des ausgerechneten Losses zwischen realer Klasse und der Prediction. Die Wahl der richtigen Größe der Lernnate kann schwierig sein. Ein zu kleiner Werk sorgt dafür, dass ein langer Trainingsprozess dazu führt oder schlimmer das System stecken bleibt und keinen Fortschritt mehr erzielt. Zu große werte hingenen sorgen dafür, dass der Trainingsprozess instabil wird. Für die angestrebten Exterimente wird eine Exponentialfunktion, die mit einer Cosinusfunktion überlagert wird genutzt (Abb. \ref{cap:lrrate}). Die so ausgewählte Lernnrate pro Epoch hat so den besten Erfolg erzielt.
-
-\begin{figure}[h]\centering
-\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.8\textwidth]{./images/lernrate}}
-\caption[Lernrate in ahbängigkeit des jeweiligen Epochs]{Lernrate in Ahbängigkeit des jeweiligen Epochs. Dabei werden eine Exponentialfunktion mit einer Cosinusfunktion miteinander verschmolzen.}\label{cap:lrrate}
-\end{figure}\label{fig:lrrate}
-
-\vspace{-0.3cm}
-
 \paragraph{Ausrechnen des Losses} Anhand der Gleichung (\ref{eq:loss}) kann der Cross Entropy Loss zwischen der real zu ermittelnden Klasse und der ausgrechechneten Klasse, auch bekannt als Prediction, ausgerechnet werden. Dazu werden sie als Tensor in die Formel eingesetzt. Dieser liefert so einen Wert zurück, anhand dessen die Rückwärtsrechnung (eng. Backpropagation) ausgeführt wird und die Netze so optimerit wird, die Ricktige Klasse zu finden. Für die Modulform und der direkten Ermittlung des Grades ist die Größe $C$ an die Anzahl der möglichen Klassen für das jeweilige Modul gekoppelt \cite{pytorch}.
 
+\vspace{-0.2cm}
 
 \begin{itemize}
   \setlength\itemsep{-0.5em}
@@ -123,10 +103,22 @@ Direkt     & 640x640                                                            
 \item $p$ ist die Prediction aus den Neuronalen Netzen als Tensor mit $C$ Einträgen
 \end{itemize}
 
+\vspace{-0.5cm}
+
 \begin{equation}\centering
 loss(p, r) = \{l_1, ... ,l_N\}^T = \sum_{n=1}^N {- \log \frac{\exp(p_{n,r_n})}{\sum_{c=1}^C \exp(p_{n,c})}}
 \label{eq:loss}
 \end{equation}
+
+
+\paragraph{Lernrate} Die Lernrate ist eine der wichtigsten Hyperparameter. Diese Größe bestimmt die Strittveränderung an den Kanten der Neuronalen Netze. Dieser Wert soll dabei helfen, dass die Netze schneller konvergieren. Es skaliert die Größe der Gewichksaktualisierungen anhand des ausgerechneten Losses zwischen realer Klasse und der Prediction. Die Wahl der richtigen Größe der Lernnate kann schwierig sein. Ein zu kleiner Werk sorgt dafür, dass ein langer Trainingsprozess dazu führt oder schlimmer das System stecken bleibt und keinen Fortschritt mehr erzielt. Zu große werte hingenen sorgen dafür, dass der Trainingsprozess instabil wird. Für die angestrebten Exterimente wird eine Exponentialfunktion, die mit einer Cosinusfunktion überlagert wird genutzt (Abb. \ref{cap:lrrate}). Die so ausgewählte Lernnrate pro Epoch hat so den besten Erfolg erzielt.
+
+\vspace{-0.8cm}
+
+\begin{figure}[!h]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.8\textwidth]{./images/lernrate}}
+\caption[Lernrate in ahbängigkeit des jeweiligen Epochs]{Lernrate in Ahbängigkeit des jeweiligen Epochs. Dabei werden eine Exponentialfunktion mit einer Cosinusfunktion miteinander verschmolzen. So werden periodische Peaks erzeugt. Diese erhöhen kurzfristig den Veränderungsfaktor der Parameter der Neuronalen Netze.}\label{cap:lrrate}
+\end{figure}\label{fig:lrrate}
 
 
 
@@ -299,8 +291,12 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
 
 \clearpage
 \section{Sequenziell}\label{sequent}
-\textbf{TODO}
-\begin{table}[h]\vspace{1ex}\centering
+Die sequenzielle Fütterung der zerschnitten 9 Bilder jede*r Patient*in in die vier Neuronale Netzen hat keinen merkbaren Erfolg zur richtigen Klassifikation beigetragen. Sowohl mit als auch ohne Oversampling ist bei der Validierung, der F1-Wert bei ca 0.3 konstant für alle Epochs (siehe Abb. \ref{cap:f1_sequential_non_oversampling} und \ref{cap:f1_sequential_oversampling}). Oversampling bei der direkten Ermittlung des House-Brackmann Grades hat in dem Fall die Auswirkung, dass wesentlich schneller höhere F1-Werte erzielt wurden. Oversampling hat so den Vorteil gebracht, dass wenigere Epochs ausreichen um den selben F1-Wert zu erreichen ohne es zu verwenden. Bei beiden Graphen ist auch klar ersichtlich, dass rund um den 80ten Epoch, höhere Sprünge zwischen den Epochs stattfindenelches, welches durch den Cosinusanteil innerhalb der Lernrate bewirkt wird. Deutlich ist auch, dass die Maximalwerte erst ab den ca. 120ten Epoch erzielt worden sind.
+
+Tabellarisch festellbar ist auch, dass die Anwendung von Oversampling im Trainingsdatensatz, bei der Mpdulforn und der direkten Dedektion, für alle statistischen Merkmale ein höherer Wert erreicht wurde (siehe Tabelle \ref{cap:sequential_train}). Dieser ist um 0,193 anngestiegen für die Modulform und 0,062 für die direkte Ermittlung. In beiden Tabellen ist auch klar sichtbar, dass die Modulform immer schlechter ist, als die direkte Ermittlung des Grades nach House-Brackmann (siehe Tabelle \ref{cap:sequential_val}).
+
+
+\begin{table}[!h]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{c|c||c|c|c|c|c|}
    &
@@ -316,10 +312,10 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
                              & ja   & 0.912 & 0.983 & 0.930 & 0.983 & \cellcolor[HTML]{9AFF99}0.916 \\ \hline
   \end{tabular}%
   }
-  \caption[training]{training}\label{cap:tmp}
-\vspace{2ex}\end{table}\label{table:tmp}
+  \caption[Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen. Klar erkennbar ist der positive Effekt von Oversampling während des Trainings.}\label{cap:sequential_train}
+\vspace{2ex}\end{table}\label{table:sequential_train}
 
-\begin{table}[h]\vspace{1ex}\centering
+\begin{table}[!h]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{c|c||c|c|c|c|c|}
    &
@@ -335,18 +331,18 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
                              & ja   & 0.870 & 0.977 & 0.977 & 0.986 & \cellcolor[HTML]{9AFF99}0.914 \\ \hline
   \end{tabular}%
   }
-  \caption[validierung]{validierung}\label{cap:tmp}
-\vspace{2ex}\end{table}\label{table:tmp}
+  \caption[Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen.}\label{cap:sequential_val}
+\vspace{2ex}\end{table}\label{table:sequential_val}
 
+\clearpage
+\begin{figure}[t]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_sequential}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung ohne Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung der 9 Bider jede*r Patient*in ohne Anwendung von Oversampling}\label{cap:f1_sequential_non_oversampling}
+\end{figure}\label{fig:f1_sequential_non_oversampling}
 
-\begin{figure}[!h]\centering
-\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_sequential}}
-\caption[tmp]{TODO sequenziell kein oversampling validierung}\label{cap:f1_sequential_non_osersampling}
-\end{figure}\label{fig:f1_sequential_non_osersampling}
-
-\begin{figure}[!h]\centering
-\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_sequential_oversampling}}
-\caption[tmp]{TODO sequenziell oversampling validierung}\label{cap:f1_sequential_oversampling}
+\begin{figure}[b]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_sequential_oversampling}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung unter Anwendung von Sampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_sequential_oversampling}
 \end{figure}\label{fig:f1_sequential_oversampling}
 
 
@@ -356,7 +352,11 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
 \clearpage
 \section{Early Fusion}\label{earlyfusion}
 
-\begin{table}[h]\vspace{1ex}\centering
+Unter der Anwendug von Early Fusion, welches die 9 Bilder jede* Patient*in vorab konkateniert und als eine Einheit in die jeweiligen Module oder für die direkte Ermittlung in die Neuronalen Netze hineingegeben wird, hat die Benutzung Oversampling zum Klassenausgleich, keine Auswirkung auf den maximalen Ausschlag der statischtischen Merkmale (siehe Tabelle \ref{cap:ef_train} und \ref{cap:ef_val}). Unterschiede zwischen dem Trainingablauf und Evaluierung und deren ihren zugeordneten Datensätze sind nicht merkbar festzustellen. Der F1-Wert von beiden, Validierungs und Trainingsdatensatz, zeigen den Wert 1 an. Das bedeutet, dass ab einem diskreten Zeitpunkt (ohne ca. 35 Epochs, mit ca 120 Epochs), immer eine korrekte Klassifierung durchgeführt worden ist unter der Verwendung dieses Datensazes, sowohl mit als auch ohne Oversamplung.
+
+Das Nutzen von Oversampling hat hier einen großen Nachteil, was die benötigte Anzahl der Epochs angeht (siehe Abb. \ref{cap:f1_ef_non_oversampling} und \ref{cap:f1_ef_oversampling}). Der Graph des F1-Wertes hinkt hinterher, wenn oversampling genutzt wird. Epoch 25 ist ohne Oversampling der Wert 0.95 erreit worden. Mit Oversampling ist dieser erst bei ca. 0.85. Der gleiche Wert wie ohne Oversampling wurde erst mit dem ca. 120ten Epoch erreicht worden. Somit benötigt das Neuronale Netz, mit der Anwendung von Oversampling, 105 Epochs länger, um gleichwertig zu sein. Deutlich ist auch, dass kein merkbarer Unterschied zwischen der Modulform und der Direkten Ermittlung existiert. Daraus kann geschlossen werden, dass die vier Module gleichwertig zu der direkten Ermittlung ist.
+
+\begin{table}[!h]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{c|c||c|c|c|c|c|}
    &
@@ -372,10 +372,10 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
                              & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
   \end{tabular}%
   }
-  \caption[training]{training}\label{cap:tmp}
-\vspace{2ex}\end{table}\label{table:tmp}
+  \caption[Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_train}
+\vspace{2ex}\end{table}\label{table:ef_train}
 
-\begin{table}[h]\vspace{1ex}\centering
+\begin{table}[!h]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{c|c||c|c|c|c|c|}
    &
@@ -391,17 +391,17 @@ Damit ist die Annahme, dass Oversampling die Klassen ausgleichen kann, bestätig
                              & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
   \end{tabular}%
   }
-  \caption[validierung]{validierung}\label{cap:tmp}
-\vspace{2ex}\end{table}\label{table:tmp}
+  \caption[Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_val}
+\vspace{2ex}\end{table}\label{table:ef_val}
 
-\begin{figure}[!h]\centering
-\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_early_fusion}}
-\caption[tmp]{TODO Early Fusion kein oversampling validierung}\label{cap:f1_ef_non_osersampling}
-\end{figure}\label{fig:f1_ef_non_osersampling}
+\begin{figure}[t]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_early_fusion}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion ohne Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_ef_non_oversampling}
+\end{figure}\label{fig:f1_ef_non_oversampling}
 
-\begin{figure}[!h]\centering
-\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.9\textwidth]{./images/f1_early_fusion_oversampling}}
-\caption[tmp]{TODO Early Fusion oversampling validierung}\label{cap:f1_ef_oversampling}
+\begin{figure}[b]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_early_fusion_oversampling}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion unter Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_ef_oversampling}
 \end{figure}\label{fig:f1_ef_oversampling}
 
 \clearpage
