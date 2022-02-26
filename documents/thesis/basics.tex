@@ -366,7 +366,7 @@ Eine Methode zur Erkennung einer Fazialisparese ist die Anwendung von Segmentier
         (Z0) edge [line width=0.8mm,  green!70, bend left=15] node {} (A);
 \end{tikzpicture}
 }%
-\caption[Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure.]{Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure. Die blauen und grünen Pfeile ist der Evaluierungsdatenfluss. Rot und Schwarz jeweils der Trainingsfluss \cite{detection_fp2}.}\label{cap:paper_1}
+\caption[Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure]{Darstellung der Flowchart vom Paper Automatic Facial Paralysis Evaluation Augmented by a Cascaded Encoder Network Structure. Die blauen und grünen Pfeile ist der Evaluierungsdatenfluss. Rot und Schwarz jeweils der Trainingsfluss \cite{detection_fp2}.}\label{cap:paper_1}
 \end{figure}\label{fig:paper_1}
 
 Der Experimentaufbau von T. Wang et al. enthaltet ein kaskadierenden Encoder Netzstruktur zur Ausführung der Bewertung der Fazialisparese (siehe Abb. \ref{cap:paper_1}). Auf Basis von Neuronalen Netzen, besteht dieser Aufbau aus zwei Komponenten. Semantischen Segmentierung von Gesichtsattributen und ein Klassifikationsnetz über eine vorher extrahierte Funktionskarte (Encoder). Dieser Encoder komprimiert die Bilddaten Pixel für Pixel durch ein Faltungsnetzwerk (eng. Convolution). Verwendet wird dazu ein vortrainiertes ResNet-101 ohne Verkleinerung des Eingabemateriales. Als Training für den Encoder diente in der Studie ein Mix aus mit und ohne Fazialsparese, um ihn separat vom Rest vorab zu trainieren. Dadurch konnte genug räumliche Informationen über die Gesichter gewonnen werden, die für die Segmentierung und die Graduierung benötigt werden. Die daraus enthaltenen Daten aus dem Encoder dienen als Feature für die Segmentierung und die direkte Klassifikation des Grades nach House-Brackmann. Segmentierung ist eine Pixel für Pixel Klassifikation über das gesamte Bild. Die Gesichtspartien können so für die betrachteten Teilregionen der House-Brackmann Skala eingefärbt werden. Als Ausgabe dient die Klassifizierung und das segmentierte Bild, der für die weitere klinische Einschätzung durch einen Facharzt*in zurückgeliefert werden. Durch die Anwendung des kaskadierenden Trainings ist so ein F1 Wert von 95.85\% erzielt \cite{detection_fp2}.
@@ -406,7 +406,7 @@ Der große Vorteil von dieser Methode ist, dass die Segmentierung getrennt von d
         (F) edge [out=0   , in=180] node [right, xshift=0.3cm, align=left]                {Output \\ H-B Grad $[I, ..., VI]$} (Z2);
 
 \end{tikzpicture}
-\caption[Nachgestellte Interpretation der beschriebenen Vorgehensweise für]{Nachgestellte Interpretation der beschriebenen Vorgehensweise. Eingabefaktoren für die im Paper verwendeten sind Pixeldichte, Beleuchtungsfaktor, relative Vertikale und Stärke jeweils auf ein Referenzframe und dem Peak im Video betrachtet \cite{detection_fp1}.}\label{cap:paper_2}
+\caption[Nachgestellte Interpretation der beschriebenen Vorgehensweise für die Klassifikation]{Nachgestellte Interpretation der beschriebenen Vorgehensweise für die Klassifikation. Eingabefaktoren für die im Paper verwendeten sind Pixeldichte, Beleuchtungsfaktor, relative Vertikale und Stärke jeweils auf ein Referenzframe und dem Peak im Video betrachtet \cite{detection_fp1}.}\label{cap:paper_2}
 \end{figure}\label{fig:paper_2}
 
 

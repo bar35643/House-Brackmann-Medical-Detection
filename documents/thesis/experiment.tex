@@ -117,7 +117,7 @@ loss(p, r) = \{l_1, ... ,l_N\}^T = \sum_{n=1}^N {- \log \frac{\exp(p_{n,r_n})}{\
 
 \begin{figure}[!h]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=0.8\textwidth]{./images/lernrate}}
-\caption[Lernrate in ahbängigkeit des jeweiligen Epochs]{Lernrate in Ahbängigkeit des jeweiligen Epochs. Dabei werden eine Exponentialfunktion mit einer Cosinusfunktion miteinander verschmolzen. So werden periodische Peaks erzeugt. Diese erhöhen kurzfristig den Veränderungsfaktor der Parameter der Neuronalen Netze.}\label{cap:lrrate}
+\caption[Lernrate in Ahbängigkeit des jeweiligen Epochs]{Lernrate in Ahbängigkeit des jeweiligen Epochs. Dabei werden eine Exponentialfunktion mit einer Cosinusfunktion miteinander verschmolzen. So werden periodische Peaks erzeugt. Diese erhöhen kurzfristig den Veränderungsfaktor der Parameter der Neuronalen Netze.}\label{cap:lrrate}
 \end{figure}\label{fig:lrrate}
 
 
@@ -312,7 +312,7 @@ Tabellarisch festellbar ist auch, dass die Anwendung von Oversampling im Trainin
                              & ja   & 0.912 & 0.983 & 0.930 & 0.983 & \cellcolor[HTML]{9AFF99}0.916 \\ \hline
   \end{tabular}%
   }
-  \caption[Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen. Klar erkennbar ist der positive Effekt von Oversampling während des Trainings.}\label{cap:sequential_train}
+  \caption[Statistische besten Werte der Metirken des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen. Klar erkennbar ist der positive Effekt von Oversampling während des Trainings.}\label{cap:sequential_train}
 \vspace{2ex}\end{table}\label{table:sequential_train}
 
 \begin{table}[!h]\vspace{1ex}\centering
@@ -331,7 +331,7 @@ Tabellarisch festellbar ist auch, dass die Anwendung von Oversampling im Trainin
                              & ja   & 0.870 & 0.977 & 0.977 & 0.986 & \cellcolor[HTML]{9AFF99}0.914 \\ \hline
   \end{tabular}%
   }
-  \caption[Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen.}\label{cap:sequential_val}
+  \caption[Statistische besten Werte der Metirken des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling bei sequenzieller Anordnung. Der beste F1-Wert wurde dabei von der direkten Ermittlung des Grades unter Benutzung von Oversampling getroffen.}\label{cap:sequential_val}
 \vspace{2ex}\end{table}\label{table:sequential_val}
 
 \clearpage
@@ -342,7 +342,7 @@ Tabellarisch festellbar ist auch, dass die Anwendung von Oversampling im Trainin
 
 \begin{figure}[b]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_sequential_oversampling}}
-\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung unter Anwendung von Sampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_sequential_oversampling}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung unter Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit der sequenziellen Verarbeitung der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_sequential_oversampling}
 \end{figure}\label{fig:f1_sequential_oversampling}
 
 
@@ -372,7 +372,7 @@ Das Nutzen von Oversampling hat hier einen großen Nachteil, was die benötigte 
                              & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
   \end{tabular}%
   }
-  \caption[Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_train}
+  \caption[Statistische besten Werte der Metirken des Trainingsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_train}
 \vspace{2ex}\end{table}\label{table:ef_train}
 
 \begin{table}[!h]\vspace{1ex}\centering
@@ -391,12 +391,12 @@ Das Nutzen von Oversampling hat hier einen großen Nachteil, was die benötigte 
                              & ja   & 1.000 & 1.000 & 1.000 & 1.000 & \cellcolor[HTML]{9AFF99}1.000 \\ \hline
   \end{tabular}%
   }
-  \caption[Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_val}
+  \caption[Statistische besten Werte der Metirken des Validierungsdatensatzes mit und ohne Oversampling mit Anwendung von Early Fusion]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling  mit Anwendung von Early Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:ef_val}
 \vspace{2ex}\end{table}\label{table:ef_val}
 
 \begin{figure}[t]\centering
 \makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_early_fusion}}
-\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion ohne Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_ef_non_oversampling}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion ohne Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Early Fusion der 9 Bider jede*r Patient*in ohne Anwendung von Oversampling}\label{cap:f1_ef_non_oversampling}
 \end{figure}\label{fig:f1_ef_non_oversampling}
 
 \begin{figure}[b]\centering
@@ -406,7 +406,59 @@ Das Nutzen von Oversampling hat hier einen großen Nachteil, was die benötigte 
 
 \clearpage
 \section{Late Fusion}\label{latefusion}
-\textbf{TODO}
+
+Zur Errinnerung, Late Fusion ist das nutzen von 9 Neuronalen Netzen, das für jedes Bild ein Netz bereitstellt und das für jedes Modul.
+Es kann festgestellt werden, dass die F1-Kurve des Validierungsdatensatzes ohne Oversampling, für die Modulform und die Direkte Dedektion, ab den 40ten Epochs stagniert (siehe Abb. \ref{cap:f1_lf_non_oversampling}). Selbst mit der Erhöhung der Lernrate um den 80ten Epoch ist der Zuwachs so gering, dass es vernachlässigbar ist. Zwischen den 0ten Epoch und den 25ten überholt der F1-Wert der direkten Emittlung die Modulform. Mit Oversampling sind höhre Schwankungen zwischen den Epochs zu sehen. Jedoch ist der F1-Wert zwischen den Epoch 40 und 150 konstant wachsend (siehe Abb. \ref{cap:f1_lf_oversampling}).
+
+Oversampling zum Klassenausgleich hat hier, bei der direkten Ermittlung des Grades einen leicht höheren F1-Wert von 0.927 erzielt, währen bei der Modulform sowhol im Trainingsdatensatz als auch im Validierungsdatensatz die Metirken relativ, bis auf kleine Ungenauigkeiten, gleich sind (siehe Tabelle \ref{cap:lf_train} und \ref{cap:lf_val}).
+
+\begin{table}[!h]\vspace{1ex}\centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|c||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.822 & 0.833 & 0.814 & 0.814 & 0.815 \\ %\cline{2-7}
+                             & ja   & 0.818 & 0.829 & 0.803 & 0.826 & 0.817  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 0.867 & 0.977 & 0.943 & 0.986 & 0.896 \\ %\cline{2-7}
+                             & ja   & 0.918 & 0.984 & 0.957 & 0.986 & \cellcolor[HTML]{9AFF99}0.927 \\ \hline
+  \end{tabular}%
+  }
+  \caption[Statistische beste Werte des Trainingsdatensatzes mit und ohne Oversampling mit Anwendung von Late Fusion]{Statistische beste Werten des Trainingsdatensatzes mit und ohne Oversampling  mit Anwendung von Late Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:lf_train}
+\vspace{2ex}\end{table}\label{table:lf_train}
+
+\begin{table}[!h]\vspace{1ex}\centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|c||c|c|c|c|c|}
+   &
+    Oversampling &
+    \begin{tabular}[c]{@{}c@{}}Sensitivität\\ TPR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Spezivität\\ TNR\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Positiver\\ Vorhersagewert\\ PPV\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}Negativer\\ Vorhersagewert\\ NPV\end{tabular} &
+    F1 Wert \\ \hline\hline
+  \multirow{2}{*}{Modulform} & nein & 0.821 & 0.832 & 0.814 & 0.831 & 0.817 \\ %\cline{2-7}
+                             & ja   & 0.814 & 0.831 & 0.812 & 0.818 & 0.808  \\ \hline
+  \multirow{2}{*}{Direkt}    & nein & 0.867 & 0.977 & 0.942 & 0.986 & 0.895 \\ %\cline{2-7}
+                             & ja   & 0.918 & 0.984 & 0.957 & 0.985 & \cellcolor[HTML]{9AFF99}0.927 \\ \hline
+  \end{tabular}%
+  }
+  \caption[Statistische beste Werte des Validierungsdatensatzes mit und ohne Oversampling mit Anwendung von Late Fusion]{Statistische beste Werten des Validierungsdatensatzes mit und ohne Oversampling  mit Anwendung von Late Fusion. Die besten erzielten Werte wurden mit der direkten Ermittlung erreicht.}\label{cap:lf_val}
+\vspace{2ex}\end{table}\label{table:lf_val}
+
+\begin{figure}[t]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_late_fusion}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Late Fusion ohne Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Late Fusion der 9 Bider jede*r Patient*in ohne Anwendung von Oversampling}\label{cap:f1_lf_non_oversampling}
+\end{figure}\label{fig:f1_lf_non_oversampling}
+
+\begin{figure}[b]\centering
+\makebox[0pt]{\includesvg[inkscapelatex=false, width=0.85\textwidth]{./images/f1_late_fusion_oversampling}}
+\caption[F1-Wert jedes Epochs des Validierungsdatensatzes mit Late Fusion unter Anwendung von Oversampling]{F1-Wert jedes Epochs des Validierungsdatensatzes mit Late Fusion der 9 Bider jede*r Patient*in unter Anwendung von Oversampling}\label{cap:f1_lf_oversampling}
+\end{figure}\label{fig:f1_lf_oversampling}
 
 
 

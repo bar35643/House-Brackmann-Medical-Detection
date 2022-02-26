@@ -1,16 +1,35 @@
 \chapter{Diskussion und Ausblick}\label{discussion}
 
-\textbf{TODO}
-
-
-\section{Vor- und Nachteile von Early und Late Fusion}\label{early_vs_late}
-
-
 \section{Vor- und Nachteile der direkten Ermittlung gegenüber dem Modulaufbau}\label{di_vs_module}
 
+
+\section{Vor- und Nachteile der verschiedenen Vorgehensweisen zur Fusion}\label{early_vs_late}
+
+\clearpage
 \section{Zusammenfassung}\label{conclude}
+Zusammenfassend wurden verschieden Experimente zu den Methoden, die House-Brackmann Tabelle als einzelne Module zu betrachten und die direte Ermittlung der Grade I - VI, welche die Eintelungsstufen der House-Brackman Grades ist. Dabei wurden Experimente zu den verschiedenen vorgehensweisen zur Verarbeitung der 9 Bilder vorgestellt bzw. durchgeführt. Die Vorgehensweisen sind die sequenzielle Anordnung, Early Fusion durch Konkatenarion und Late Fusion, wobei jedes Bild ein eigenes Netz bekam. Zum Ausgleich der nicht gleichferteilten Klassen der/die Patient*innen wurde Oversampling zum Klassenausgleich sowhol in der Modulform für die einzelnen Bestandteile der House-Brackmann Skala als auch in der direkten Ermittlung, erfolgreich angewentet. Je nach Vorgehensweise hatte Oversampling eine andere Auswirkung auf die Schnelligkeit des Trainingerfolges sichtabr durch den F1-Wert.
 
-Diese können so auch unabhängig in andere medizinischen Bereiche eingesetzt werden, falls für ein anderes Experiment nur der Lidschluss als Kriterium benötigt werden soll. Durch den hoch Modularen Aufbau sind alle Komponenten einzeln oder auch im Gesammtpaket Nutzbar.
+Der Vorteil der Modulform ist die unabhängige Nutzung in anderen medizinischen Bereiche. Dort kann, falls ein anderes Esperiment oder eine andere Anwendung ein Modul z.B. Liedschluss als Kriterum benötigt, auch ohne die Ausführung der Detektion des Grades genutzt werden. So sind, durch den hoch modularen Aufbau alle Komponenten, Einteilung in die Regions of Interest, die Module sogar die Fusionierung des Grades einzeln oder auch im Gesammtpaket nutzbar. Nachteilhaft ist, dass die Modulform mehere Neuronale Netze beinhaltet und deswegen wesentlich mehr Rechenzeit benötigt, als die direkte Form der Ermittlung.
+Bewisen wurde auch dass es möglich ist, durch das aktive Benutzen von Caches mit den Implementierungsformen \ac{lru} und Datenbank, schneller die Trainingsphase der Neuronalen Netze durchlaufen zu lassen.
 
+\begin{table}[!h]\vspace{1ex}\centering
+  \begin{tabular}{l||c|}
+  \textbf{Projekte}                           & \textbf{F1-Wert in \%} \\ \hline\hline
+  Insu et al. \cite{6583060}                    & 89.23   \\
+  Hyun et al. \cite{s151026756}                 & 87.11   \\
+  Muhammad et al. \cite{sym10070242}            & 92.91   \\
+  Ting et al. End-to-End \cite{detection_fp2}   & 83.41   \\
+  Ting et al. Kaskadierend \cite{detection_fp2} & 95.97   \\ \hline
+  Modulform Sequenziell (Unser)                 & 35.50   \\
+  Modulform Early Fusion (Unser)                & 98.00   \\
+  Modulform Late Fusion (Unser)                 & 92.70   \\
+  Direkt Sequenziell (Unser)                    & 91.40   \\
+  Direkt Early Fusion (Unser)                   & 100.00  \\
+  Direkt Late Fusion (Unser)                    & 92.70   \\ \hline
+  \end{tabular}
+  \caption[Leistungsvergleiche der Graduierung der Fazialisparese von verschiedenen Projekten]{Leistungsvergleiche der Graduierung der Fazialisparese in Bezug auf den F1-Wert. Einordnung unserer zu anderen Experimenten und Projekten. Dazu sind jeweils die besten der Modulform und der Direkten Ermittlung genommen worden \cite{detection_fp2}.}\label{cap:ref_tab}
+\vspace{1ex}\end{table}\label{table:ref_tab}
 
-\section{Ausblick}\label{next}
+\clearpage
+
+Zur Einordnung der Qualität und Funktionalität der durchgeführten Experimente wurden diese mit anderen Projekten verglichen (siehe Tabelle \ref{cap:ref_tab}). Leider sind unsere Ergenbisse der Experimente nicht aussagekräftig genug, da zu wenige Patient*innen sowhol im Trainings- als aus im Validierungsdatensatz ehtalten sind. Der Verdacht liegt nahe, dass die Neuronalen Netze, bei der Anwendung von Early und Late Fusion sowie bei der sequenziellen Anordnung, die Bilder auswendig gelernt hat oder die Augmentierung zu schwach eingestellt ist. Der Vorteil,im Gegensatz zu den anderen Projekten, ist die Nutzung von 9 verschiedenen Posen, wodurch theoretisch die Feststellung des Grades nach House-Brackmann leichter sein sollte.
