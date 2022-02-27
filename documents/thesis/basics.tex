@@ -2,7 +2,7 @@
 \section{Fazialisparese und House-Brackmann Skala}\label{facialpalsy}
 \paragraph{Fazialisparese} (eng. Facial nerve Paralysis) ist eine Funktionsstörung der Hirnnerven und der mimischen Gesichtsmuskulatur. Durch diese Nervenbahnstörung kann eine partielle oder auch vollständige Beeinträchtigung der Muskeln im Gesicht resultieren. Dabei werden vor allem der Lidschluss, Stirnbewegungen (runzeln und Augenbraun heben), Mundwinkel und Lippenschluss als offensichtliche Merkmale negativ beeinflusst. Darüber hinaus können ebenfalls Geschmack, Hörsinn, Speichel und Tränenfluss beeinträchtigt sein. \cite{facialpalsy_1}\cite{facialpalsy_2}.
 
-Die Ursachen für eine mögliche Entwicklung einer Fazialisparese sind dabei genau so fassetttenreich wie deren Ausprägung:
+Die Ursachen für eine mögliche Entwicklung einer Fazialisparese sind dabei genau so fassettenreich wie deren Ausprägung:
 \begin{itemize}
   \setlength\itemsep{-0.5em}
 \item Infektionen (z.B. Borrelien)
@@ -15,7 +15,7 @@ Schädigung
 \item Verletzung von Nerven
 \end{itemize}
 
-Es gibt verschiedenste Skalen, die eine Einordung für den Schwereverlauf einer vorhandenen Fazialisparese, realisieren. Die bekanntesten Skalen sind dabei Sunnybrook und die House-Brackmann Skala. Im Rahmen der Bachelorarbeit wird allein die House-Brackmann Skala zur Anwendung kommen. Diese ist im Vergleich zu anderen Skalen einfacher im Umgang im zusammenhang mit der Abstufung und Festellung der einzelnen Grade und der späteren Datenausgabe an den behandelnden Arzt*in oder direkt an die Patient*innen. Auch ist diese Skala, aus medizinischer Sicht, ein Standard zur Bewertung der Schwereverlaufes der Fazialisparese \cite{Mothes2019}.
+Es gibt verschiedenste Skalen, die eine Einordung für den Schwereverlauf einer vorhandenen Fazialisparese, realisieren. Die bekanntesten Skalen sind dabei Sunnybrook und die House-Brackmann Skala. Im Rahmen der Bachelorarbeit wird allein die House-Brackmann Skala zur Anwendung kommen. Diese ist im Vergleich zu anderen Skalen einfacher im Umgang im Zusammenhang mit der Abstufung und Feststellung der einzelnen Grade und der späteren Datenausgabe an den behandelnden Arzt*in oder direkt an die Patient*innen. Auch ist diese Skala, aus medizinischer Sicht, ein Standard zur Bewertung der Schwereverlaufes der Fazialisparese \cite{Mothes2019}.
 
 
 
@@ -86,9 +86,9 @@ Diese  Lernverfahren können in drei Kategorien aufgeteilt werden:
 \item Bestärkendes Lernen
 \end{itemize}
 
-Bei dem überwachten Lernverfahren wird das Modell so trainiert, um korrekt Ausgabewerte eines nicht bekannten Datensatzes (Validationsdatensatz) vorhergesagt werden kann. Das Training wird durch einen Trainingsdatensatz vollzogen. Ziel des Maschinellen Lernens ist die Genauigkeit dieser Vorhersage zu maximieren. Das Gegenteil vom üverwachten Lernen ist das unbewachte Verfahren. Dabei ist die Ausgabe nicht bekannt oder es kann keine präzise Aussage darüber getroffen werden. Anhand der Eingabe sollen so Muster und Zusammenhäne herausgefunden werden. Die dritte Kategorie ist das Bestärkendes Lernen. Das beschreibt eine Methode, womit das Modell bestraft, oder belohnt wird, um ein Ergebnis zu optimieren \cite{machinelearning_1}.
+Bei dem überwachten Lernverfahren wird das Modell so trainiert, um korrekt Ausgabewerte eines nicht bekannten Datensatzes (Validationsdatensatz) vorhergesagt werden kann. Das Training wird durch einen Trainingsdatensatz vollzogen. Ziel des Maschinellen Lernens ist die Genauigkeit dieser Vorhersage zu maximieren. Das Gegenteil vom überwachten Lernen ist das unbewachte Verfahren. Dabei ist die Ausgabe nicht bekannt oder es kann keine präzise Aussage darüber getroffen werden. Anhand der Eingabe sollen so Muster und Zusammenhänge herausgefunden werden. Die dritte Kategorie ist das Bestärkendes Lernen. Das beschreibt eine Methode, womit das Modell bestraft, oder belohnt wird, um ein Ergebnis zu optimieren \cite{machinelearning_1}.
 
-Im Verlauf dieser Arbeit wird nur das \textbf{überwachte Lernen} der Modelle betrachtet, da als Datensatz als Eingabe Bildmaterialeien und als erwartete Ausgabe der Grad nach House-Brackmann dagegen steht. Ausserdem ist beim überwachten Lernen die Erfolgswahrscheinlichkeit größer, als bei den anderen Verfahren.
+Im Verlauf dieser Arbeit wird nur das \textbf{überwachte Lernen} der Modelle betrachtet, da als Datensatz als Eingabe Bildmaterialeien und als erwartete Ausgabe der Grad nach House-Brackmann dagegen steht. Außerdem ist beim überwachten Lernen die Erfolgswahrscheinlichkeit größer, als bei den anderen Verfahren.
 
 
 \paragraph{Neuronale Netze} werden vor allem für die Klassifikation von Daten und Regression eingesetzt. Hierbei werden Parameter des Netzes optimiert, die zwischen den einzelnen Schichten (eng. Layer) liegen. Nicht-Lineare Aktivierungsfunktionen transformieren Eingabewerte in andersliegende Wertebereiche. Ergebnisse dieser Funktion dienen in weiterführende Schichten als Eingabe (siehe Abb. \ref{cap:neuralnet}). Diese Schichten können auch eine diskrete Faltung oder eine Normalisierung dieser Schichten darstellen. In Kombination mit der Verschachtelung der verschiedensten Layerarten können so beliebig komplexe Modelle gebildet werden \cite{machinelearning_3}.

@@ -1,6 +1,6 @@
 \chapter{Material und Methoden}\label{mat_and_method}
 \section{Material}\label{material}
-Als Stichprobe stehen die Datensätze von insgesamt 86 Patient*innen zur Verfügung. Bereitgestellt worden sind die Datensätze an Patient*innen vom \textbf{Universitätsklinikum Regensburg}. Die dazugehörigen Grade der House-Brackmann Skala, sind hierbei inderhalb der Stichprobe allerdings nicht gleichverteilt vorhanden. Der Grad VI ist prozentual ungefähr im gleichen Maße vorhanden wie die Grade I-V zusammen (siehe Abb. \ref{cap:pie_grade}). Der Grad I ist nur mit eine*r Patient*in vertreten. Diese ungleiche Verweilung wird bei der späteren Auswirkung berücksichtigt werden.
+Als Stichprobe stehen die Datensätze von insgesamt 86 Patient*innen zur Verfügung. Bereitgestellt worden sind die Datensätze an Patient*innen vom \textbf{Universitätsklinikum Regensburg}. Die dazugehörigen Grade der House-Brackmann Skala, sind hierbei innerhalb der Stichprobe allerdings nicht gleichverteilt vorhanden. Der Grad VI ist prozentual ungefähr im gleichen Maße vorhanden wie die Grade I-V zusammen (siehe Abb. \ref{cap:pie_grade}). Der Grad I ist nur mit eine*r Patient*in vertreten. Diese ungleiche Verweilung wird bei der späteren Auswirkung berücksichtigt werden.
 
 \begin{figure}[!b]\centering
 \begin{tikzpicture}
@@ -414,7 +414,7 @@ Dadurch dass nicht alle Bildcodierungen für alle Patient*innen vorhanden sind, 
 
 \clearpage
 \section{Fusionierung der Module}\label{fusion}
-Für die Fusionierung der einzelnen Module zu dem zu ermittelnden Grades nach House-Brackmann, werden zwei verschiednene Vorgehensweisen vorgesstellt. Als erstes wird Mithilfe eines Automaten die Feststellung des Grades versucht, anhand besten Klassen jedes Modules (Kapitel \ref{automata}). Die zweite, direktere Möglichkeit, ist das ausrechnen der Zeilensumme mit den direkt ausgegebenen Wahrscheinlichkeiten der einzelnen Klassen von den Neuronalen Netzen der Module (Kapitel \ref{rowsum}).
+Für die Fusionierung der einzelnen Module des zu ermittelnden Grades nach House-Brackmann, werden zwei verschiedene Vorgehensweisen vorgesstellt. Als erstes wird mithilfe eines Automaten die Feststellung des Grades versucht, anhand der besten Klassen jedes Modules (Kapitel \ref{automata}). Die zweite (direktere) Möglichkeit, ist, das Ausrechnen der Zeilensumme mit den direkt ausgegebenen Wahrscheinlichkeiten der einzelnen Klassen von den Neuronalen Netzen der Module (Kapitel \ref{rowsum}).
 
 \subsection{Automat}\label{automata}
 %\definecolor{mycolor}{RGB}{50,180,255}
@@ -444,13 +444,13 @@ Für die Fusionierung der einzelnen Module zu dem zu ermittelnden Grades nach Ho
             edge [bend right=40] node {$y_m=3$}         (F);
 
 \end{tikzpicture}
-\caption[Nichtdeterministischer endlicher Automat zur Ermittlung der Schweregrades nach House-Brackmann mit dargestellten Gewichten der Module]{Nichtdeterministischer endlicher Automat zur Ermittlung der Schweregrades nch House-Brackmann mit dargestellten Gewichten der Module}\label{cap:automata}
+\caption[Nichtdeterministischer endlicher Automat zur Ermittlung der Schweregrades nach House-Brackmann mit dargestellten Gewichten der Module]{Nichtdeterministischer endlicher Automat zur Ermittlung der Schweregrades nach House-Brackmann mit dargestellten Gewichten der Module}\label{cap:automata}
 \end{center}
 \end{figure}\label{fig:automata}
 
-Der Grad der Fazialisparese nach House-Brackmann kann durch einen Automaten bestimmt werden. Zuerst werden die Ausgabewahrscheinlichkeiten der einzelnen Module in die wahrscheinlichtste Klasse umgewandelt. Dabei ist der Endzustand des Automaten, der aus den Einzelergebnissen der Modulen resultierenden Klassen,der Grad des House-Brackmann Skala. Das Eingabewort in den Automat sind die Ausgabe der Module. Das Wort dass in den Automaten hineingegeben werden kann setzt sich aus den Bestandteilen $y_s, y_f, y_m, y_e$ zusammen. Die Funktionsnahmen sind hierbei die Wörter und die Ergebnisse sich die Gewichte an den Kanten.
+Der Grad der Fazialisparese nach House-Brackmann kann durch einen Automaten bestimmt werden. Zuerst werden die Ausgabewahrscheinlichkeiten der einzelnen Module in die wahrscheinlichste Klasse umgewandelt. Die Einzelergebnissen der Module dient als Eingabewort in den Automaten. Das Wort, dass in den Automaten hineingegeben werden kann setzt sich aus den Bestandteilen $y_s, y_f, y_m, y_e$ zusammen. Die Funktionsnahmen sind hierbei die Wörter und die Ergebnisse sich die Gewichte an den Kanten. Der Endzustand des Automaten der zu ermittelnde Grad nach House-Brackmann Skala.
 
-Fix ist das Eingabewort \flqq $y_sy_ey_fy_m$\frqq, der für exakt diesen nichtdeterministischen Automaten (Abb. \ref{cap:automata}) eingegeben werden muss, damit die Reihenfolge gewährleistet ist. Durch den Nichtdeterminismus wird entschieden, wenn keine Änderung des Zustandes mehr möglich ist, dass der nächste Buchstabe an der Reihe ist. So müssen auch nicht alle Transitionsfunktionen zwischen den Kanten und Knoten definiert werden. Leermengen in der Transitionstabelle (Tabelle \ref{cap:transition}) sind die nicht definierten Kanten. Der erste Eingabebuchstabe wird aus der Eingabe genommen (\flqq $y_sy_ey_fy_m$\frqq $\rightarrow$ \flqq $y_ey_fy_m$\frqq). Dieser Prozess wird solange wiederholt, bis das Eingabewort vollständig abgearbeitet ist. Zu Beachten sind dabei die Übergangsfunktionen zwischen zwei Zusänden. Jeder Buchsabe im Eingabewort hat eine Gewichtung (Ergebnis der Funktion), die entscheidet, ob der Pfad passierbar ist (Abb. \ref{cap:automata}). Der Startzustand in den Automaten ist $q_I$, welche den niedrigsten annzunehmenden Grad nach der House-Brakcmann Tabelle darstellen soll. Die Enzustände $q_I$ - $q_{VI}$  sind alle möglichen Grade der Skala.
+Fix ist das Eingabewort \flqq $y_sy_ey_fy_m$\frqq, der für exakt diesen nichtdeterministischen Automaten (siehe Abb. \ref{cap:automata}) eingegeben werden muss, damit die Reihenfolge gewährleistet ist. Durch den Nichtdeterminismus wird entschieden, dass der nächste Buchstabe an der Reihe ist, wenn keine Änderung des Zustandes mehr möglich ist. So müssen auch nicht alle Transitionsfunktionen zwischen den Kanten und Knoten definiert werden. Leermengen in der Transitionstabelle (siehe Tabelle \ref{cap:transition}) sind die nicht definierten Kanten. Der erste Eingabebuchstabe wird aus der Eingabe genommen (\flqq $y_sy_ey_fy_m$\frqq $\rightarrow$ \flqq $y_ey_fy_m$\frqq). Dieser Prozess wird so lange wiederholt, bis das Eingabewort vollständig abgearbeitet ist. Zu beachten sind dabei die Übergangsfunktionen zwischen zwei Zuständen. Jeder Buchtsabe im Eingabewort hat eine Gewichtung (Ergebnis der Funktion), die entscheidet, ob der Pfad passierbar ist (siehe Abb. \ref{cap:automata}). Der Startzustand in den Automaten ist $q_I$, welche den niedrigsten anzunehmenden Grad nach der House-Brackmann Tabelle darstellen soll. Die Enzustände $q_I$ - $q_{VI}$  sind alle möglichen Grade der Skala.
 
 \begin{table}[t]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
@@ -487,9 +487,9 @@ Der \ac{nea} für die Bestimmung des Grades nach der Hosue-Brackmann Skala beste
 
 
 \subsection{Gradermittlung durch Zeilensumme}\label{rowsum}
-Eine weitere Moglichkeit ist die Bildung von der Zeilensumme aus den einzelnen vorher definierten Modulen. Dazu werden die Klassenwahrscheinlichkeiten, die das Ergebniss der ausgeführten Prediction der Neuronalen Netze sind, an der Stelle ihres Modules (Reihe der Tabelle) und der Klasse in die abgewandelten House-Brackmann Tabelle eingetragen. Nach dem das für alle Module geschehen ist, werden die Zeilen addiert (Tabelle \ref{cap:rowsum}).
+Eine weitere Möglichkeit ist die Bildung von der Zeilensumme aus den einzelnen vorher definierten Modulen. Dazu werden die Klassenwahrscheinlichkeiten, die das Ergebnis der ausgeführten Prediction der Neuronalen Netze sind, an der Stelle ihres Modules (Reihe der Tabelle) und der Klasse in die abgewandelten House-Brackmann Tabelle eingetragen. Nachdem das für alle Module geschehen ist, werden die Zeilen addiert (siehe Tabelle \ref{cap:rowsum}).
 
-Das höchste Ergebnis der 6 Zeilensummen ist der für den Patient*in angenommene Grad. Die Zeile ohne die einzelwahrscheinlichkeit wird als Ausgageergebnis zurückgeliefert.
+Das höchste Ergebnis der 6 Zeilensummen ist der für den/die Patient*in angenommene Grad. Die Zeile ohne die Einzelwahrscheinlichkeit wird als Ausgangsergebnis zurückgeliefert.
 
 \begin{table}[b]\vspace{1ex}\centering
   \resizebox{\textwidth}{!}{%
