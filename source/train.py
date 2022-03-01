@@ -121,6 +121,9 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     #Iterate over all modules
     for selected_module in house_brackmann_lookup:
+        if selected_module != "hb_direct":
+            continue
+
         LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", PREFIX, selected_module, batch_size, save_dir, epochs)
 
         #Saving folder for the Models
@@ -133,8 +136,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
 
         #Model infos
         input_size = (batch_size // WORLD_SIZE, 27) + tuple(BatchSettings.instance().hyp["imgsz"][selected_module]) #pylint: disable=no-member
-        LOGGER.info("%sModel Infos --> Batch input_size=%s", PREFIX, input_size)
-        LOGGER.info("%sModel Infos --> Layer View and Estimated Size\n %s\n", PREFIX, summary(model, input_size=input_size, verbose=0))
+        LOGGER.debug("%sModel Infos --> Batch input_size=%s", PREFIX, input_size)
+        LOGGER.debug("%sModel Infos --> Layer View and Estimated Size\n %s\n", PREFIX, summary(model, input_size=input_size, verbose=0))
 
         #Get Dataloader specific from teh functeion because of Imbalance
         train_loader, val_loader = dataloader.get_dataloader_func(selected_module)

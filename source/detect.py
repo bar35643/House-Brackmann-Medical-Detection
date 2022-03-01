@@ -26,12 +26,13 @@ import time
 import timeit
 from copy import deepcopy
 
+import numpy as np
 import torch
 
 from utils.config import LOGGER
-from utils.general import check_requirements, set_logging, init_dict, OptArgs
+from utils.general import check_requirements, set_logging, init_dict, OptArgs, get_key_from_dict
 from utils.pytorch_utils import select_device, load_model
-from utils.templates import house_brackmann_template
+from utils.templates import house_brackmann_template, house_brackmann_lookup
 from utils.dataloader import create_dataloader_only_images
 from utils.automata import hb_automata
 
@@ -43,7 +44,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         batch_size=16,
         device="cpu",
         half=False,
-        function_selector="all"):
+        function_selector="all",
+        convert=False):
     """
     Calculates the Grade or the Modules for the House-Brackmann score
 
@@ -53,10 +55,11 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
     :param device: CPU or 0 or 0,1 (int)
     :param half: Half Precsiosn Calculation (bool)
     :param function_selector: Which function should be calculated Example: (str)
-                              function_selector=symmetry,eye,mouth,forehead
+                              function_selector=symmetry,eye,mouth,forehead,hb_direct
                               function_selector=symmetry,eye
-                              unction_selector=forehead
-                              unction_selector=all
+                              function_selector=forehead
+                              function_selector=all
+    :param convert: converts Classes to Labels (bool)
     :return Dictionary of Result (Dict)
     """
     LOGGER.info("%sStarting Detection...",PREFIX)
@@ -89,16 +92,17 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
         i_name, img_struct = item_struct
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model = load_model(weights, selected_function)
+            model = load_model(weights, selected_function) #Load Model
             model.eval()
+
             if half:
                 model.half()  # to FP16
 
             img = img_struct[selected_function]
             img = (img.half() if half else img.float()) # uint8 to fp16/32
 
-            pred = model(img.to(device))
-            results[selected_function] = (pred.max(1)[1].cpu().numpy())
+            pred = model(img.to(device)) #Predict image
+            results[selected_function] = pred.cpu().numpy()# COnvert Prediction to Numpy Array
 
         LOGGER.debug("%sMINIBATCH --> Batch-Nr=%s, names=%s, resuts=%s", PREFIX, batch, i_name, results)
 
@@ -108,8 +112,61 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                 tmp = deepcopy(house_brackmann_template)
                 for func in results:
                     tmp[func] = results[func][idx]
-                tmp["grade"] = hb_automata(tmp["symmetry"], tmp["eye"], tmp["mouth"], tmp["forehead"])
+
+                #Fusionate the Moduels with Rowsum
+                g1 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][0]
+                g2 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][1]
+                g3 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][1] + tmp["mouth"][1]
+                g4 = tmp["symmetry"][0] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
+                g5 = tmp["symmetry"][1] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
+                g6 = tmp["symmetry"][2] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][3]
+
+                out = [g1, g2, g3, g4, g5, g6]
+                LOGGER.debug("%sRowsum from 0-5", PREFIX, out)
+                tmp["grade_rowsum"] = out.index(max(out))
+
+
+                #Fusionate the Moduels with Automata
+                tmp["symmetry"] = np.argmax(tmp["symmetry"])
+                tmp["eye"]      = np.argmax(tmp["eye"])
+                tmp["mouth"]    = np.argmax(tmp["mouth"])
+                tmp["forehead"] = np.argmax(tmp["forehead"])
+                tmp["grade_automata"] = hb_automata(tmp["symmetry"], tmp["eye"], tmp["mouth"], tmp["forehead"])
+
+                #Direct Module to detect Grade
+                tmp["grade_direct"] = np.argmax(tmp["hb_direct"])
+                del tmp["hb_direct"]
+
+
+                # Convert Class to Label
+                if convert:
+                    tmp["symmetry"]       = get_key_from_dict(house_brackmann_lookup["symmetry"]["enum"] , tmp["symmetry"])
+                    tmp["eye"]            = get_key_from_dict(house_brackmann_lookup["eye"]["enum"]      , tmp["eye"])
+                    tmp["mouth"]          = get_key_from_dict(house_brackmann_lookup["mouth"]["enum"]    , tmp["mouth"])
+                    tmp["forehead"]       = get_key_from_dict(house_brackmann_lookup["forehead"]["enum"] , tmp["forehead"])
+                    tmp["grade_rowsum"]   = get_key_from_dict(house_brackmann_lookup["hb_direct"]["enum"], tmp["grade_rowsum"])
+                    tmp["grade_direct"]   = get_key_from_dict(house_brackmann_lookup["hb_direct"]["enum"], tmp["grade_direct"])
+                    tmp["grade_automata"] = get_key_from_dict(house_brackmann_lookup["hb_direct"]["enum"], tmp["grade_automata"])
                 result_list[name] = tmp
+                LOGGER.debug("%sResults for %s:", PREFIX, name, result_list[name])
+                del tmp
+        else:
+            for idx, name in enumerate(i_name):
+                tmp = deepcopy(house_brackmann_template)
+                for func in results:
+                    if len(results[func]) != 0: #if one Module is empty
+
+                        tmp[func] = np.argmax(results[func][idx])
+                        if convert:
+                            tmp[func] = get_key_from_dict(house_brackmann_lookup[func]["enum"] , tmp[func])
+
+                tmp["grade_rowsum"] = None
+                tmp["grade_direct"] = tmp["hb_direct"]
+                tmp["grade_automata"] = None
+                del tmp["hb_direct"]
+
+                result_list[name] = tmp
+                LOGGER.debug("%sResults for %s:", PREFIX, name, result_list[name])
                 del tmp
         #----------------------------END BATCH----------------------------#
 #-#-#-#-#-#-#-#-#-#-#End Calculating Operation-#-#-#-#-#-#-#-#-#-#
@@ -141,7 +198,9 @@ def parse_opt():
     parser.add_argument("--half", action="store_true",
                         help="use FP16 half-precision inference")
     parser.add_argument("--function-selector", type=str, default="all",
-                        help="funchtions which an be executed or multiple of the list (all, symmetry, eye, mouth, forehead)")
+                        help="funchtions which an be executed or multiple of the list (all or symmetry, eye, mouth, forehead, hb_direct)")
+    parser.add_argument("--convert", action="store_true",
+                        help="convert the Classes to their Labels")
     return parser.parse_args()
 
 if __name__ == "__main__":

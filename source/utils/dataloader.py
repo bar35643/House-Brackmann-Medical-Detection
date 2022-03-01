@@ -107,6 +107,7 @@ def transform_resize_and_to_tensor(img, idx):
              "eye": [420, 500],
              "mouth": [640, 420],
              "forehead": [640, 300],
+             "hb_direct": [640, 640],
              }
 
 
@@ -364,9 +365,13 @@ class CreateDataset(Dataset):
         LOGGER.info("%sCounter of Grade: %s", self.prefix_for_log, count)
         for i in count:
             for func in struct_tmp:
+                if("hb_direct" == func):
+                     continue;
                 struct_tmp[func].extend(repeat(   house_brackmann_grading[  list(house_brackmann_grading)[int(i) -1]  ][func]  , count[i]  ))
 
         for j in struct_tmp:
+            if("hb_direct" == j):
+                 continue;
             sub_count = Counter(struct_tmp[j])
             label_count = [0] * len(house_brackmann_lookup[j]["enum"])
             for i in sub_count:
@@ -407,6 +412,8 @@ class CreateDataset(Dataset):
         :returns label (int)
         """
         tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
+        if("hb_direct" == func):
+            return house_brackmann_lookup[func]["enum"][tmp]
         grade_table = house_brackmann_grading[tmp]
         hb_single = house_brackmann_lookup[func]["enum"]
 
@@ -497,7 +504,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
     """
     Create Dataloader Class
     """
-    def __init__(self, path, device, cache, batch_size, val_split=None, train_split=None):
+    def __init__(self, path, device, cache, batch_size, val_split=None, train_split=None, oversampling=False):
         """
         creates and returns the DataLoader Class
         checks the batch size
@@ -534,7 +541,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
         """
         Returns specific Dataloader for given func
 
-        :param func: symmetry, eye, mouth or forehead (str)
+        :param func: symmetry, eye, mouth, forehead or, hb_direct (str)
         :returns train_loader, val_loader (DataLoader)
         """
         sampler = tdata.distributed.DistributedSampler(self.train_dataset) if is_process_group(LOCAL_RANK) else ImbalancedDatasetSampler(self.train_dataset, func)

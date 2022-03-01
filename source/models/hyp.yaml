@@ -48,6 +48,7 @@ hyp:
     eye: [420, 500]
     mouth: [640, 420]
     forehead: [640, 300]
+    hb_direct: [640, 640]
   RandomHorizontalFlip: 0.5
   Normalize:
     mean: [0.5, 0.5, 0.5]

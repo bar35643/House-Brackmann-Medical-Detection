@@ -122,6 +122,19 @@ def init_dict(inp_dict: dict, val):
     """
     return dict((k, deepcopy(val)) for k in inp_dict)
 
+def get_key_from_dict(inp_dict, val):
+    """
+    returns Key from the representing value
+
+    :param inp_dict: Input dictionary (dict)
+    :param val: Value of Class (int)
+    :return  key(int)
+    """
+    for key, value in my_dict.items():
+         if val == value:
+             return key
+
+    return "key doesn't exist"
 
 
 

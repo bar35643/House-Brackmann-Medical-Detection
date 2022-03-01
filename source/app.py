@@ -99,7 +99,8 @@ async def run_detect(files: List[UploadFile] = File(...)):
                                  batch_size=4,
                                  device="cpu",
                                  half=False,
-                                 function_selector="all")
+                                 function_selector="all"
+                                 convert=True)
         except Exception as err:
            ret_val = {"errorcode": str(err)}
 

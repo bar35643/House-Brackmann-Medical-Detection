@@ -221,6 +221,7 @@ class Cutter():
         struct_func_list["eye"] = self.cut_eye
         struct_func_list["mouth"] = self.cut_mouth
         struct_func_list["forehead"] = self.cut_forehead
+        struct_func_list["hb_direct"] = self.cut_symmetry
 
         return  struct_func_list
 

@@ -55,6 +55,15 @@ model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
                             bias=model_4_label.conv1.bias)
 model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4)
 
+special = resnet18(pretrained=True)
+special.conv1 = nn.Conv2d(27, special.conv1.out_channels,
+                            kernel_size=special.conv1.kernel_size,
+                            stride=special.conv1.stride,
+                            padding=special.conv1.padding,
+                            bias=special.conv1.bias)
+special.fc = nn.Linear(special.fc.in_features, 6)
+
+
 
 #Lookuptable for the modules
 #Enum reprenentates the correlation between nabe and a Number
@@ -87,7 +96,18 @@ house_brackmann_lookup = {
             "min_asymm":1,
             "none"     :2},
         "model": model_3_label
-    }
+    },
+    "hb_direct": {
+        "enum":{
+            "I"  :0,
+            "II" :1,
+            "III":2,
+            "IV" :3,
+            "V"  :4,
+            "VI" :5,},
+        "model": special
+    },
+
 }
 
 #Template used for everything else.
@@ -98,6 +118,7 @@ house_brackmann_template = {
     "eye": None,
     "mouth": None,
     "forehead": None,
+    "hb_direct": None,
 }
 
 #Relation between Grade and the Modules/Labels

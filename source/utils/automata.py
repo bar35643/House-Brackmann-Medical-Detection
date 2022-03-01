@@ -37,16 +37,16 @@ def one(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :returns  True if something changes else False and number for next state
     """
     if mouth == 3:
-        return 6, True
-    if symmetry >= 1:
         return 5, True
-    if eye == 1:
+    if symmetry >= 1:
         return 4, True
-    if forehead >= 1:
+    if eye == 1:
         return 3, True
-    if mouth >= 1:
+    if forehead >= 1:
         return 2, True
-    return 1, False
+    if mouth >= 1:
+        return 1, True
+    return 0, False
 
 def two(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     """
@@ -59,8 +59,8 @@ def two(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :returns  True if something changes else False and number for next state
     """
     if mouth == 2:
-        return 4, True
-    return 2, False
+        return 3, True
+    return 1, False
 
 def three(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     """
@@ -73,8 +73,8 @@ def three(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :returns  True if something changes else False and number for next state
     """
     if forehead == 2 or mouth == 2:
-        return 4, True
-    return 3, False
+        return 3, True
+    return 2, False
 
 def four(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     """
@@ -86,7 +86,7 @@ def four(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :param forehead:  label from forehead as Value (int)
     :returns  True if something changes else False and number for next state
     """
-    return 4, False
+    return 3, False
 
 def five(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     """
@@ -99,8 +99,8 @@ def five(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :returns  True if something changes else False and number for next state
     """
     if symmetry == 2:
-        return 6, True
-    return 5, False
+        return 5, True
+    return 4, False
 
 def six(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     """
@@ -112,15 +112,15 @@ def six(symmetry, eye, mouth, forehead): #pylint: disable=unused-argument
     :param forehead:  label from forehead as Value (int)
     :returns  True if something changes else False and number for next state
     """
-    return 6, False
+    return 5, False
 
 # map the inputs to the function blocks
-options = {1 : one,
-           2 : two,
-           3 : three,
-           4 : four,
-           5 : five,
-           6 : six,}
+options = {0 : one,
+           1 : two,
+           2 : three,
+           3 : four,
+           4 : five,
+           5 : six,}
 
 
 
@@ -139,7 +139,7 @@ def hb_automata(symmetry, eye, mouth, forehead):
     """
     LOGGER.debug("Automata: inital values - symm=%s, eye=%s, mouth=%s, forehead=%s", symmetry, eye, mouth, forehead)
     changed = True
-    state = 1 #Starting Node
+    state = 0 #Starting Node
 
     while changed:
         LOGGER.debug("Automata: Iterate step - state=%s, changed=%s", state, changed)
