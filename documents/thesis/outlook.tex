@@ -17,11 +17,12 @@ Bei einem Thin Client handelt es sich um einen Computer mit reduzierter Leistung
   Hohe Verfügbarkeit               &
   \\\hline
   \end{tabular*}
-  \caption[Vor- und Nachteile von Thin Client]{Vor- und Nachteile einer Thin Client Architektur}\label{cap:thinclient}
+  \caption[Vor- und Nachteile von Thin Client]{Vor- und Nachteile einer Thin Client Architektur.}\label{cap:thinclient}
 \vspace{1ex}\end{table}\label{table:thinclient}
 
 \clearpage
 Thick Client oder auch als Fat Client bekannt, sind vollumfänglich ausgestattete, leistungsfähige Computer, die mit ausreichender Rechenkapazität und Speicher, Berechnungen direkt ausführen können. Diese Computer verfügen auch über eine Benutzerschnittstellen, worüber der Anwender die ausgewählte Applikation verwenden kann. Fat Clients werden über Desktop-Computer umgesetzt. Nachteilig dabei ist, dass ein hoher administrativer Aufwand besteht. Alle Clients, die eine neue Softwareversion benötigen, müssen einzeln das Update vornehmen. Einen ebenso wichtigen Aspekt bilden die Kosten. Für eine effiziente Berechnung der Detektion von dem House-Brackmann Score werden Grafikkarten benötigt, die teuer sind. Daher ist der Kosten-Nutzen-Faktor viel zu hoch, um allein auf eine Thick Client basierte Applikationsverwaltung zu setzen (siehe Tabelle \ref{cap:thickclient}).
+
 Denkbar wäre eine Kombination aus Thick und Thin Client. Wenn der Server, worauf die Anbindung zur Applikation läuft, ausfällt, kann auf eine Offlineversion der selbigen zugegriffen werden (siehe Tabelle \ref{cap:thickclient}). So ist eine ständige Detektion möglich. Nachteilig ist dabei, dass die Berechnungen für die Applikation, je nach Ausstattung des Desktop-Computers, langsamer verläuft. So kann je nach Anforderung sichergestellt werden, dass immer eine Ausführung der Detektierung erfolgt, ausgenommen vom zeitlichen Faktor. Thick und Thin Clients sind beide durch eine API umsetzbar, welche die Sourcen zur Berechnung des Grades beinhaltet. Diese wird dann entweder lokal oder serverseitig gehostet. Per Browser wird die API sodann zugreifbar für den Anwender gemacht.
 
 \begin{table}[t]\vspace{1ex}\centering
@@ -35,7 +36,7 @@ Denkbar wäre eine Kombination aus Thick und Thin Client. Wenn der Server, worau
                                      &  Langsam durch Kapazitätsbegrenzungen
   \\\hline
   \end{tabular*}
-  \caption[Vor- und Nachteile von Thick Client]{Vor- und Nachteile einer Thick Client Architektur}\label{cap:thickclient}
+  \caption[Vor- und Nachteile von Thick Client]{Vor- und Nachteile einer Thick Client Architektur.}\label{cap:thickclient}
 \vspace{1ex}\end{table}\label{table:thickclient}
 
 
@@ -44,7 +45,7 @@ Denkbar wäre eine Kombination aus Thick und Thin Client. Wenn der Server, worau
 \begin{center}
   %width=0.98\textwidth
  \includesvg[inkscapelatex=false, width=12cm]{./images/FastAPI_HTTPS}
-\caption[Verlauf eines HTTPS Requests im Zusammenhang mit der \ac{app}]{Verlauf eines HTTPS Requests im Zusammenhang mit der \ac{app}. Über ein TLS Handshake werden zuerst Schlüssel zur Verschlüsselung ausgetauscht. Durch die können die restlichen Anfragen sicher zwischen Server und Client transferiert werden. Als Host für die API wurde das Framework von FastAPI betrachtet \cite{fastapi}}\label{cap:fastapi}
+\caption[Verlauf eines HTTPS Requests im Zusammenhang mit der \ac{app}]{Verlauf eines HTTPS Requests im Zusammenhang mit der \ac{app}. Über ein TLS Handshake werden zuerst Schlüssel zur Verschlüsselung ausgetauscht. Durch die können die restlichen Anfragen sicher zwischen Server und Client transferiert werden. Als Host für die API wurde das Framework von FastAPI betrachtet \cite{fastapi}.}\label{cap:fastapi}
 \end{center}
 \end{figure}\label{fig:fastapi}
 

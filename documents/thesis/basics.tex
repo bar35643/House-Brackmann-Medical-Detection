@@ -22,6 +22,8 @@ Mit Hilfe verschiedene Skalen kann eine Einordung des Schwereverlaufs einer vorh
 
 \paragraph{House-Brackmann Skala} Die House-Brackmann Skala findet für die Ermittlung des Schweregrades der Fazialisparese Anwendung. Diese Skalierungsmethode wurde von John W. House und Derald E. Brackmann 1983 entwickelt. Das System beinhaltet eine 6-Punkte Skala von römisch I-Normalzustand bis VI-vollständig ausgeprägte Parese (siehe Tabelle \ref{cap:housebrackmann}). Die Einstufung erfolgt, indem der/die Patient*in aufgefordert wird, bestimmte Bewegungen auszuführen. Diese werden durch eine*n Facharzt*in klinisch beobachtet. Daraus resultiert eine subjektive Beurteilung der Schwere der vorliegenden Parese \cite{housebrackmann}.
 
+\clearpage
+
 Ein Vorteil dieser Skala besteht durch die einfache Handhabung darin, dass allein anhand einzelner Figuren und Bewegungsabläufe die Beschreibung der Gesichtsfunktion erfolgen kann. Nachteilhaft sind dabei die subjektive Bewertung des/dem behandelten Arzt*in sowie, dass die regionalen Funktionsunterschiede zwischen dem Grad III und V unempfindlicher für Veränderungen sind. Die Subjektivität der Bewertung erschwert dabei zusätzlich eine Vereinheitlichung und die Vergleichbarkeit von Bewertungen durch verschiedene Ärzt*innen.
 
 \begin{table}[!tb]\vspace{1ex}\centering
@@ -72,13 +74,11 @@ VI &
   \end{tabular*}
   }
   \caption[Schweregradeinteilung der Fazialisparese nach House-Brackmann]{Schweregradeinteilung der Fazialisparese nach House-Brackmann von Grad I, keine sichtbaren Auswirkungen der Parese, bis Grad VI, vollständig ausgeprägte Parese \cite{housebrackmann}.}\label{cap:housebrackmann}
-\vspace{2ex}\end{table}\label{table:housebrackmann}
+\vspace{0.7ex}\end{table}\label{table:housebrackmann}
 
 
 \section{Maschinelles Lernen und Neuronale Netze}\label{neuralnet}
-\paragraph{Maschinelles Lernen} ist ein Teilgebiet der Künstlichen Intelligenz und umfasst im Allgemeinen, durch Methoden und Lernprozesse Zusammenhänge in Datensätzen zu erkennen. Darauf basierend sollen Vorhersagen getroffen werden. Durch das Maschinelle Lernen sollen Optimierungsprobleme gelöst werden, welche aus einer Korrelation zwischen Ausgabewerten und der Eingabe bestehen. Durch selbstlernende Algorithmen sollen diese Modelle die Vorhersagegenauigkeit eigenständig anpassen und den Ausgabewert in der Genauigkeit verbessern, ohne dabei den Algorithmus explizit programmieren zu müssen \cite{machinelearning_1}\cite{machinelearning_2}.
-
-Diese  Lernverfahren können in drei Kategorien aufgeteilt werden:
+\paragraph{Maschinelles Lernen} ist ein Teilgebiet der Künstlichen Intelligenz und umfasst im Allgemeinen, durch Methoden und Lernprozesse Zusammenhänge in Datensätzen zu erkennen. Darauf basierend sollen Vorhersagen getroffen werden. Durch das Maschinelle Lernen sollen Optimierungsprobleme gelöst werden, welche aus einer Korrelation zwischen Ausgabewerten und der Eingabe bestehen. Durch selbstlernende Algorithmen sollen diese Modelle die Vorhersagegenauigkeit eigenständig anpassen und den Ausgabewert in der Genauigkeit verbessern, ohne dabei den Algorithmus explizit programmieren zu müssen. Diese  Lernverfahren können in drei Kategorien aufgeteilt werden \cite{machinelearning_1}\cite{machinelearning_2}:
 \begin{itemize}
   \setlength\itemsep{-0.5em}
 \item Überwachtes Lernen
@@ -95,7 +95,8 @@ Im Verlauf dieser Arbeit wird nur das \textbf{überwachte Lernen} der Modelle be
 
 
 \def\layersep{2.5cm}
-\begin{figure}[!tb]\centering
+\begin{figure}[!b]\centering
+  \vspace{-0.5cm}
 \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
     \tikzstyle{every pin edge}=[<-,shorten <=1pt]
     \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
@@ -384,6 +385,8 @@ Eine weitere Möglichkeit neben der Segmentierung ist es, aus einem Video heraus
 Nachdem die einzelnen Posen aus dem Video herausgezogen worden sind, werden die einzelnen Gesichtsregionen lokalisiert. Um die Gesichtskonturen zu detektieren, wird ein Sobel-Filter angewendet. Dieser nutzt eine Faltungsoperation, die aus dem Bild einen Gradienten erzeugt. Die Bereiche mit der größten Intensität, also den Stellen mit den stärksten Helligkeitsänderungen, werden hervorgehoben. Die anderen Bereiche werden durch Grauwerte dargestellt. Alle entscheidenden Features des Gesichtes (Augenbraun, Nase, Mund und Augen) sind dunkler als die normale Hautfarbe. Durch eine Verschiebung der Pixelwerte lassen sich diese hervorheben und deren absolute Position im Bild feststellen.
 
 Anhand dessen werden vier Eingabewerte berechnet, die für eine Klassifikation mit einem Neuronalen Netz benötigt werden (siehe Abb. \ref{cap:paper_2}). Dazu zählen die relative Pixelveränderung in den einzelnen Regionen, die sich von der Ruheposition bis zu dem Höhepunkt der dargestellten Bewegung ausrechnen lässt. Auch der Beleuchtungskompensationsfaktor ist von Bedeutung. Dieser misst die Unterschiede zwischen der dysfunktionalen und der normalen Seite, um die Intensität und Ausprägung der Funktionsstörung ermitteln zu können. Die weiteren beiden Eingabewerte sind Faktoren, die sich aus dem optischen Fluss der Regionen darstellen lassen. Dazu werden Vektoren genutzt, die von der Spiegelachse - dem Nasenrücken - und beiden Gesichtshälften in einem Raster die Richtungsänderungen und Falten im Gesicht zeigen sollen. Aus dieser Grafik werden die Symmetrie in vertikaler Richtung sowie die Stärke dieser Vektoren berechnet. Die genannten Faktoren dienen als Eingabe in ein Klassifikationsnetzwerk, das nach der House-Brackmann Skala den Grad der Parese feststellt \cite{detection_fp1}.
+
+\vspace{1cm}
 
 \begin{figure}[!h]\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
