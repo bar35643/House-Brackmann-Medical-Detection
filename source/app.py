@@ -1,27 +1,49 @@
+"""
+# Copyright (c) 2021-2022 Raphael Baumann and Ostbayerische Technische Hochschule Regensburg.
+#
+# This file is part of house-brackmann-medical-processing
+# Author: Raphael Baumann
+#
+# License:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Changelog:
+# - 2021-12-15 Initial (~Raphael Baumann)
+"""
 import os
 import os.path
-import uuid
-import logging
+#import asyncio
+#import datetime
+import argparse
+import threading
 from pathlib import Path
 from typing import List
 import uvicorn
-import asyncio
-import datetime
-import argparse
 
-
-import threading
-from  apscheduler.schedulers.asyncio import AsyncIOScheduler
+#from  apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from fastapi import Request, File, UploadFile, FastAPI
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 
-import detect
-from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.general import check_requirements, set_logging, OptArgs
+import detect as dt #pylint: disable=import-error
+from utils.argparse_utils import SmartFormatter #pylint: disable=import-error
+from utils.config import LOGGER #pylint: disable=import-error
+from utils.general import set_logging, OptArgs, delete_folder_content, create_workspace #pylint: disable=import-error
+
 
 
 PREFIX = "app: "
@@ -31,56 +53,40 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def delete_folder_content(dir):
-    for root, dirs, files in os.walk(dir, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-
-work_dir = Path('static/upload_temporary/')
 scheduler_lock = threading.Lock()
-def work_dir_cleaner():
-    with scheduler_lock:
-        delete_folder_content(work_dir)
-        print("Scheduler Run: ", datetime.datetime.now())
-
-# https://apscheduler.readthedocs.io/en/stable/modules/triggers/interval.html
-scheduler = AsyncIOScheduler()
-scheduler.add_job(work_dir_cleaner, 'interval', minutes=10)
-scheduler.start()
-
-
-def create_workspace():
-    """
-    Return workspace path
-    """
-    # UUID to prevent file overwrite
-    request_id = Path(str(uuid.uuid4())[:32])
-    # path concat instead of work_dir + '/' + request_id
-    workspace = work_dir / request_id
-    if not os.path.exists(workspace):
-        os.makedirs(workspace)
-    return workspace
+# def work_dir_cleaner():
+#     with scheduler_lock:
+#         delete_folder_content(WORKDIR)
+#         print("Scheduler Run: ", datetime.datetime.now())
+#
+# # https://apscheduler.readthedocs.io/en/stable/modules/triggers/interval.html
+# scheduler = AsyncIOScheduler()
+# scheduler.add_job(work_dir_cleaner, 'interval', minutes=10)
+# scheduler.start()
 
 
 @app.get("/", response_class=HTMLResponse)
 def get_http(request: Request):
+    """
+    Return Template HTML PAGE
+    """
     return templates.TemplateResponse('base.html', context={'request': request})
-
-
-
-
 
 
 @app.post("/api/upload/")
 async def run_detect(files: List[UploadFile] = File(...)):
+    """
+    Start Detection for len(files)
+
+    :param files: List of Files (File)
+    :return ret_val dictionary with Results
+    """
     with scheduler_lock:
         workspace = create_workspace()
-
+        LOGGER.debug("%sCreate Workspace %s", PREFIX, workspace)
 
         for file in files:
-            #print(file.filename)
+            # print(file.filename)
             file_name = Path(file.filename)
             space = Path(os.path.join(str(workspace), str(file.filename)))
             space.parent.mkdir(exist_ok=True, parents=True)  # make dir
@@ -92,21 +98,26 @@ async def run_detect(files: List[UploadFile] = File(...)):
 
         print(workspace)
 
-        #Do Operation
+        # Do Operation
         try:
-            ret_val = detect.run(weights="models",
-                                 source=workspace,
-                                 batch_size=4,
-                                 device="cpu",
-                                 half=False,
-                                 function_selector="all"
-                                 convert=True)
-        except Exception as err:
-           ret_val = {"errorcode": str(err)}
+            LOGGER.debug("%sRun Detection...", PREFIX)
+            ret_val = dt.run(weights="models",
+                             source=workspace,
+                             batch_size=4,
+                             device="cpu",
+                             half=False,
+                             function_selector="all",
+                             convert=True)
+            LOGGER.debug("%sFinished Detection: %s", PREFIX, ret_val)
+        except Exception as err: #pylint: disable=broad-except
+            ret_val = {"errorcode": str(err)}
+            LOGGER.debug("%sError: %s", PREFIX, ret_val)
 
         delete_folder_content(workspace)
         os.rmdir(workspace)
+        LOGGER.debug("%sDeleted Workspace %s", PREFIX, workspace)
     return ret_val
+
 
 
 
@@ -117,8 +128,7 @@ async def run_detect(files: List[UploadFile] = File(...)):
 
 def parse_opt():
     """
-    TODO
-    Check internet connectivity
+    Command line Parser Options see >> python detect.py -h for more about
     """
     parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
     parser.add_argument("--ip", type=str, default="127.0.0.1",
@@ -132,6 +142,7 @@ def parse_opt():
                         help="Reload if Files Changes")
     parser.add_argument("--workers", type=int, default=4,
                         help="Number of worker processes")
+    parser.add_argument("--log", action="store_true", help="activates log")
     return parser.parse_args()
 
 if __name__ == "__main__":

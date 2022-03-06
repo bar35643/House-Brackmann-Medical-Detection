@@ -39,3 +39,4 @@ LRU_MAX_SIZE=100
 THREADPOOL_NUM_THREADS = min(8, os.cpu_count())  # number of multiprocessing threads
 
 IMG_FORMATS = ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo', 'heic']
+WORKDIR = Path('static/upload_temporary/')

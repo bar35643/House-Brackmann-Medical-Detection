@@ -33,9 +33,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-from .config import LOGGER
+from .config import LOGGER #pylint: disable=import-error
 from .templates import house_brackmann_template, house_brackmann_lookup #pylint: disable=import-error
-from .general import merge_two_dicts
+from .general import merge_two_dicts #pylint: disable=import-error
 
 
 np.seterr(divide='ignore', invalid='ignore')
@@ -197,7 +197,7 @@ class Plotting():
         # F1 Score ( harmonic mean of precision and sensitivity)
         f1_score = (2*true_positive)/(2*true_positive+false_positive+false_negative)
 
-        #TODO LR+, LR-, DOR ??
+        #LR+, LR-, DOR ??
 
         #Correction Terms if nan occurs
         tpr       = np.where(np.isnan(tpr)        , 0, tpr)

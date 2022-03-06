@@ -29,17 +29,17 @@ from copy import deepcopy
 import numpy as np
 import torch
 
-from utils.config import LOGGER
-from utils.general import check_requirements, set_logging, init_dict, OptArgs, get_key_from_dict
-from utils.pytorch_utils import select_device, load_model
-from utils.templates import house_brackmann_template, house_brackmann_lookup
-from utils.dataloader import create_dataloader_only_images
-from utils.automata import hb_automata
+from utils.config import LOGGER #pylint: disable=import-error
+from utils.general import check_requirements, set_logging, init_dict, OptArgs, get_key_from_dict #pylint: disable=import-error
+from utils.pytorch_utils import select_device, load_model #pylint: disable=import-error
+from utils.templates import house_brackmann_template, house_brackmann_lookup #pylint: disable=import-error
+from utils.dataloader import create_dataloader_only_images #pylint: disable=import-error
+from utils.automata import hb_automata #pylint: disable=import-error
 
 PREFIX = "detect: "
 
 @torch.no_grad()
-def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, too-many-statements
         source="../data",
         batch_size=16,
         device="cpu",
@@ -114,14 +114,14 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
                     tmp[func] = results[func][idx]
 
                 #Fusionate the Moduels with Rowsum
-                g1 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][0]
-                g2 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][1]
-                g3 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][1] + tmp["mouth"][1]
-                g4 = tmp["symmetry"][0] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
-                g5 = tmp["symmetry"][1] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
-                g6 = tmp["symmetry"][2] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][3]
+                grade1 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][0]
+                grade2 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][0] + tmp["mouth"][1]
+                grade3 = tmp["symmetry"][0] + tmp["eye"][0] + tmp["forehead"][1] + tmp["mouth"][1]
+                grade4 = tmp["symmetry"][0] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
+                grade5 = tmp["symmetry"][1] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][2]
+                grade6 = tmp["symmetry"][2] + tmp["eye"][1] + tmp["forehead"][2] + tmp["mouth"][3]
 
-                out = [g1, g2, g3, g4, g5, g6]
+                out = [grade1, grade2, grade3, grade4, grade5, grade6]
                 LOGGER.debug("%sRowsum from 0-5", PREFIX, out)
                 tmp["grade_rowsum"] = out.index(max(out))
 
@@ -201,6 +201,7 @@ def parse_opt():
                         help="funchtions which an be executed or multiple of the list (all or symmetry, eye, mouth, forehead, hb_direct)")
     parser.add_argument("--convert", action="store_true",
                         help="convert the Classes to their Labels")
+    parser.add_argument("--log", action="store_true", help="activates log")
     return parser.parse_args()
 
 if __name__ == "__main__":

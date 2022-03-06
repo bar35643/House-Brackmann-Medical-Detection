@@ -36,7 +36,7 @@ from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
 if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
-    from .errorimports import read_heif
+    from .errorimports import read_heif #pylint: disable=import-error
 if sys.platform == 'linux':
     from pyheif import read_heif #pylint: disable=import-error
 

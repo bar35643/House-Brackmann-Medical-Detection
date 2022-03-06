@@ -38,14 +38,14 @@ from torch.cuda import amp
 
 from torchinfo import summary
 
-from utils.argparse_utils import restricted_val_split, SmartFormatter
-from utils.config import RANK, WORLD_SIZE, LOGGER
-from utils.general import check_requirements, increment_path, set_logging, OptArgs
-from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler
-from utils.dataloader import CreateDataloader, BatchSettings
-from utils.templates import house_brackmann_lookup
-from utils.plotting import Plotting
-from utils.specs import validate_file
+from utils.argparse_utils import restricted_val_split, SmartFormatter #pylint: disable=import-error
+from utils.config import RANK, WORLD_SIZE, LOGGER #pylint: disable=import-error
+from utils.general import check_requirements, increment_path, set_logging, OptArgs #pylint: disable=import-error
+from utils.pytorch_utils import select_device, select_data_parallel_mode, is_master_process, is_process_group, de_parallel, load_model, select_optimizer_and_scheduler #pylint: disable=import-error
+from utils.dataloader import CreateDataloader, BatchSettings #pylint: disable=import-error
+from utils.templates import house_brackmann_lookup #pylint: disable=import-error
+from utils.plotting import Plotting #pylint: disable=import-error
+from utils.specs import validate_file #pylint: disable=import-error
 
 PREFIX = "train: "
 #https://pytorch.org/tutorials/beginner/saving_loading_models.html
@@ -55,7 +55,7 @@ PREFIX = "train: "
 #https://discuss.pytorch.org/t/calculating-precision-recall-and-f1-score-in-case-of-multi-label-classification/28265
 
 
-def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals
+def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, too-many-statements)
         source="../data",
         config="./models/hyp.yaml",
         cache=False,
@@ -325,6 +325,7 @@ def parse_opt():
                         help="total epochs running")
     parser.add_argument("--oversampling", action="store_true",
                         help="do activate oversampling")
+    parser.add_argument("--log", action="store_true", help="activates log")
     return parser.parse_args()
 
 if __name__ == "__main__":

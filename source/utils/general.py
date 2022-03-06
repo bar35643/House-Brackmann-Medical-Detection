@@ -28,15 +28,18 @@ import logging
 import glob
 import platform
 import re
+import os
 import socket
+import uuid
 from copy import deepcopy
 from pathlib import Path
 from subprocess import check_output
 import pkg_resources as pkg
 
+
 import torch
 
-from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE, WORKDIR #pylint: disable=import-error
 from .pytorch_utils import is_process_group #pylint: disable=import-error
 from .decorators import try_except #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
@@ -53,6 +56,7 @@ class OptArgs():
         :param val: value (bool)
         """
         self.args = None
+        self.log = False
     def get_arg_from_key(self, key):
         """
         Setting the value
@@ -66,6 +70,8 @@ class OptArgs():
         :param args: args (dict)
         """
         self.args = args
+        self.log = args["log"]
+        del args["log"]
 
 def set_logging(prefix):
     """
@@ -73,19 +79,22 @@ def set_logging(prefix):
 
     :param prefix: Prefix of the function (str)
     """
+
     if is_process_group(RANK):
         format = f"%(asctime)s Process_{RANK}:%(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"  #pylint: disable=redefined-builtin
     else:
         format = "%(asctime)s %(filename)s:%(funcName)s():%(lineno)d [%(levelname)s] --- %(message)s"
 
+    if OptArgs.instance().log: #pylint: disable=no-member
+        handlers = [ logging.StreamHandler(), logging.FileHandler("debug.log")]
+    else:
+        handlers = [logging.StreamHandler()]
+
     logging.basicConfig(
         level=LOGGING_STATE,
         format=format,
         datefmt="%Y-%m-%d %H:%M:%S",
-        handlers=[
-            logging.StreamHandler(),
-            #logging.FileHandler("debug.log"), #TODO enable
-        ])
+        handlers=handlers)
     if OptArgs.instance().args: #pylint: disable=no-member
         log_str = prefix + ", ".join(f"{k}={v}" for k, v in OptArgs.instance().args.items()) #pylint: disable=no-member
         LOGGER.info(log_str)
@@ -130,10 +139,9 @@ def get_key_from_dict(inp_dict, val):
     :param val: Value of Class (int)
     :return  key(int)
     """
-    for key, value in my_dict.items():
-         if val == value:
-             return key
-
+    for key, value in inp_dict.items():
+        if val == value:
+            return key
     return "key doesn't exist"
 
 
@@ -219,7 +227,8 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
     for req in requirements:
         try:
             pkg.require(req)
-        except Exception as err:  # DistributionNotFound or VersionConflict if requirements not met
+        #DistributionNotFound or VersionConflict if requirements not met
+        except Exception as err: #pylint: disable=broad-except
             if install:
                 LOGGER.info("requirements: %s not found or has the wrong version and is required by this Package, attempting auto-update...", req)
                 try:
@@ -227,7 +236,7 @@ def check_requirements(requirements="requirements.txt", exclude=(), install=True
 
                     LOGGER.info(check_output(f"pip install {req}").decode("utf-8").strip())
                     LOGGER.info("requirements: Package %s updated!", req)
-                except Exception as err:
+                except Exception as err: #pylint: disable=broad-except
                     LOGGER.error("requirements:  %s", err)
             else:
                 LOGGER.error("requirements: %s not found and is required by this Package. Please install it manually and rerun your command.", req)
@@ -262,3 +271,31 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
     if not dir_0.exists() and mkdir:
         dir_0.mkdir(parents=True, exist_ok=True)  # make directory
     return path
+
+
+def delete_folder_content(xdir):
+    """
+    Delete everything inside a folder
+
+    :param xdir: input Folder (Folder)
+    """
+
+    for root, xdirs, files in os.walk(xdir, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in xdirs:
+            os.rmdir(os.path.join(root, name))
+
+def create_workspace():
+    """
+    Return workspace path
+
+    :return workspace (Path)
+    """
+    # UUID to prevent file overwrite
+    request_id = Path(str(uuid.uuid4())[:32])
+    # path concat instead of work_dir + '/' + request_id
+    workspace = WORKDIR / request_id
+    if not os.path.exists(workspace):
+        os.makedirs(workspace)
+    return workspace

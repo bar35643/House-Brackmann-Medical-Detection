@@ -36,7 +36,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.nn import DataParallel
 
 from .templates import house_brackmann_lookup #pylint: disable=import-error
-from .config import LOGGER,LOCAL_RANK, RANK
+from .config import LOGGER,LOCAL_RANK, RANK #pylint: disable=import-error
 
 
 

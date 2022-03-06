@@ -42,9 +42,9 @@ from torch.utils.data import Dataset, DataLoader, Subset
 import torchvision.transforms as T
 from sklearn.model_selection import train_test_split
 
-from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS
-from .cutter import Cutter
-from .database_utils import Database
+from .config import LOGGER, LRU_MAX_SIZE, RANK, LOCAL_RANK, THREADPOOL_NUM_THREADS #pylint: disable=import-error
+from .cutter import Cutter #pylint: disable=import-error
+from .database_utils import Database #pylint: disable=import-error
 from .pytorch_utils import is_process_group, is_master_process, torch_distributed_zero_first #pylint: disable=import-error
 from .templates import house_brackmann_template, house_brackmann_lookup, house_brackmann_grading #pylint: disable=import-error
 from .general import init_dict #pylint: disable=import-error
@@ -365,13 +365,13 @@ class CreateDataset(Dataset):
         LOGGER.info("%sCounter of Grade: %s", self.prefix_for_log, count)
         for i in count:
             for func in struct_tmp:
-                if("hb_direct" == func):
-                     continue;
+                if func == "hb_direct":
+                    continue
                 struct_tmp[func].extend(repeat(   house_brackmann_grading[  list(house_brackmann_grading)[int(i) -1]  ][func]  , count[i]  ))
 
         for j in struct_tmp:
-            if("hb_direct" == j):
-                 continue;
+            if j == "hb_direct":
+                continue
             sub_count = Counter(struct_tmp[j])
             label_count = [0] * len(house_brackmann_lookup[j]["enum"])
             for i in sub_count:
@@ -412,7 +412,7 @@ class CreateDataset(Dataset):
         :returns label (int)
         """
         tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
-        if("hb_direct" == func):
+        if func == "hb_direct":
             return house_brackmann_lookup[func]["enum"][tmp]
         grade_table = house_brackmann_grading[tmp]
         hb_single = house_brackmann_lookup[func]["enum"]
@@ -548,7 +548,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
         train_loader =   DataLoader(self.train_dataset,
                                     batch_size=min(self.batch_size, len(self.train_dataset)),
                                     sampler=sampler if self.oversampling else None,
-                                    shuffle=False if self.oversampling else True)
+                                    shuffle=not self.oversampling)
 
         if is_master_process(RANK): #Only Process 0
             val_loader = DataLoader(self.val_dataset,

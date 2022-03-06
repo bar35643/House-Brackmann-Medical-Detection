@@ -24,7 +24,7 @@
 
 import threading
 
-from .config import LOGGER
+from .config import LOGGER #pylint: disable=import-error
 
 def try_except(func):
     """
@@ -37,7 +37,7 @@ def try_except(func):
     def handler(*args, **kwargs):
         try:
             func(*args, **kwargs)
-        except Exception as err:
+        except Exception as err: #pylint: disable=broad-except
             LOGGER.error(err)
 
     return handler
@@ -54,7 +54,7 @@ def try_except_none(func):
     def handler(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as err:
+        except Exception as err: #pylint: disable=broad-except
             LOGGER.error(err)
             return None
     return handler
