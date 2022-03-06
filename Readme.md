@@ -100,6 +100,31 @@ python detect.py --batch-size 16 --source ./img --device 0 --function-selector h
 
 ###### Start API:
 
+<details closed>
+<summary>Installation of Docker and Docker-Compose</summary>
+Aternate look at [Docker-Homepage](https://docs.docker.com/engine/install/)
+Aternate look at [Docker-Compose](https://docs.docker.com/compose/install/)
+
+~~~shell
+sudo apt update
+sudo apt install curl
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+sudo apt update
+sudo apt-cache policy docker-ce
+sudo apt install docker-ce
+sudo systemctl status docker
+docker --version
+
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose --version
+~~~
+</details>
+
  ~~~shell
 Get Help for Command Options:
 python app.py -h
@@ -107,7 +132,11 @@ python app.py -h
 STD:
 python detect.py --ip 127.0.0.1 --port 8080 --reload --workers 4
 
-or with Dockerfile/docker-copmpose:
+or with Dockerfile/docker-copmpose on linux:
+
+sudo docker-compose down --rmi all
+sudo docker-compose build
+sudo docker-compose up
 ~~~
 
 After Starting the Server you can access the Frontend via the ip:port in the Browser. Then you can Drag and Drop or Upload the Folders which should be categorized.
