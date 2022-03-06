@@ -428,7 +428,7 @@ CPU Performance: htop
 - [x] Model save/load without overwriting data
 - [ ] num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 1, workers]) maybe Issue with Windows [?? Solution](https://github.com/pytorch/vision/issues/689)
 - [x] Caching Images via SQLite3
-- [ ] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
+- [x] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
 - [ ] Plotting Results from training/validation
    1. [x] Class for Plotting
    2. [x] for each Category of HB
@@ -436,14 +436,14 @@ CPU Performance: htop
    4. [x] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
    5. [x] [precison/recall](https://builtin.com/data-science/precision-and-recall)
 - [ ] Linting and Unittests
-   1. [ ] Linting Code and write all #pylint: disable to a list
+   1. [x] Linting Code and write all #pylint: disable to a list
    2. [ ] Write Unittest code for all relevant Functions
-- [ ] Adding & Checking Docstring's in all files and functions
-   1. [ ] Header Docstring (Author, file name, License)
-   2. [ ] Function Docstring
+- [x] Adding & Checking Docstring's in all files and functions
+   1. [x] Header Docstring (Author, file name, License)
+   2. [x] Function Docstring
 - [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
 - [ ] API Access via docker-compose/Dockerfile and FastAPI
-- [ ] Add License (e.g. GNU General Public License v3.0)
+- [x] Add License (e.g. GNU General Public License v3.0)
 - [ ] Jupyter lab for vizualizing training and testing as tutorial
 - [ ] [Tips](https://towardsdatascience.com/7-tips-for-squeezing-maximum-performance-from-pytorch-ca4a40951259)
 </details>
