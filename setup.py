@@ -24,11 +24,12 @@ setuptools.setup(
 
     author="Raphael Baumann",
     author_email="raphael.baumann@st.oth-regensburg.de",
+    platforms="Python",
 
     description="Package for Classyfying House Brackmann scores and the including seperate Modules",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://re-mic.de/",
+    url=["https://re-mic.de/","https://www.oth-regensburg.de/"],
 
     project_urls={
         "Regensburg Medical Image Cumputing": "https://re-mic.de/",

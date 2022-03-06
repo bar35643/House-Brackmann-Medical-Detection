@@ -1,0 +1,40 @@
+version: '3'
+services:
+  Application:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: hbmedicalprocessing/latest:entwicklung
+    volumes:
+      #Only Change source Part
+      #Relative: Give the Path relative to the folder from the docker-compose.yml file (./docker_volume)
+      #Absolute: (/home/ubuntu/.../docker_volume)
+      #Structure: <source>:<destination in docker>
+      - ./results:/results
+      - ./test_data:/test_data
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    networks:
+      inet_extern:
+      clusternetwork_intern:
+        ipv4_address: 172.16.0.13
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]
+    #depends_on:
+    #  - mongodb
+
+
+
+networks:
+  clusternetwork_intern:
+    internal: true
+    #driver: macvlan #prevent access from outide of the world, only between docker
+    driver: bridge   #access from outside, Access from MongoDB Compass with Ip 172.16.0.14:27017
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/24
+          gateway: 172.16.0.254
+  inet_extern:
+    internal: false
+    driver: bridge
