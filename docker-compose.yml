@@ -14,10 +14,10 @@ services:
       - ./test_data:/test_data
     restart: unless-stopped
     ports:
-      - "8085:80"
+      - "8085:80" #Port Forwarding
     networks:
-      inet_extern:
-      clusternetwork_intern:
+      inet_extern: #Access via 0.0.0.0:8085
+      clusternetwork_intern: #docker to docker
         ipv4_address: 172.16.0.13
     command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]
     #depends_on:
