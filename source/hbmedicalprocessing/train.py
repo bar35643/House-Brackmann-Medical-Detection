@@ -23,6 +23,7 @@
 """
 import argparse
 import os
+import sys
 import timeit
 import datetime
 import gc as garbage_collector
@@ -37,6 +38,12 @@ from torch.nn import CrossEntropyLoss
 from torch.cuda import amp
 
 from torchinfo import summary
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[0]  # YOLOv5 root directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 from utils.argparse_utils import restricted_val_split, SmartFormatter #pylint: disable=import-error
 from utils.config import RANK, WORLD_SIZE, LOGGER #pylint: disable=import-error

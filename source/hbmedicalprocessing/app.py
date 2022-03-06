@@ -22,6 +22,7 @@
 # - 2021-12-15 Initial (~Raphael Baumann)
 """
 import os
+import sys
 import os.path
 #import asyncio
 #import datetime
@@ -37,6 +38,12 @@ from fastapi import Request, File, UploadFile, FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[0]  # YOLOv5 root directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 import detect as dt #pylint: disable=import-error

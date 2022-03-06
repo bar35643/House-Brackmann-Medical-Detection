@@ -1,7 +1,8 @@
 .pytest_cache
 __pycache__
-dist
-
+upload_temporary
+*.db
+.ipynb_checkpoints
 
 *.aux
 *.glo
@@ -28,6 +29,7 @@ dist
 *.synctex.gz
 *bcf
 *.fdb_latexmk
+*.pdf
 *.dvi
 *.brf
 *.bak

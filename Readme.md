@@ -29,9 +29,18 @@ or
 let the Project update all Dependencies automatic if already a version is installed
 ~~~bash
 git clone ???
-cd ???
-pip install -r source/requirements.txt
+pip install -r source/hbmedicalprocessing/requirements.txt
 ~~~
+
+#### Build Python Package
+
+~~~bash
+python -m pip install --upgrade build && pip install --upgrade pip
+python -m build
+python -m pip install ./dist/hbmedicalprocessing-x.x.x-py3-none-any.whl  # x.x.x = Version
+pip show hbmedicalprocessing --verbose
+~~~
+
 
 
 #### Use Cases
@@ -51,7 +60,7 @@ python train.py --batch-size 16 --epochs 50 --source ./img --device cpu
 python train.py --batch-size 16 --epochs 50 --source ./img --device 0
 
 With external Cache:
-python train.py --batch-size 16 --epochs 50 --source ./img --device cpu
+python train.py --batch-size 16 --epochs 50 --source ./img --device cpu --cache
 
 Use Overdampling:
 python train.py --batch-size 16 --epochs 50 --source ./img --device cpu --oversampling

@@ -1,8 +1,7 @@
 .pytest_cache
 __pycache__
-upload_temporary
-*.db
-.ipynb_checkpoints
+hbmedicalprocessing.egg-info
+
 
 *.aux
 *.glo
