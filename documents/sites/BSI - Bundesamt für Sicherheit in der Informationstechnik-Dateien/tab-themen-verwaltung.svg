@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="35" height="35" version="1.1" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
+ <g transform="matrix(.58888 0 0 .59027 -48.764 -46.502)" fill="none" stroke="#004f80" stroke-width="2.3399">
+  <rect class="st0" x="92.47" y="126.03" width="41.84" height="4.1"/>
+  <rect class="st0" x="96.57" y="121.93" width="33.64" height="4.1"/>
+  <rect class="st0" x="101.09" y="108.8" width="4.1" height="13.13"/>
+  <rect class="st0" x="111.34" y="108.8" width="4.1" height="13.13"/>
+  <rect class="st0" x="121.59" y="108.8" width="4.1" height="13.13"/>
+  <path class="st0" d="m100.68 104.56c0-6.33 5.69-11.45 12.7-11.45 7.02 0 12.7 5.13 12.7 11.45z"/>
+  <rect class="st0" x="113.37" y="82.15" width="6.15" height="6.15"/>
+  <polygon class="st0" points="119.52 90.32 119.52 84.17 125.67 84.17 124.13 87.24 125.67 90.32"/>
+  <path class="st0" d="m113.37 92.95v-12.3z"/>
+  <rect class="st0" x="97.53" y="104.56" width="31.71" height="4.25"/>
+ </g>
+</svg>

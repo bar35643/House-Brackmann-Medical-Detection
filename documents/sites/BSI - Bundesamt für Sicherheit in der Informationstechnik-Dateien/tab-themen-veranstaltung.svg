@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="35" height="35" version="1.1" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <g>
+   <g fill="none" stroke="#004f80">
+    <rect x="3.9351" y="8.6903" width="27.13" height="21.623" rx="4.0406" ry="4.0406" stroke-width="1.3795"/>
+    <path d="m4.0259 15.079h26.948" stroke-width="1.3795"/>
+    <g transform="matrix(1.8126 0 0 2.0649 -.25345 -5.54)" stroke-linecap="round" stroke-width=".71307">
+     <path d="m5.0318 6.4298v1.1634"/>
+     <circle cx="5.0318" cy="8.2044" r=".56696"/>
+     <g transform="translate(4.7625)">
+      <path d="m5.0318 6.4298v1.1634"/>
+      <circle cx="5.0318" cy="8.2044" r=".56696"/>
+     </g>
+     <g transform="translate(9.525)">
+      <path d="m5.0318 6.4298v1.1634"/>
+      <circle cx="5.0318" cy="8.2044" r=".56696"/>
+     </g>
+    </g>
+    <path d="m7.6548 17.901h19.69" stroke-dasharray="5.5181103, 1.3795276" stroke-width="1.3795"/>
+   </g>
+   <text transform="scale(1.0048 .99522)" x="10.555593" y="28.933914" fill="#004f80" font-family="BundesSans" font-size="13.586px" font-weight="500" letter-spacing="0px" word-spacing="0px" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="10.555593" y="28.933914" fill="#004f80" font-family="BundesSans" font-size="13.586px" font-weight="500" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal">26</tspan></text>
+  </g>
+ </g>
+</svg>

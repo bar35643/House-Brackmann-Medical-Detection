@@ -1,0 +1,160 @@
+/* DH IT-Sicherheitskennzeichen - Sicherheitsinformationen Boxen */
+.itsik-box {width:100%; padding:5% 7%; border: solid 2px #f1f2f3; display: table; }
+.itsik-box-links {width: 78%; float: left;}
+.itsik-box-rechts {width:130px; float: right;}
+
+/* DH - Absatz nach Aufzählung oder Bulletpoints */
+ul ul, ol ul, ul ol, ol ol { margin-bottom: 1.5rem;}
+/* DH - Bildvergrößerungen werden bis auf Bühnengröße 998PX vergrößert und zentriert */
+.mfp-inline-holder .mfp-content, .mfp-ajax-holder .mfp-content {
+ max-width: 998px;
+ left: 40%;
+ -webkit-transform: translateX(-30%);
+ -ms-transform: translateX(-30%);
+ transform: translateX(-30%);
+}
+
+/* Bühne im Z-Index hinter Navigation (Bullets) */
+.c-slider { z-index: 0;}
+/* Abstände für Tabellenzeilen verringern */
+.trAbstaende tbody::before {content: '';  display: block;  height: 15px;}
+.trAbstaende td {padding:10px 15px;}
+ 
+/* DH Verfahrensübersicht anpassen - grauer Balken rechts */
+@media only screen and (min-width: 1024px)
+{
+.generictable .c-progress__addition::before { right: 15%;}
+}
+/* DH blockquote im Texbereicht anpassen */
+blockquote p {
+ font-size: 3.4rem;
+ line-height: 1.2;
+ margin: 4.0rem 0;
+}
+/* DH pre-texte korregieren */
+ pre { font-size: 1.6rem; line-height: 1.8rem; margin-bottom: 20px;}
+/* DH Anpassungen an Wortstyle: .grau */
+.grau {background: #efefef; color: #004F80; font-size: 1.8rem;}
+@media only screen and (max-width: 600px) {
+.fragebogen.quiz .picture {
+  width: auto !important;
+}
+}
+/*DG: Warenkorb - formerror*/
+.warenkorb .formError {color: #D0021B; font-size: 130%;}
+
+/*DG: Umfrage Button zurück von rechtem Pfeil auf linken Pfeil gesetzt */
+/* .quiz ~ .row input[value="Zurück"] {
+    border-color: #004F80;
+    background-color: #004F80;
+    background-image: url(/SiteGlobals/Frontend/Images/icons/arrow-left-white.svg?__blob=normal) !important;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    background-position: calc(50% - 40px) calc(50% + 1px);
+    color: #fff;
+    -webkit-transition: .2s ease-in-out;    -o-transition: .2s ease-in-out;        -moz-transition: .2s ease-in-out;
+    transition: .2s ease-in-out;
+}
+*/
+/*DH: Formular-Anpassungen */
+label, .formLabel {font-size: 1.6rem;line-height: 1.6rem;
+}
+/* DH Abstand H2 etwas größer nach oben */
+h2, .h2 {padding-top: 3rem;}
+.l-content-wrapper {margin-bottom: 30px;}
+/* DH: Imagemap-Buttons */
+.bsi_imagemap_kreis:hover > g > path{fill: #74B917; }
+.bsidiagrammsvg:hover {fill-opacity: .75; stroke: #003366; stroke-width: 0.5%;}
+/*   */
+/* DH Fein-Justierungen von Abständen und Schriften */
+/* ********************* */
+.c-teaser__title {padding-bottom: 30px; font-size:1.7rem; line-height: 1.4;}
+.kritis-list { list-style-type: none; }
+@media only screen and (min-width: 600px), print{
+.radio_format .formField > span:last-child {
+  margin-right: 0;
+}
+.radio_format .formField::after {
+  clear: both;
+}
+.radio_format .formField > span {
+  float: left;
+  margin-right: 25px;
+}
+/*Style verhindert den korrekten Style aus dem Frontend für die social media icons im footer. Falls nicht benötigt löschen.*/
+/*.c-follow__link--xing::before {
+content: '';
+display: inline-block;
+position: absolute;
+width: 46px;
+height: 46px;
+background: url("../icons/xing.png") no-repeat;
+background-size: 100%;
+}*/
+
+.c-follow__link--xing:active::before,.c-follow__link--xing:focus::before,.c-follow__link--xing:hover::before {
+  transform: scale(1.2);
+}
+.c-follow__link--twitter:active::before,.c-follow__link--twitter:focus::before,.c-follow__link--twitter:hover::before {
+  transform: scale(1.2);
+}.fragebogen.formBox select {
+  width: 100%;
+}
+.fragebogen.formBox .row .columns:nth-child(2) {
+  margin-top: -15px;
+}
+}
+
+.c-search-box form .formField + .formField,.c-search-box form .formLabel + .formLabel {
+  margin-top: 15px;
+}
+
+div.c-search-result-teaser__link:hover, div.c-search-result-teaser__link:focus, div.c-search-result-teaser__link:active {
+  background: none;
+}
+
+div.c-search-result-teaser__link:hover .c-search-result-teaser__headline, div.c-search-result-teaser__link:focus .c-search-result-teaser__headline, div.c-search-result-teaser__link:active .c-search-result-teaser__headline {
+  text-decoration: none;
+}
+.c-faq__answer .c-link--download {
+  display: inline-block;
+}
+
+.s-acs .c-facet .heading:hover,
+.s-acs .c-facet .heading:hover button,
+.s-acs .c-facet .heading:focus,
+.s-acs .c-facet .heading:focus button,
+.s-acs .c-facet .heading:active,
+.s-acs .c-facet .heading:active button,
+.s-acs .c-facet .heading:focus-within,
+.s-acs .c-facet .heading:focus-within button {
+    color: white;
+}
+.s-acs .c-facet .heading:hover::before,
+.s-acs .c-facet .heading:focus::before,
+.s-acs .c-facet .heading:active::before,
+.s-acs .c-facet .heading:focus-within::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: url(/SiteGlobals/Frontend/Images/icons/sprite.svg?__blob=normal) no-repeat -50px -940px;
+}
+.s-acs .c-facet .heading.active-control::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: url(/SiteGlobals/Frontend/Images/icons/sprite.svg?__blob=normal) no-repeat -926px -300px;
+}
+.c-facet .heading:active:focus,
+.c-facet .heading:focus:focus,
+.c-facet .heading:hover:focus {
+    background-color: #0778A5;
+}
+
+.c-teilnehmer-acs__box p.participant.corner strong {
+font-size: 48px !important;
+}

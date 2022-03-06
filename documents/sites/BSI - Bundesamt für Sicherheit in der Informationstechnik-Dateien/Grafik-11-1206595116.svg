@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="74" height="74" version="1.1" viewBox="0 0 19.579 19.579" xmlns="http://www.w3.org/2000/svg">
+ <g transform="translate(0 -277.42)">
+  <circle cx="9.7896" cy="286.15" r="8.7312" fill="#e5eef8" stroke-width=".37042"/>
+ </g>
+ <g transform="matrix(1.2391 0 0 1.237 24.489 -25.912)" fill="none" stroke-miterlimit="10" stroke-width=".80775">
+  <g stroke="#004f80">
+   <g stroke-width="1.1143">
+    <polygon class="st0" transform="matrix(.26458 0 0 .26458 -40.992 2.3178)" points="98.45 93.68 93.55 98.58 93.55 128 118.61 128 118.61 93.68"/>
+    <polygon class="st0" transform="matrix(.26458 0 0 .26458 -40.992 2.3178)" points="122.71 89.58 122.71 123.9 122.71 89.58 102.55 89.58"/>
+    <polygon class="st0" transform="matrix(.26458 0 0 .26458 -40.992 2.3178)" points="126.81 85.48 126.81 119.8 126.81 85.48 106.65 85.48"/>
+   </g>
+   <g stroke-width=".29483">
+    <path class="st0" d="m-13.978 30.604h3.0242z"/>
+    <path class="st0" d="m-15.005 31.811h4.0508z"/>
+    <path class="st0" d="m-15.005 32.896h4.0508z"/>
+    <path d="m-14.651 27.101v1.5716h-1.5716"/>
+   </g>
+  </g>
+  <polygon class="st0" transform="matrix(.26458 0 0 .26458 -40.992 2.3178)" points="109.65 122.95 113.87 118.73 109.65 122.95 107.54 120.84" stroke="#03b8f2" stroke-width="1.1143"/>
+  <g stroke="#004f80" stroke-width=".29483">
+   <path class="st0" d="m-12.449 29.054h1.4949z"/>
+   <path class="st0" d="m-11.703 28.305v1.4949z"/>
+   <path class="st0" d="m-14.751 35.221v-1.4896z"/>
+   <path class="st0" d="m-13.666 35.221v-1.4896z"/>
+  </g>
+ </g>
+</svg>

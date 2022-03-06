@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="74" height="74" version="1.1" viewBox="0 0 19.579 19.579" xmlns="http://www.w3.org/2000/svg">
+ <g transform="translate(0 -277.42)">
+  <circle cx="9.7896" cy="286.15" r="8.7312" fill="#e5eef8" stroke-width=".37042"/>
+ </g>
+ <g transform="translate(28.144 -13.57)" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width=".365">
+  <rect class="st0" x="-20.981" y="26.066" width="1.0583" height="1.5875" stroke="#004f80"/>
+  <line class="st0" x1="-18.335" x2="-18.335" y1="19.187" y2="21.304" stroke="#03b8f2"/>
+  <rect class="st0" x="-18.864" y="22.891" width="1.0583" height="4.7625" stroke="#004f80"/>
+  <line class="st0" x1="-14.437" x2="-12.604" y1="28.051" y2="29.109" stroke="#03b8f2"/>
+  <rect class="st0" x="-16.747" y="24.479" width="1.0583" height="3.175" stroke="#004f80"/>
+  <line class="st0" x1="-22.229" x2="-24.063" y1="28.051" y2="29.109" stroke="#03b8f2"/>
+  <circle class="st0" cx="-18.335" cy="25.802" r="4.4979" stroke="#004f80"/>
+  <circle class="st0" cx="-18.335" cy="25.802" r="6.6146" stroke="#004f80"/>
+ </g>
+</svg>
