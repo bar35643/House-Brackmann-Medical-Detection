@@ -91,10 +91,6 @@ python detect.py --batch-size 16 --source ./img --device 0 --function-selector h
 
 ###### Start API:
 
-<div align="center">
-   <img src="images/API_Request.png" style="background-color:white; width:100%">
-</div>
-
  ~~~shell
 Get Help for Command Options:
 python app.py -h
@@ -105,20 +101,169 @@ python detect.py --ip 127.0.0.1 --port 8080 --reload --workers 4
 or with Dockerfile/docker-copmpose:
 ~~~
 
+After Starting the Server you can access the Frontend via the ip:port in the Browser. Then you can Drag and Drop or Upload the Folders which should be categorized.
 
-#### Structure of the Image Folder
 
-##### For Detection
+<div align="center">
+   <img src="images/API_Request.png" style="background-color:white; width:100%">
+</div>
 
-.img
-├── ...
-├── docs                    # Documentation files (alternatively `doc`)
-│   ├── TOC.md              # Table of contents
-│   ├── faq.md              # Frequently asked questions
-│   ├── misc.md             # Miscellaneous information
-│   ├── usage.md            # Getting started guide
-│   └── ...                 # etc.
+
+
+### Structure of the Image Folder
+
+<details closed>
+<summary>For Detection</summary>
+
+~~~bash
+./img
+├── FP_Category0
+│   ├── 001                 #Patient 0.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 002                 #Patient 0.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
+├── FP_Category1
+│   ├── 101                 #Patient 1.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 102                 #Patient 1.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
+├── FP_Category2
+│   ├── 201                 #Patient 2.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 202                 #Patient 2.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
 └── ...
+~~~
+</details>
+
+<details closed>
+<summary>For Training</summary>
+
+~~~bash
+./img
+├── FP_Category0
+│   ├── 001                 #Patient 0.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 002                 #Patient 0.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
+├── FP_Category1
+│   ├── 101                 #Patient 1.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 102                 #Patient 1.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
+├── FP_Category2
+│   ├── 201                 #Patient 2.1
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   ├── 202                 #Patient 2.2
+│   │   ├── 01              #Image Code 1
+│   │   ├── 02              #Image Code 2
+│   │   ├── 03              #Image Code 3
+│   │   ├── 04              #Image Code 4
+│   │   ├── 05              #Image Code 5
+│   │   ├── 06              #Image Code 6
+│   │   ├── 07              #Image Code 7
+│   │   ├── 08              #Image Code 8
+│   │   └── 09              #Image Code 9
+│   └── ...                 #Patient ...
+├── FP_Category0.csv        #Csv File includes all Grades for the Folder FP_Category0
+├── FP_Category1.csv        #Csv File includes all Grades for the Folder FP_Category1
+├── FP_Category2.csv        #Csv File includes all Grades for the Folder FP_Category2
+└── ...
+~~~
+</details>
 
 ###### Coding of the Pictures
 1. Resting Face
@@ -143,8 +288,8 @@ or with Dockerfile/docker-copmpose:
 9. Depression Unterlippe
 -->
 
-#### Debug
-<details open>
+## Debug
+<details closed>
 <summary>Linting of all python files for a unified structure look using pylint Package</summary>
 
 Info: [Pylint features](https://docs.pylint.org/en/1.6.0/features.html)
@@ -200,7 +345,7 @@ adding Reason
 
 </details>
 
-<details open>
+<details closed>
 <summary>Unittest of relevant Functions using builtin Python unittest libary and pytest Package</summary>
 
 ~~~shell
@@ -213,7 +358,10 @@ cd source &&  python unit_test.py
 </details>
 
 ## Other
-#### Tools used for the Thesis & Project
+
+<details open>
+<summary>Tools used for the Thesis & Project</summary>
+
 - [atom.io v1.58.0](https://atom.io/)
    1. Included Git-Version-Management
    2. Package [atom-latex v0.9.1](https://atom.io/packages/atom-latex) for building the Thesis
@@ -223,15 +371,17 @@ cd source &&  python unit_test.py
 - Python Packages (look at source/requirements.txt for more informations about)
 - [Inkscape v1.1.2](https://inkscape.org/)
 
+</details>
 
 
-#### Useful Linux commands
-
+<details closed>
+<summary>Useful Linux commands</summary>
 ~~~shell
 Disk Usage: du -h
 Nvidia Gup Performance: watch -n0.5 nvidia-smi
 CPU Performance: htop
 ~~~
+</details>
 
 
 
