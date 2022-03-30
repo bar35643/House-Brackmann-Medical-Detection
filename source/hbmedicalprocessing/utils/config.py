@@ -20,23 +20,31 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 import os
 from pathlib import Path
 import logging
 
+
+#General config Parameters for the Project
+#CHANGEABLE
+LRU_MAX_SIZE=100
+MAX_THREADS=8
+
+IMG_FORMATS = ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo', 'heic']
+WORKDIR = Path('./static/upload_temporary/')
+
+
+#General config Parameters for the Project
+#NOT CHANGEABLE
 FILE = Path(__file__).resolve()
+
+THREADPOOL_NUM_THREADS = min(MAX_THREADS, os.cpu_count())  # number of multiprocessing threads
 
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv("RANK", "-1"))
 WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
 
 LOGGER = logging.getLogger(__name__)
-LOGGING_STATE = logging.INFO
-
-LRU_MAX_SIZE=100
-THREADPOOL_NUM_THREADS = min(8, os.cpu_count())  # number of multiprocessing threads
-
-IMG_FORMATS = ['bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'dng', 'webp', 'mpo', 'heic']
-WORKDIR = Path('static/upload_temporary/')

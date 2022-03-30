@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 import os
@@ -57,7 +58,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
-        self.vallist = np.array([])
+        self.vallist = np.array([0])
 
     def reset(self):
         """
@@ -66,7 +67,7 @@ class AverageMeter():
         self.avg = 0
         self.sum = 0
         self.count = 0
-        self.vallist = np.array([])
+        self.vallist = np.array([0])
 
     def update(self, val, nun=1):
         """
@@ -107,9 +108,8 @@ class Plotting():
         }
 
 
-
+        #Create templates from the convolution matrices
         self.conf_matrix_template = deepcopy(house_brackmann_template)
-
         for i in self.conf_matrix_template:
             len_enum = len(house_brackmann_lookup[i]["enum"])
             self.conf_matrix_template[i] = np.zeros((len_enum, len_enum)) #https://stackoverflow.com/questions/35751306/python-how-to-pad-numpy-array-with-zeros/46115998
@@ -123,7 +123,7 @@ class Plotting():
             "val": deepcopy(self.conf_matrix_template),
         }
 
-
+        #Creating the Averagemeter for train and val and for their loss and accurancy
         self.averagemeter = {
             "train": {
                 "loss": AverageMeter(),
@@ -243,6 +243,7 @@ class Plotting():
 
         :param func: function (str)
         """
+        #Calculate
         train_dict = self.statistics_criteria_calculation("train", self.conf_matrix_epoch["train"][func])
         val_dict = self.statistics_criteria_calculation("val", self.conf_matrix_epoch["val"][func])
 

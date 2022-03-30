@@ -20,7 +20,9 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
+
 import sys
 import os
 import re
@@ -34,13 +36,14 @@ import face_alignment
 from .config import LOGGER, IMG_FORMATS  #pylint: disable=import-error
 from .templates import house_brackmann_template #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
+from .decorators import try_except_none #pylint: disable=import-error
 
 if sys.platform == 'win32': #pylint: disable=import-error #pyheif does not work on Windows. So dummy is import
     from .errorimports import read_heif #pylint: disable=import-error
 if sys.platform == 'linux':
     from pyheif import read_heif #pylint: disable=import-error
 
-
+@try_except_none
 def load_image(path, img_name):
     """
     Loading images in correct Format
@@ -49,6 +52,7 @@ def load_image(path, img_name):
     :param img_name: Name of the Image (str)
     :returns  Image (Image)
     """
+    #TODO add Other Timestamps after Preop T000 for example T001,T002, T003 ... as seperate
     path_list = os.listdir(path)
     matching_folders = [os.path.join(path, s) for s in path_list if ("T000" in s) and ("postop" not in s)]
     LOGGER.debug("Matching Folder list -> %s", matching_folders)
@@ -142,6 +146,7 @@ class Cutter():
         Flip images to correct Rotation
 
         :param image: input Image (Image)
+        :param dyn_factor: Factor for resize (int)
         :returns  landmarks and cropped image (array, Image)
         """
          #try to flip image if exif tag is available see https://pillow.readthedocs.io/en/stable/reference/ImageOps.html
@@ -229,7 +234,8 @@ class Cutter():
         """
         Cutter Module for the Symmetry. Cropping the input image to the Specs.
 
-        :param path: input path
+        :param path: input path (str)
+        :param img_name: name of the image (str)
         :returns  cropped image
         """
         img = load_image(path, img_name)
@@ -245,7 +251,8 @@ class Cutter():
         """
         Cutter Module for the Eye. Cropping the input image to the Specs.
 
-        :param path: input path
+        :param path: input path (str)
+        :param img_name: name of the image (str)
         :returns  cropped image
         """
         img = load_image(path, img_name)
@@ -292,7 +299,8 @@ class Cutter():
         """
         Cutter Module for the Mouth. Cropping the input image to the Specs.
 
-        :param path: input path
+        :param path: input path (str)
+        :param img_name: name of the image (str)
         :returns  cropped image
         """
         img = load_image(path, img_name)
@@ -319,7 +327,8 @@ class Cutter():
         """
         Cutter Module for the Forehead. Cropping the input image to the Specs.
 
-        :param path: input path
+        :param path: input path (str)
+        :param img_name: name of the image (str)
         :returns  cropped image
         """
         img = load_image(path, img_name)

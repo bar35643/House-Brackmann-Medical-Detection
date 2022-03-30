@@ -4,31 +4,19 @@
 
 
 
-# DE: Graduierung von Fazialisparesen durch Methoden des Maschinellen Lernens v0.1.0
+# DE: Graduierung von Fazialisparesen durch Methoden des Maschinellen Lernens v1.0.0
 
-##### EN: Grading of Facial Palsy by Machine Learning methods v0.1.0
+# EN: Grading of Facial Palsy by Machine Learning methods v1.0.0
 
-
-## Thesis TODO and INFOS
-- Until final Date
-   1. generate Poster
-- FINAL DATE (2x Thesis with CD)
-   1. PDF of Thesis
-   2. Teaser Picture
-   3. Copy of Pages where i citate from (document/docs or document/ePaper)
-   4. images (document/thesis/images)
-   5. Source Code (copy of gitlab repro)
-- Use Vector graphics
-- UML Diagrams (sequence diagram, ...)
 
 ## Project
 
 #### Install
 clone Repository and install Dependencies  
 or  
-let the Project update all Dependencies automatic if already a version is installed
+let the Project update all Dependencies automatic if already a version of the requirements is installed
 ~~~bash
-git clone ???
+git clone <html path>
 pip install -r source/hbmedicalprocessing/requirements.txt
 ~~~
 
@@ -70,7 +58,6 @@ python train.py --batch-size 16 --epochs 50 --source ./img --device cpu --val-sp
 python train.py --batch-size 16 --epochs 50 --source ./img --device cpu --train-split 0.25
 python train.py --batch-size 16 --epochs 50 --source ./img --device cpu --train-split 0.25 --val-split 0.25
 
-python detect.py --batch-size 16 --source ./img --device 0
 ~~~
 
 ###### Start Detection:
@@ -134,7 +121,7 @@ Get Help for Command Options:
 python app.py -h
 
 STD:
-python detect.py --ip 127.0.0.1 --port 8080 --reload --workers 4
+python app.py --ip 127.0.0.1 --port 8080 --workers 4
 
 or with Dockerfile/docker-copmpose on linux:
 
@@ -151,6 +138,14 @@ After Starting the Server you can access the Frontend via the ip:port in the Bro
 </div>
 
 
+###### Using Jupyter Lab:
+
+~~~shell
+cd soure/hbmedicalprocessing
+pip install jupyterlab && jupyter lab
+~~~
+
+Look at/open tutorial.ipynb file
 
 ### Structure of the Image Folder
 
@@ -160,70 +155,70 @@ After Starting the Server you can access the Frontend via the ip:port in the Bro
 ~~~bash
 ./img
 ├── FP_Category0
-│   ├── 001                 #Patient 0.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 002                 #Patient 0.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 001       #Folder Patient 0.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 002       #Folder Patient 0.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 ├── FP_Category1
-│   ├── 101                 #Patient 1.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 102                 #Patient 1.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 101       #Folder Patient 1.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 102       #Folder Patient 1.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 ├── FP_Category2
-│   ├── 201                 #Patient 2.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 202                 #Patient 2.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 201       #Folder Patient 2.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 202       #Folder Patient 2.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 └── ...
 ~~~
@@ -235,70 +230,70 @@ After Starting the Server you can access the Frontend via the ip:port in the Bro
 ~~~bash
 ./img
 ├── FP_Category0
-│   ├── 001                 #Patient 0.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 002                 #Patient 0.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 001       #Folder Patient 0.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 002       #Folder Patient 0.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 ├── FP_Category1
-│   ├── 101                 #Patient 1.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 102                 #Patient 1.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 101       #Folder Patient 1.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 102       #Folder Patient 1.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 ├── FP_Category2
-│   ├── 201                 #Patient 2.1
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
-│   ├── 202                 #Patient 2.2
-│   │   ├── 01              #Image Code 1
-│   │   ├── 02              #Image Code 2
-│   │   ├── 03              #Image Code 3
-│   │   ├── 04              #Image Code 4
-│   │   ├── 05              #Image Code 5
-│   │   ├── 06              #Image Code 6
-│   │   ├── 07              #Image Code 7
-│   │   ├── 08              #Image Code 8
-│   │   └── 09              #Image Code 9
+│   ├── 201       #Folder Patient 2.1
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
+│   ├── 202       #Folder Patient 2.2
+│   │   ├── 01.jpg              #Image Code 1
+│   │   ├── 02.jpg              #Image Code 2
+│   │   ├── 03.jpg              #Image Code 3
+│   │   ├── 04.jpg              #Image Code 4
+│   │   ├── 05.jpg              #Image Code 5
+│   │   ├── 06.jpg              #Image Code 6
+│   │   ├── 07.jpg              #Image Code 7
+│   │   ├── 08.jpg              #Image Code 8
+│   │   └── 09.jpg              #Image Code 9
 │   └── ...                 #Patient ...
 ├── FP_Category0.csv        #Csv File includes all Grades for the Folder FP_Category0
 ├── FP_Category1.csv        #Csv File includes all Grades for the Folder FP_Category1
@@ -337,7 +332,7 @@ After Starting the Server you can access the Frontend via the ip:port in the Bro
 Info: [Pylint features](https://docs.pylint.org/en/1.6.0/features.html)
 
 ~~~shell
-pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=180 --max-attributes=10 --max-args=10 --max-locals=20
+pylint source --extension-pkg-whitelist=torch --generated-members=numpy,torch --max-line-length=180 --max-attributes=10 --max-args=10 --max-locals=20 -d wrong-import-position,R0801
 ~~~
 <!---
 adding Reason
@@ -391,11 +386,11 @@ adding Reason
 <summary>Unittest of relevant Functions using builtin Python unittest libary and pytest Package</summary>
 
 ~~~shell
-pytest source/unit_test.py --color=no
+pytest source --color=no
 
 or
 
-cd source &&  python unit_test.py
+cd source/hbmedicalprocessing &&  python unit_test.py
 ~~~
 </details>
 
@@ -410,7 +405,7 @@ cd source &&  python unit_test.py
    3. Package [language-latex v1.2.0](https://atom.io/packages/language-latex) for syntax highliting
    4. Package [platformio-ide-terminal v2.10.1](https://atom.io/packages/platformio-ide-terminal) Terminal access
 - [Python v3.8.6](https://www.python.org/)
-- Python Packages (look at source/requirements.txt for more informations about)
+- Python Packages (look at source/hbmedicalprocessing/requirements.txt for more informations about)
 - [Inkscape v1.1.2](https://inkscape.org/)
 
 </details>
@@ -418,11 +413,13 @@ cd source &&  python unit_test.py
 
 <details closed>
 <summary>Useful Linux commands</summary>
+
 ~~~shell
 Disk Usage: du -h
 Nvidia Gup Performance: watch -n0.5 nvidia-smi
 CPU Performance: htop
 ~~~
+
 </details>
 
 
@@ -471,21 +468,21 @@ CPU Performance: htop
 - [ ] num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 1, workers]) maybe Issue with Windows [?? Solution](https://github.com/pytorch/vision/issues/689)
 - [x] Caching Images via SQLite3
 - [x] Optimizing Code via Numba and Lru-Cache especially frequently used functions and with [memoization](https://github.com/lonelyenvoy/python-memoization)
-- [ ] Plotting Results from training/validation
+- [x] Plotting Results from training/validation
    1. [x] Class for Plotting
    2. [x] for each Category of HB
    3. [x] loss, accurancy (AverageMeter --> To Plotting Class)
    4. [x] [confusion matrix](https://deeplizard.com/learn/video/0LhiS6yu2qQ)
    5. [x] [precison/recall](https://builtin.com/data-science/precision-and-recall)
-- [ ] Linting and Unittests
+- [x] Linting and Unittests
    1. [x] Linting Code and write all #pylint: disable to a list
-   2. [ ] Write Unittest code for all relevant Functions
+   2. [x] Write Unittest code for all relevant Functions
 - [x] Adding & Checking Docstring's in all files and functions
    1. [x] Header Docstring (Author, file name, License)
    2. [x] Function Docstring
-- [ ] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
-- [ ] API Access via docker-compose/Dockerfile and FastAPI
+- [x] [Python Package generation](https://packaging.python.org/tutorials/packaging-projects/)
+- [x] API Access via docker-compose/Dockerfile and FastAPI direct
 - [x] Add License (e.g. GNU General Public License v3.0)
-- [ ] Jupyter lab for vizualizing training and testing as tutorial
+- [x] Jupyter lab for vizualizing training and testing as tutorial
 - [ ] [Tips](https://towardsdatascience.com/7-tips-for-squeezing-maximum-performance-from-pytorch-ca4a40951259)
 </details>

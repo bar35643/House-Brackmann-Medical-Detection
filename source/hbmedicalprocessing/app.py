@@ -20,10 +20,11 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
+
 import os
 import sys
-import os.path
 #import asyncio
 #import datetime
 import argparse
@@ -92,6 +93,7 @@ async def run_detect(files: List[UploadFile] = File(...)):
         workspace = create_workspace()
         LOGGER.debug("%sCreate Workspace %s", PREFIX, workspace)
 
+        #write all files into the workspace folder
         for file in files:
             # print(file.filename)
             file_name = Path(file.filename)
@@ -103,9 +105,8 @@ async def run_detect(files: List[UploadFile] = File(...)):
                 contents = await file.read()
                 myfile.write(contents)
 
-        print(workspace)
 
-        # Do Operation
+        # Do Operation Detection
         try:
             LOGGER.debug("%sRun Detection...", PREFIX)
             ret_val = dt.run(weights="models",
@@ -120,6 +121,7 @@ async def run_detect(files: List[UploadFile] = File(...)):
             ret_val = {"errorcode": str(err)}
             LOGGER.debug("%sError: %s", PREFIX, ret_val)
 
+        #Delete Workspace
         delete_folder_content(workspace)
         os.rmdir(workspace)
         LOGGER.debug("%sDeleted Workspace %s", PREFIX, workspace)
@@ -138,18 +140,13 @@ def parse_opt():
     Command line Parser Options see >> python detect.py -h for more about
     """
     parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
-    parser.add_argument("--ip", type=str, default="127.0.0.1",
-                        help="corresponding IP")
-    parser.add_argument("--port", type=int, default=8000,
-                        help="corresponding Port")
-
-    parser.add_argument("--device", default="cpu",
-                        help="Device for Processing gpu or cpu")
-    parser.add_argument("--reload", action="store_true",
-                        help="Reload if Files Changes")
-    parser.add_argument("--workers", type=int, default=4,
-                        help="Number of worker processes")
-    parser.add_argument("--log", action="store_true", help="activates log")
+    parser.add_argument("--ip", type=str, default="127.0.0.1", help="corresponding IP")
+    parser.add_argument("--port", type=int, default=8000     , help="corresponding Port")
+    parser.add_argument("--device", default="cpu"            , help="Device for Processing gpu or cpu")
+    parser.add_argument("--reload", action="store_true"      , help="Reload if Files Changes")
+    parser.add_argument("--workers", type=int, default=4     , help="Number of worker processes")
+    parser.add_argument("--log", action="store_true"         , help="activates log")
+    parser.add_argument("--debug", action="store_true"       , help="activates debug logging")
     return parser.parse_args()
 
 if __name__ == "__main__":

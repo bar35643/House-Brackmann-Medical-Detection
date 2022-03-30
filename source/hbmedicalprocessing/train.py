@@ -20,7 +20,9 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
+
 import argparse
 import os
 import sys
@@ -72,7 +74,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
         # workers=8,
         device="cpu",
         nosave=False,
-        project="../results/train",
+        project="../../results/train",
         name="run",
         epochs=100,
         oversampling=False):
@@ -128,8 +130,8 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Training all Functions-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
     #Iterate over all modules
     for selected_module in house_brackmann_lookup:
-        if selected_module != "hb_direct":
-            continue
+        # if selected_module != "hb_direct":
+        #     continue
 
         LOGGER.info("%sTraining %s. Using Batch-Size %s and Logging results to %s. Starting training for %s epochs...", PREFIX, selected_module, batch_size, save_dir, epochs)
 
@@ -138,7 +140,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
         best = os.path.join(model_save_dir, selected_module+"_best.pt")
 
         #Loading the Model and selecting mode
-        model = load_model(weights, selected_module)
+        model = load_model(weights, device, selected_module)
         model = select_data_parallel_mode(model, cuda).to(device, non_blocking=True)
 
         #Model infos
@@ -296,7 +298,7 @@ def parse_opt():
     parser = argparse.ArgumentParser(formatter_class=SmartFormatter)
     parser.add_argument("--weights", type=str, default="models",
                         help="model folder")
-    parser.add_argument("--source", type=str, default="../test_data",
+    parser.add_argument("--source", type=str, default="../../test_data",
                         help="file/dir")
     parser.add_argument("--config", "--cfg", type=str, default="./models/hyp.yaml",
                         help="path to hyperparamer file")
@@ -324,7 +326,7 @@ def parse_opt():
                         help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--nosave", action="store_true",
                         help="do not save if activated")
-    parser.add_argument("--project", default="../results/train",
+    parser.add_argument("--project", default="../../results/train",
                         help="save results to project/name")
     parser.add_argument("--name", default="run",
                         help="save results to project/name")
@@ -333,6 +335,7 @@ def parse_opt():
     parser.add_argument("--oversampling", action="store_true",
                         help="do activate oversampling")
     parser.add_argument("--log", action="store_true", help="activates log")
+    parser.add_argument("--debug", action="store_true", help="activates debug logging")
     return parser.parse_args()
 
 if __name__ == "__main__":

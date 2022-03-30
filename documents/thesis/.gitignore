@@ -1,3 +1,5 @@
+svg-inkscape
+
 *.aux
 *.fls
 *.glo
@@ -24,7 +26,6 @@
 *.synctex.gz
 *bcf
 *.fdb_latexmk
-*.pdf
 *.dvi
 *.brf
 *.bak

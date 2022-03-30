@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 import argparse
@@ -27,6 +28,8 @@ import argparse
 def restricted_val_split(inp):
     """
     argparse multicasting input Value
+
+    Alowwing only Variables with the Value: None, int or float in Intervall [0.0, 1.0]
 
     :param inp: input data (str)
     :returns Formatted inp (int, float, NoneType)
@@ -50,6 +53,8 @@ class SmartFormatter(argparse.HelpFormatter):
     """
     Source:
     https://stackoverflow.com/questions/3853722/how-to-insert-newlines-on-argparse-help-text
+
+    Fixing the issues of line length from the argparse
     """
     def _split_lines(self, text, width):
         """

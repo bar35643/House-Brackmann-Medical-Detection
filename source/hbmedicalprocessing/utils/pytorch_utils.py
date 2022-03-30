@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 import os
@@ -110,11 +111,12 @@ def select_data_parallel_mode(model, cuda: bool):
 
     return model
 
-def load_model(pth_to_weights, func):
+def load_model(pth_to_weights, device, func):
     """
     Selecting Cuda/Cpu devices
 
     :param pth_to_weights:  Path to weights (str)
+    :param device: device (torch.device)
     :param func: function name (str)
     :returns: model
     """
@@ -124,7 +126,7 @@ def load_model(pth_to_weights, func):
         LOGGER.debug("Using Pretrained model at Path %s", pth)
 
         model = house_brackmann_lookup[func]["model"]
-        ckpt = torch.load(pth)  # load checkpoint
+        ckpt = torch.load(pth, map_location=device)  # load checkpoint
         model.load_state_dict(ckpt["model"], strict=False)  # load
         model.float()
     else:
@@ -261,26 +263,30 @@ scheduler_list = {
 
 def select_optimizer_and_scheduler(yml_hyp, neural_net, epoch):
     """
-    Database functions to convert np.array to entry
+    Selecting optimizer and scheduler from the hyp file
+
     :param yml_hyp: Loaded YAML Config (dict)
     :param neural_net: model (model)
     :param epoch: Epochs (int)
     :return: scheduler, optimizer
     """
+
+    #selecting the optimizer from the list above
     item, param = list(yml_hyp['optimizer'].keys())[0], list(yml_hyp['optimizer'].values())[0]
     optimizer = optimizer_list[item](neural_net.parameters(), **param)
 
-
+    #generate a list of all schedulers inside ot the file
     scheduler_aray = []
     for i in yml_hyp['scheduler']:
+        #selecting the scheduler from the list above
         item, param = list(i.keys())[0], list(i.values())[0]
         scheduler_aray.append(   scheduler_list[item](optimizer, **param)   )
 
 
-    if len(scheduler_aray) == 1:
+    if len(scheduler_aray) == 1: #Shortcut if only one scheduler is available
         return scheduler_aray[0], optimizer
 
-    if yml_hyp['sequential_scheduler']:
+    if yml_hyp['sequential_scheduler']: #Decider if chaining all schedulers to one or do them sequential
         length = len(scheduler_aray)
         milestone_size = epoch/length
         scheduler = lr_scheduler.SequentialLR(optimizer,

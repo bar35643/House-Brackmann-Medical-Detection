@@ -20,7 +20,9 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
+
 import argparse
 import time
 import timeit
@@ -101,17 +103,19 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
         i_name, img_struct = item_struct
         results = init_dict(house_brackmann_template, [])
         for selected_function in fn_ptr:
-            model = load_model(weights, selected_function) #Load Model
+            model = load_model(weights, device, selected_function) #Load Model
             model.eval()
 
+            #Half precision if Activated
             if half:
                 model.half()  # to FP16
 
             img = img_struct[selected_function]
             img = (img.half() if half else img.float()) # uint8 to fp16/32
 
+            #do Prediction
             pred = model(img.to(device)) #Predict image
-            results[selected_function] = pred.cpu().numpy()# COnvert Prediction to Numpy Array
+            results[selected_function] = pred.cpu().numpy()# Convert Prediction to Numpy Array
 
         LOGGER.debug("%sMINIBATCH --> Batch-Nr=%s, names=%s, resuts=%s", PREFIX, batch, i_name, results)
 
@@ -147,7 +151,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
                 del tmp["hb_direct"]
 
 
-                # Convert Class to Label
+                # Convert Class to Label if activated
                 if convert:
                     tmp["symmetry"]       = get_key_from_dict(house_brackmann_lookup["symmetry"]["enum"] , tmp["symmetry"])
                     tmp["eye"]            = get_key_from_dict(house_brackmann_lookup["eye"]["enum"]      , tmp["eye"])
@@ -159,7 +163,7 @@ def run(weights="models", #pylint: disable=too-many-arguments, too-many-locals, 
                 result_list[name] = tmp
                 LOGGER.debug("%sResults for %s:", PREFIX, name, result_list[name])
                 del tmp
-        else:
+        else: #only for the selected modules
             for idx, name in enumerate(i_name):
                 tmp = deepcopy(house_brackmann_template)
                 for func in results:
@@ -198,7 +202,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="models",
                         help="model folder")
-    parser.add_argument("--source", type=str, default="../test_data",
+    parser.add_argument("--source", type=str, default="../../test_data",
                         help="file/dir")
     parser.add_argument("--batch-size", type=int, default=1,
                         help="total batch size for all GPUs")
@@ -211,6 +215,7 @@ def parse_opt():
     parser.add_argument("--convert", action="store_true",
                         help="convert the Classes to their Labels")
     parser.add_argument("--log", action="store_true", help="activates log")
+    parser.add_argument("--debug", action="store_true", help="activates debug logging")
     return parser.parse_args()
 
 if __name__ == "__main__":

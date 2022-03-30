@@ -20,7 +20,9 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
+
 from torch import nn
 from torchvision.models import resnet18
 
@@ -37,7 +39,7 @@ model_2_label.conv1 = nn.Conv2d(27, model_2_label.conv1.out_channels,
                             stride=model_2_label.conv1.stride,
                             padding=model_2_label.conv1.padding,
                             bias=model_2_label.conv1.bias)
-model_2_label.fc = nn.Linear(model_2_label.fc.in_features, 2)
+model_2_label.fc = nn.Linear(model_2_label.fc.in_features, 2) #2 classes
 
 model_3_label = resnet18(pretrained=True)
 model_3_label.conv1 = nn.Conv2d(27, model_3_label.conv1.out_channels,
@@ -45,7 +47,7 @@ model_3_label.conv1 = nn.Conv2d(27, model_3_label.conv1.out_channels,
                             stride=model_3_label.conv1.stride,
                             padding=model_3_label.conv1.padding,
                             bias=model_3_label.conv1.bias)
-model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3)
+model_3_label.fc = nn.Linear(model_3_label.fc.in_features, 3) #3 classes
 
 model_4_label = resnet18(pretrained=True)
 model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
@@ -53,7 +55,7 @@ model_4_label.conv1 = nn.Conv2d(27, model_4_label.conv1.out_channels,
                             stride=model_4_label.conv1.stride,
                             padding=model_4_label.conv1.padding,
                             bias=model_4_label.conv1.bias)
-model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4)
+model_4_label.fc = nn.Linear(model_4_label.fc.in_features, 4) #4 classes
 
 special = resnet18(pretrained=True)
 special.conv1 = nn.Conv2d(27, special.conv1.out_channels,
@@ -61,12 +63,12 @@ special.conv1 = nn.Conv2d(27, special.conv1.out_channels,
                             stride=special.conv1.stride,
                             padding=special.conv1.padding,
                             bias=special.conv1.bias)
-special.fc = nn.Linear(special.fc.in_features, 6)
+special.fc = nn.Linear(special.fc.in_features, 6) #6 classes
 
 
 
 #Lookuptable for the modules
-#Enum reprenentates the correlation between nabe and a Number
+#Enum reprenentates the correlation between label and a Number
 #model is the representaing Neural Net
 house_brackmann_lookup = {
     "symmetry": {

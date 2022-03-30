@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 #⚠️ 🚀
@@ -39,9 +40,9 @@ import pkg_resources as pkg
 
 import torch
 
-from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, LOGGING_STATE, WORKDIR #pylint: disable=import-error
+from .config import LOGGER, LOCAL_RANK, RANK, WORLD_SIZE, WORKDIR #pylint: disable=import-error
 from .pytorch_utils import is_process_group #pylint: disable=import-error
-from .decorators import try_except #pylint: disable=import-error
+from .decorators import try_except, try_except_none #pylint: disable=import-error
 from .singleton import Singleton #pylint: disable=import-error
 
 
@@ -57,6 +58,7 @@ class OptArgs():
         """
         self.args = None
         self.log = False
+        self.debug = False
     def get_arg_from_key(self, key):
         """
         Setting the value
@@ -71,7 +73,9 @@ class OptArgs():
         """
         self.args = args
         self.log = args["log"]
+        self.debug = args["debug"]
         del args["log"]
+        del args["debug"]
 
 def set_logging(prefix):
     """
@@ -90,8 +94,10 @@ def set_logging(prefix):
     else:
         handlers = [logging.StreamHandler()]
 
+    logging_state = logging.DEBUG if OptArgs.instance().debug else logging.INFO #pylint: disable=no-member
+
     logging.basicConfig(
-        level=LOGGING_STATE,
+        level=logging_state,
         format=format,
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=handlers)
@@ -114,7 +120,7 @@ def merge_two_dicts(dict1, dict2):
     merges two dictionary
     :param dict1: Dictionary 1 (dict)
     :param dict2: Dictionary 2 (dict)
-    :return dict
+    :return res_dict (dict)
     """
     res_dict = dict1.copy()   # start with keys and values of dict1
     res_dict.update(dict2)    # modifies res_dict with keys and values of dict2
@@ -251,6 +257,11 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
     """
      Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
+    :param path:  Path to folder (str)
+    :param exist_ok: Allow reuse folder (bool)
+    :param sep: Seperator (str)
+    :param mkdir: Activates create folder (bool)
+    :return path to folder (Path)
     Source:
         Project: yolov5
         License: GNU GPL v3
@@ -272,7 +283,7 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
         dir_0.mkdir(parents=True, exist_ok=True)  # make directory
     return path
 
-
+@try_except
 def delete_folder_content(xdir):
     """
     Delete everything inside a folder
@@ -286,6 +297,7 @@ def delete_folder_content(xdir):
         for name in xdirs:
             os.rmdir(os.path.join(root, name))
 
+@try_except_none
 def create_workspace():
     """
     Return workspace path
@@ -296,6 +308,6 @@ def create_workspace():
     request_id = Path(str(uuid.uuid4())[:32])
     # path concat instead of work_dir + '/' + request_id
     workspace = WORKDIR / request_id
-    if not os.path.exists(workspace):
+    if not os.path.exists(str(workspace)):
         os.makedirs(workspace)
     return workspace

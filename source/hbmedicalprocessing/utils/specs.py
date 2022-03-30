@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 from pathlib import Path
@@ -167,6 +168,9 @@ sgd = {'SGD':{'lr': number(),
               'weight_decay': number(),
               'nesterov': bool()}  }
 
+
+
+
 #List of used Augmentations  written down as Dictionarys with their
 #allowed Values for crosschecking input config file
 hyperparameter = {required('imgsz'):{
@@ -202,6 +206,8 @@ hyperparameter = {required('imgsz'):{
 
 
 
+
+
 def validate_yaml_config(inp):
     """
     This function validates the input to a spec
@@ -229,7 +235,7 @@ def validate_yaml_config(inp):
 
 def validate_file(hyp:str):
     """
-    This function validates the input to a spec
+    This function validates the input to a spec from a file
 
     :param hyp: path to File (str)
     :return loaded YAML config as Dictionary (Dict)

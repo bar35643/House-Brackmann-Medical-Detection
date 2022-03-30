@@ -20,10 +20,8 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
-
-
-
 
 import os
 import csv
@@ -60,7 +58,7 @@ class BatchSettings():
         """
         Initializes the class
         :param augmentation: (bool)
-        :param func: (str)
+        :param hyp: dict
         """
         self.augmentation = False
         self.hyp = None
@@ -74,13 +72,13 @@ class BatchSettings():
 
     def train(self):
         """
-        Set the augmentation to False
+        Set the augmentation to True
         """
         self.augmentation = True
 
     def eval(self):
         """
-        Set the augmentation to True
+        Set the augmentation to False
         """
         self.augmentation = False
     def get_augmentation(self):
@@ -100,9 +98,10 @@ def transform_resize_and_to_tensor(img, idx):
     Resize images and Transform images to Tensor
 
     :param img: Image input (Image)
+    :param idx: module name (str)
     :return Transformed Image as Tensor (Tensor)
     """
-
+    #Default value if hyp file not available
     imgsz = {"symmetry": [640, 640],
              "eye": [420, 500],
              "mouth": [640, 420],
@@ -147,7 +146,6 @@ def get_list_patients(source_path: str):
     if not list_patients: #if everything is empty asumme that this is only a single Patient
         list_patients = [source_path]
 
-    #TODO add Other Timestamps after Preop T000 for example T001,T002, T003 ...
     assert list_patients, "Failture no single Patient, Subcategory or all Categories with Patients included given!"
     list_patients.sort()
     return list_patients
@@ -192,6 +190,8 @@ class LoadImages(Dataset):
         self.cutter_class.set(device, self.prefix_for_log)
 
         #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Caching Data-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #Writing all cutted images for all modules in to the database for faster acess
+        #TODO only cache Landmarks --> smaller eintries and size
         if cache:
             self.database = Database.instance() #pylint: disable=no-member
             self.database.set("cache.db", self.prefix_for_log)
@@ -229,7 +229,7 @@ class LoadImages(Dataset):
         """
         do Augmentation
 
-        :param img: Tensor (Tensor)
+        :param img_tensor: Tensor (Tensor)
         :return Transformed Tensor (Tensor)
 
         Info:
@@ -273,7 +273,7 @@ class LoadImages(Dataset):
         Get structures from index
 
         :param idx: Index (int)
-        :return  struct_img, struct_img_inv  (struct, struct_inv)
+        :return  struct_img  (struct)
         """
         path = self.list_patients[idx]
         func_list = self.cutter_class.cut_wrapper()
@@ -298,12 +298,13 @@ class LoadImages(Dataset):
         Get item operator for retrive one item from the given set
 
         :param idx: Index (int)
-        :return  path, struct_img, struct_img_inv  (str, struct, struct_inv)
+        :return  path, struct_img  (str, struct)
         """
         path = self.list_patients[idx]
 
         struct_img = self.database.get_db_one(self.table, idx)[1] if self.database else self.get_structs(idx)
 
+        #Calculate augmentaton for all images seperate and concatenate them
         struct_img_aug = deepcopy(house_brackmann_template)
         for i in struct_img:
             struct_img_aug[i] = torch.cat(  [self.augmentation(j) for j in struct_img[i]]  )
@@ -339,7 +340,7 @@ class CreateDataset(Dataset):
         #-#-#-#-#-#-#-#-#-#-#-#-##Gather Labels from the csv Files-#-#--#-#-#-#-#-#-#-#-#
         self.labels = []
         listdir = [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
-        #listdir.pop(-1) #Errorfix Activate when using jupyterlab!
+        #listdir.pop(-1) #Errorfix Activate when using jupyterlab or see which folder needs to be removed!
 
         LOGGER.info("%sCSV Files: %s", self.prefix_for_log, listdir)
 
@@ -365,12 +366,12 @@ class CreateDataset(Dataset):
         LOGGER.info("%sCounter of Grade: %s", self.prefix_for_log, count)
         for i in count:
             for func in struct_tmp:
-                if func == "hb_direct":
+                if func == "hb_direct": #Not needed
                     continue
                 struct_tmp[func].extend(repeat(   house_brackmann_grading[  list(house_brackmann_grading)[int(i) -1]  ][func]  , count[i]  ))
 
         for j in struct_tmp:
-            if j == "hb_direct":
+            if j == "hb_direct":  #Not needed
                 continue
             sub_count = Counter(struct_tmp[j])
             label_count = [0] * len(house_brackmann_lookup[j]["enum"])
@@ -387,7 +388,7 @@ class CreateDataset(Dataset):
         Get item operator for retrive one item from the given set
 
         :param idx: Index (int)
-        :return  struct_img, struct_label  (struct, struct)
+        :return  path, struct_img, struct_label  (str, struct, struct)
         """
 
         path, struct_img = self.images[idx]
@@ -412,7 +413,7 @@ class CreateDataset(Dataset):
         :returns label (int)
         """
         tmp = list(house_brackmann_grading)[int(self.labels[idx][1]) -1]
-        if func == "hb_direct":
+        if func == "hb_direct": #hb_direct returns the grade
             return house_brackmann_lookup[func]["enum"][tmp]
         grade_table = house_brackmann_grading[tmp]
         hb_single = house_brackmann_lookup[func]["enum"]
@@ -458,6 +459,12 @@ class ImbalancedDatasetSampler(tdata.sampler.Sampler):
     """
 
     def __init__(self, dataset, func): #pylint: disable=super-init-not-called
+        """
+        initializes ImbalancedDatasetSampler
+
+        :param dataset: Dataset
+        :param func: Selected Function/Module
+        """
         self.indices = list(range(len(dataset)))
         self.num_samples = len(self.indices)
         self.func = func
@@ -468,6 +475,7 @@ class ImbalancedDatasetSampler(tdata.sampler.Sampler):
         dataframe.index = self.indices
         dataframe = dataframe.sort_index()
 
+        #Calculate weights
         label_to_count = dataframe["label"].value_counts()
         weights = 1.0 / label_to_count[dataframe["label"]]
         self.weights = torch.DoubleTensor(weights.to_list())
@@ -515,6 +523,7 @@ class CreateDataloader(): #pylint: disable=too-few-public-methods
         :param batch_size: Batch Size (int)
         :param val_split: Factor for splitting (float, int, None)
         :param train_split: Factor for splitting (float, int, None)
+        :param oversampling: Activates OVersampler with ImbalancedDatasetSampler Class (bool)
         """
         prefix_for_log="Setup Train & Validation Data: "
 

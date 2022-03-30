@@ -20,6 +20,7 @@
 #
 # Changelog:
 # - 2021-12-15 Initial (~Raphael Baumann)
+# - 2022-03-12 Final Version 1.0.0 (~Raphael Baumann)
 """
 
 import os
@@ -138,6 +139,8 @@ class Database():
         """
         inserting item in the table and commit it to database
         :param table: Inserting item in Table
+        :param params: parameter to insert
+        :param param_question:  Count of parameter to (?, ?, ...)
         """
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO "+table+" VALUES " + param_question ,params)
