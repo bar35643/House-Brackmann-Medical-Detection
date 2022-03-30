@@ -16,7 +16,7 @@ clone Repository and install Dependencies
 or  
 let the Project update all Dependencies automatic if already a version of the requirements is installed
 ~~~bash
-git clone <html path>
+git clone https://github.com/bar35643/House-Brackmann-Medical-Detection
 pip install -r source/hbmedicalprocessing/requirements.txt
 ~~~
 
@@ -486,3 +486,17 @@ CPU Performance: htop
 - [x] Jupyter lab for vizualizing training and testing as tutorial
 - [ ] [Tips](https://towardsdatascience.com/7-tips-for-squeezing-maximum-performance-from-pytorch-ca4a40951259)
 </details>
+
+
+## Citation
+
+```
+@MISC {raphaelbaumann2022,
+    author   = "Raphael Baumann",
+    title    = "Graduierung von Fazialisparesen durch Methoden des Maschinellen Lernens",
+    year     = "2022",
+    crossref = "https://github.com/bar35643/House-Brackmann-Medical-Detection",
+    note     = "DE: Die Entwichlung eines Aufbaus zur Modularen Graduierung von Fazialisparesen anhand der House-Brackmann Skala.
+                EN: The development of a structure for the modular grading of facial paralysis using the House-Brackmann scale."
+}
+```
